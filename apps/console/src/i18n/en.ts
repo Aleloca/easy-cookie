@@ -259,6 +259,7 @@ const en: Dict = {
     addCategory: 'Add category',
     newCategoryId: 'New category ID',
     removeCategory: (id: string) => `Remove category ${id}`,
+    categoryHidden: 'Not shown in the banner or the policy: no service uses it. It appears as soon as you add one.',
     categoryUsedBy: (list: string) => `Used by services: ${list}. Move them before removing it.`,
     idInvalid: 'Use letters, digits, _ and -, starting with a letter.',
     idTaken: 'ID already used.',

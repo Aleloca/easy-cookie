@@ -6,6 +6,8 @@ import { loadDotEnv } from './env.js';
 import { createAdmin } from './services/admins.js';
 import { csvHeader, csvRow, iterateConsents, serializeRecord } from './services/consents.js';
 import { createSite, parseSiteInput } from './services/sites.js';
+import { importConsents } from './services/import.js';
+import { readFile } from 'node:fs/promises';
 
 const USAGE = `easy-cookie-server <command>
 
@@ -15,6 +17,9 @@ Commands:
                                              Create a site; prints the public and secret keys
   export <siteId> [--format csv|jsonl] [--from <iso>] [--to <iso>]
                                              Export consent records to stdout (default csv)
+  import <siteId> <file.jsonl> [--dry-run]   Import historical consent records (one JSON object per
+                                             line, see docs/api.md "Importing records"); re-runs skip
+                                             records already imported
 
 Requires DATABASE_URL.`;
 
@@ -96,6 +101,26 @@ async function main() {
           n++;
         }
         console.error(`Exported ${n} records`);
+        break;
+      }
+      case 'import': {
+        const { values, positionals } = parseArgs({
+          args: rest,
+          allowPositionals: true,
+          options: { 'dry-run': { type: 'boolean', default: false } },
+        });
+        const [siteId, file] = positionals;
+        if (!siteId || !file) throw new Error('Usage: import <siteId> <file.jsonl> [--dry-run]');
+        const site = await prisma.site.findUnique({ where: { id: siteId } });
+        if (!site) throw new Error(`Site ${siteId} not found`);
+        const lines = (await readFile(file, 'utf8')).split('\n');
+        const res = await importConsents(prisma, site.id, lines, { dryRun: values['dry-run'] });
+        for (const e of res.errors) console.error(`line ${e.line}: ${e.message}`);
+        if (res.errors.length) throw new Error(`${res.errors.length} invalid lines: nothing imported`);
+        console.log(
+          `${values['dry-run'] ? '[dry run] would import' : 'Imported'} ${res.imported} of ${res.read} records into ${site.name}` +
+            (res.skipped ? ` (${res.skipped} already present)` : ''),
+        );
         break;
       }
       default:

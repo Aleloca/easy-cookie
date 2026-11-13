@@ -138,7 +138,7 @@ export interface ResolvedConfig extends EasyCookieConfig {
 export function resolveConfig(config: EasyCookieConfig): ResolvedConfig {
   let extra = 0;
   const services = config.services ?? {};
-  const resolvedCategories: ResolvedCategory[] = Object.entries(config.categories).map(([id, cat]) => {
+  const allCategories: ResolvedCategory[] = Object.entries(config.categories).map(([id, cat]) => {
     const known = KNOWN_CATEGORIES[id];
     return {
       id,
@@ -152,6 +152,13 @@ export function resolveConfig(config: EasyCookieConfig): ResolvedConfig {
         .map(([sid]) => sid),
     };
   });
+  // Like Iubenda, the banner asks only about what the site uses: once services are
+  // declared, an optional category without services is left out of the banner,
+  // the preferences, the policy and Consent Mode (its signals stay denied).
+  // Configs without any service keep every category (script-tag-only setups).
+  const resolvedCategories = Object.keys(services).length
+    ? allCategories.filter((c) => c.readOnly || c.services.length > 0)
+    : allCategories;
   const lang = config.language?.default ?? 'it';
   const gcm = config.googleConsentMode;
   return {

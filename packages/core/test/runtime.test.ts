@@ -5,7 +5,10 @@ const base = {
   hideFromBots: false,
   googleConsentMode: { enabled: true },
   categories: { necessary: { readOnly: true }, measurement: {}, marketing: {} },
-  services: { ga4: { category: 'measurement', cookies: [{ name: '^_ga', pattern: true }] } },
+  services: {
+    ga4: { category: 'measurement', cookies: [{ name: '^_ga', pattern: true }] },
+    meta: { category: 'marketing', cookies: [{ name: '_fbp' }] },
+  },
   ui: { reloadOnWithdraw: false },
 };
 

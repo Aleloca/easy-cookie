@@ -81,6 +81,10 @@ const inline = renderHeadScript(config); // <script>{inline}</script> in <head>
 
 React and Next.js are covered by `@easy-cookie/react` and `@easy-cookie/next`.
 
+## Categories follow the services
+
+As in Iubenda, the banner only asks about what the site actually uses. Once `services` declares at least one service, an optional category with no services is left out of the banner, the preferences, the cookie policy and Consent Mode, and its signals stay `denied`. Read-only categories (`necessary`) are always shown. A config without any `services` keeps every category, for setups that only use blocked script tags.
+
 ## Blocking scripts and embeds
 
 ```html

@@ -279,3 +279,16 @@ model LegalDocumentVersion {
   @@unique([documentId, version])
 }
 ```
+
+## Importing records
+
+`easy-cookie-server import <siteId> <file.jsonl> [--dry-run]` loads historical proofs, for example from a home-made consent log, into a site's register.
+
+- The file is JSON Lines: one `ImportRecord` per line (`apps/server/src/services/import.ts`). Each record has:
+  - `consentId`, `revision`, `method`, `categories` (an object of booleans) and `clientTimestamp` (ISO);
+  - optionally `subjectId`, `services`, `language`, `pageUrl`, `ipHash`, `userAgent`, and `receivedAt` (defaults to `clientTimestamp`).
+- Records keep their original timestamps.
+- Use a revision id that marks them as imported, e.g. `legacy-1.0.0`.
+- `ipHash` is stored as-is. Hashes made by another system with another salt cannot be compared with this server's.
+- All or nothing: if any line is invalid, nothing is imported and every invalid line is reported.
+- Re-running the same file is safe. A record with the same `consentId`, `clientTimestamp` and `method` already in the register is skipped.

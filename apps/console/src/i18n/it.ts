@@ -263,6 +263,7 @@ const it = {
     addCategory: 'Aggiungi categoria',
     newCategoryId: 'ID nuova categoria',
     removeCategory: (id: string) => `Rimuovi categoria ${id}`,
+    categoryHidden: 'Non compare nel banner né nella policy: nessun servizio la usa. Comparirà appena ne aggiungi uno.',
     categoryUsedBy: (list: string) => `Usata dai servizi: ${list}. Spostali prima di rimuoverla.`,
     idInvalid: 'Usa lettere, numeri, _ e -, iniziando con una lettera.',
     idTaken: 'ID già usato.',

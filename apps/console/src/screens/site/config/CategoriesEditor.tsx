@@ -73,6 +73,9 @@ export function CategoriesEditor({ config, update, lang, defaultLang }: EditorPr
               </div>
             </div>
             {usedBy.length > 0 && <p className="hint">{t.config.categoryUsedBy(usedBy.join(', '))}</p>}
+            {usedBy.length === 0 && !cat.readOnly && Object.keys(config.services ?? {}).length > 0 && (
+              <p className="hint">{t.config.categoryHidden}</p>
+            )}
             <div className="grid-2">
               <LocField
                 label={t.config.titleField}
