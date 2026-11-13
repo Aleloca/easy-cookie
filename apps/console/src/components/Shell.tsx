@@ -12,6 +12,7 @@ const SECTIONS = [
   { path: 'consents', key: 'register' },
   { path: 'config', key: 'config' },
   { path: 'revisions', key: 'revisions' },
+  { path: 'legal', key: 'legal' },
   { path: 'keys', key: 'keys' },
   { path: 'settings', key: 'settings' },
 ] as const;

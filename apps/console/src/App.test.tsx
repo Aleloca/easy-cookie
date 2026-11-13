@@ -71,6 +71,40 @@ describe('service library', () => {
   });
 });
 
+describe('legal documents', () => {
+  it('lists the three documents with stamp, placeholders and hosted URL', async () => {
+    mount('/sites/site_fua/legal');
+    expect(await screen.findByRole('link', { name: 'Cookie policy' }, { timeout: 4000 })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Termini e condizioni' })).toBeTruthy();
+    expect(screen.getByText('Non pubblicato')).toBeTruthy();
+    expect(screen.getAllByText('3 campi da compilare')).toHaveLength(2);
+    expect(screen.getByText(/nel testo basta la riga \{\{cookie-table\}\}/)).toBeTruthy();
+  });
+
+  it('edits the draft, counts placeholders live and warns before publishing', async () => {
+    mount('/sites/site_fua/legal/privacy');
+    const body = (await screen.findByLabelText(/Testo in Markdown/, undefined, { timeout: 4000 })) as HTMLTextAreaElement;
+    expect(screen.getByRole('heading', { name: /3 campi da compilare/ })).toBeTruthy();
+    fireEvent.change(body, { target: { value: `${body.value}\n\nTelefono: [[numero di telefono]]` } });
+    expect(screen.getByRole('heading', { name: /4 campi da compilare/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Vai a «numero di telefono»/ }));
+    expect(body.value.slice(body.selectionStart, body.selectionEnd)).toBe('[[numero di telefono]]');
+    fireEvent.click(screen.getByRole('button', { name: 'Pubblica versione' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/Restano 4 campi da compilare/)).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Timbra e pubblica' }));
+    expect(await screen.findByText(/pubblicata: è quella che vedono i visitatori/)).toBeTruthy();
+  });
+
+  it('sets the hosted cookie policy as the banner link', async () => {
+    mount('/sites/site_fua/legal');
+    const btn = await screen.findByRole('button', { name: 'Usa questa pagina come link del banner' }, { timeout: 4000 });
+    await waitFor(() => expect((btn as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(btn);
+    expect(await screen.findByText(/la bozza del banner ora rimanda a questa pagina/)).toBeTruthy();
+  });
+});
+
 describe('useAutosave', () => {
   it('debounces saves and reports status', async () => {
     vi.useFakeTimers();

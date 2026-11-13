@@ -515,6 +515,7 @@ const it = {
     edit: 'Apri',
     editLabel: (doc: string) => `Apri ${doc}`,
     useAsBannerLink: 'Usa questa pagina come link del banner',
+    bannerLinkTitle: 'Link alla cookie policy nel banner',
     bannerLinkSet: 'Fatto: la bozza del banner ora rimanda a questa pagina. Pubblica una revisione per applicarlo.',
     bannerLinkAlready: 'Il banner rimanda già a questa pagina.',
     bannerLinkCurrent: (url: string) => `Link attuale del banner: ${url}`,

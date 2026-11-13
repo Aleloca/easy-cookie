@@ -502,6 +502,7 @@ const en: Dict = {
     edit: 'Open',
     editLabel: (doc: string) => `Open ${doc}`,
     useAsBannerLink: 'Use this page as the banner link',
+    bannerLinkTitle: 'Cookie policy link in the banner',
     bannerLinkSet: 'Done: the banner draft now links to this page. Publish a revision to apply it.',
     bannerLinkAlready: 'The banner already links to this page.',
     bannerLinkCurrent: (url: string) => `Current banner link: ${url}`,

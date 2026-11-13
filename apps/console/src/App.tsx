@@ -10,6 +10,8 @@ import { Revisions } from './screens/site/Revisions';
 import { Keys } from './screens/site/Keys';
 import { Settings } from './screens/site/Settings';
 import { Library } from './screens/library/Library';
+import { LegalOverview } from './screens/site/legal/LegalOverview';
+import { LegalEditor } from './screens/site/legal/LegalEditor';
 
 export function App() {
   return (
@@ -44,6 +46,8 @@ export function App() {
           <Route path="consents" element={<Register />} />
           <Route path="config" element={<ConfigEditor />} />
           <Route path="revisions" element={<Revisions />} />
+          <Route path="legal" element={<LegalOverview />} />
+          <Route path="legal/:kind" element={<LegalEditor />} />
           <Route path="keys" element={<Keys />} />
           <Route path="settings" element={<Settings />} />
         </Route>
