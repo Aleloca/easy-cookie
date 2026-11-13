@@ -4,7 +4,10 @@ import { jsonDiff } from './diff';
 import { normalizeQuery, percent, revisionLabel, shortHash, shortId, stampDate, todayRevision } from './format';
 import { previewConfig } from './preview';
 import { periodFrom } from '../screens/site/Register';
-import { tabForPath } from '../screens/site/config/IssueList';
+import { issueMessage, tabForPath } from '../screens/site/config/IssueList';
+import { validateConfig } from '@easy-cookie/core/shared';
+import it_ from '../i18n/it';
+import en from '../i18n/en';
 import { isValidOrigin } from '../screens/site/Keys';
 import type { EasyCookieConfig } from '@easy-cookie/core/shared';
 
@@ -96,6 +99,7 @@ describe('preview config', () => {
     expect(c.cookie?.name).toBe('ec_console_preview');
     expect(c.cookie?.domain).toBeUndefined();
     expect(c.language?.default).toBe('en');
+    expect(c.revision).toBe('preview');
   });
 });
 
@@ -121,5 +125,39 @@ describe('screen helpers', () => {
     expect(isValidOrigin('*')).toBe(true);
     expect(isValidOrigin('https://esempio.it/path')).toBe(false);
     expect(isValidOrigin('esempio.it')).toBe(false);
+  });
+});
+
+describe('validator messages', () => {
+  it('localizes every message validateConfig produces for a broken config', () => {
+    const issues = validateConfig({
+      revision: '',
+      expiryDays: 500,
+      categories: { necessary: { title: 3, gcm: ['nope'] }, 'bad id': {} },
+      services: { x: { category: 'ghost', cookies: [{}], privacyUrl: 1 } },
+      log: {},
+      cookie: { sameSite: 'None', secure: false },
+      language: { default: 1 },
+    });
+    expect(issues.length).toBeGreaterThan(8);
+    for (const i of issues) {
+      expect(issueMessage(i, it_)).not.toBe(i.message);
+      expect(issueMessage(i, en)).not.toBe(i.message);
+    }
+    expect(issueMessage({ path: 'categories.necessary.gcm.0', message: 'Unknown Consent Mode signal "nope"' }, it_)).toContain('«nope»');
+  });
+  it('falls back to the raw message when unknown', () => {
+    expect(issueMessage({ path: 'x', message: 'Something new' }, it_)).toBe('Something new');
+  });
+});
+
+describe('count strings', () => {
+  it('agree with the count in both languages', () => {
+    expect(it_.register.showing(1, '1')).toBe('1 registrazione mostrata');
+    expect(it_.register.showing(2, '2')).toBe('2 registrazioni mostrate');
+    expect(en.register.showing(1, '1')).toBe('1 record shown');
+    expect(it_.overview.revisionNotice('r', 'oggi', 1, '1')).toContain('1 consenso registrato da allora');
+    expect(it_.overview.revisionNotice('r', 'oggi', 3, '3')).toContain('3 consensi registrati da allora');
+    expect(en.overview.revisionNotice('r', 'today', 1, '1')).toContain('1 consent recorded since');
   });
 });

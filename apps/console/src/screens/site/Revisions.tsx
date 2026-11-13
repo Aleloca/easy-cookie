@@ -179,7 +179,7 @@ export function Revisions() {
 
   return (
     <>
-      <PageHeader crumbs={[{ label: site.domain, to: `/sites/${site.id}` }, { label: t.revisions.title }]} title={t.revisions.title}>
+      <PageHeader title={t.revisions.title}>
         <p className="top-sub">{t.revisions.lead}</p>
       </PageHeader>
       <div className="pad">{body}</div>

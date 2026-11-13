@@ -46,64 +46,65 @@ export function Login() {
 
   return (
     <div className="login">
-      <div className="login-band" aria-hidden="true" />
-      <main className="login-main" id="main">
-        <div className="login-head">
-          <div className="login-brand">{t.common.brand}</div>
-        </div>
-        <div className="login-body">
-        <h1>{t.login.title}</h1>
-        <p className="login-lead">{t.login.lead}</p>
-        <form onSubmit={submit} noValidate className="login-form">
-          {error && (
-            <p className="form-error" role="alert">
-              <Icon name="alert" />
-              {error}
-            </p>
-          )}
-          <Field label={t.login.email}>
-            {(p) => (
-              <input
-                {...p}
-                className="input"
-                type="email"
-                name="email"
-                autoComplete="username"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            )}
-          </Field>
-          <Field label={t.login.password}>
-            {(p) => (
-              <input
-                {...p}
-                className="input"
-                type="password"
-                name="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            )}
-          </Field>
-          <Button type="submit" busy={busy} className="btn-block">
-            {busy ? t.login.submitting : t.login.submit}
-          </Button>
-        </form>
-        <p className="hint login-hint">{t.login.hint}</p>
-        <div className="login-foot">
-          <div className="lang lang-light" role="group" aria-label={t.common.language}>
+      <aside className="login-rail">
+        <span className="brand">{t.common.brand}</span>
+        <div className="rail-foot">
+          {IS_MOCK && <p className="rail-mock">{t.common.mockBadge}</p>}
+          <div className="lang" role="group" aria-label={t.common.language}>
             {(['it', 'en'] as const).map((l) => (
               <button key={l} type="button" aria-pressed={lang === l} onClick={() => setLang(l)} lang={l}>
                 {l.toUpperCase()}
               </button>
             ))}
           </div>
-          {IS_MOCK && <span className="mock-badge">{t.common.mockBadge}</span>}
         </div>
+      </aside>
+      <main className="login-main" id="main">
+        <div className="login-head">
+          <h1>{t.login.title}</h1>
+          <p className="login-lead">{t.login.lead}</p>
+        </div>
+        <div className="login-body">
+          <form onSubmit={submit} noValidate className="login-form">
+            {error && (
+              <p className="form-error" role="alert">
+                <Icon name="alert" />
+                {error}
+              </p>
+            )}
+            <Field label={t.login.email}>
+              {(p) => (
+                <input
+                  {...p}
+                  className="input"
+                  type="email"
+                  name="email"
+                  autoComplete="username"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              )}
+            </Field>
+            <Field label={t.login.password}>
+              {(p) => (
+                <input
+                  {...p}
+                  className="input"
+                  type="password"
+                  name="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              )}
+            </Field>
+            <Button type="submit" busy={busy} className="btn-block">
+              {busy ? t.login.submitting : t.login.submit}
+            </Button>
+          </form>
+          <p className="hint login-hint">{t.login.hint}</p>
         </div>
       </main>
     </div>

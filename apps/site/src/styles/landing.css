@@ -163,6 +163,34 @@
   color: var(--navy);
 }
 
+.spread__head {
+  align-items: center;
+  gap: 12px;
+}
+
+/* The passbook signature above the fold: the sample config's revision stamp. */
+.spread__stamp {
+  letter-spacing: 0.1em;
+  text-transform: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spread__stamp {
+    animation: stamp-in-tilt 160ms steps(2, end) 200ms both;
+  }
+}
+
+@keyframes stamp-in-tilt {
+  from {
+    transform: rotate(-1.5deg) scale(1.06);
+    opacity: 0.4;
+  }
+  to {
+    transform: rotate(-1.5deg) scale(1);
+    opacity: 1;
+  }
+}
+
 .spread__page--config .astro-code {
   border: 0;
   margin: 0;

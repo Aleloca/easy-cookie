@@ -81,7 +81,7 @@ export function SitesList() {
 
   return (
     <Shell>
-      <PageHeader crumbs={[{ label: t.common.brand }, { label: t.sites.title }]} title={t.sites.title} actions={list.data?.length ? newButton : undefined} />
+      <PageHeader title={t.sites.title} actions={list.data?.length ? newButton : undefined} />
       <div className="pad">{body}</div>
       <CreateSiteDialog open={creating} onClose={() => setCreating(false)} onCreated={list.reload} />
     </Shell>

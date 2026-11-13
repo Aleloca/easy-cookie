@@ -1,7 +1,11 @@
 /** Landing copy, Italian first. Facts only: no adoption numbers, testimonials or benchmarks. */
 
+/** Revision of the sample config; its stamp (r26-11-13) signs the first viewport. */
+export const configRevision = '2026-11-13';
+export const configStamp = `r${configRevision.slice(2)}`;
+
 export const configSnippet = `export default defineConfig({
-  revision: '2026-11-13',
+  revision: '${configRevision}',
   policyUrl: '/cookie-policy',
   googleConsentMode: { enabled: true },
   log: { endpoint: 'https://consent.example.com',

@@ -11,6 +11,9 @@ export function previewConfig(config: EasyCookieConfig, lang: string): EasyCooki
   const { log: _log, ...rest } = config;
   return {
     ...rest,
+    // The revision never changes what the banner looks like; pinning it keeps
+    // a publish (which stamps a new revision) from remounting the preview.
+    revision: 'preview',
     cookie: { ...rest.cookie, name: PREVIEW_COOKIE, domain: undefined, secure: false },
     language: { ...(rest.language ?? { default: lang }), default: lang, autoDetect: false },
     ui: { ...rest.ui, reloadOnWithdraw: false },

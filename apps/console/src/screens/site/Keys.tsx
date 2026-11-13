@@ -163,7 +163,7 @@ export function Keys() {
 
   return (
     <>
-      <PageHeader crumbs={[{ label: site.domain, to: `/sites/${site.id}` }, { label: t.keys.title }]} title={t.keys.title} />
+      <PageHeader title={t.keys.title} />
       <div className="pad keys">
         <section className="section" aria-labelledby="pk-h">
           <h2 id="pk-h" className="section-title">

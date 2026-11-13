@@ -207,7 +207,6 @@ export function Overview() {
   return (
     <>
       <PageHeader
-        crumbs={[{ label: site.domain, to: `/sites/${site.id}` }, { label: t.overview.title }]}
         title={t.overview.title}
         actions={
           <Link to={`/sites/${site.id}/consents`} className="btn btn-ghost">

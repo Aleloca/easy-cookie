@@ -4,7 +4,7 @@ import Base from '../layouts/Base.astro';
 import Mark from './Mark.astro';
 import CopyCode from './CopyCode.astro';
 import libretto from '../lib/libretto-shiki.json';
-import { copy, configSnippet, installSnippets, registerRows, type Lang } from '../lib/landing-copy';
+import { copy, configSnippet, configStamp, installSnippets, registerRows, type Lang } from '../lib/landing-copy';
 import { GITHUB_URL, stampDate, url } from '../lib/site';
 import '../styles/landing.css';
 
@@ -58,7 +58,7 @@ const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
 
       <div class="spread">
         <div class="spread__page spread__page--config">
-          <p class="label spread__head">{t.spreadLeft}</p>
+          <p class="label spread__head"><span>{t.spreadLeft}</span><span class="stamp stamp--tilt spread__stamp">{configStamp}</span></p>
           <Code code={configSnippet} lang="ts" theme={theme} />
         </div>
         <div class="spread__page spread__page--out">

@@ -75,7 +75,7 @@ export function ConfigEditor() {
   if (draft.error)
     return (
       <>
-        <PageHeader crumbs={[{ label: site.domain, to: `/sites/${site.id}` }, { label: t.config.title }]} title={t.config.title} />
+        <PageHeader title={t.config.title} />
         <div className="pad">
           <ErrorState error={draft.error} onRetry={draft.reload} title={t.config.loadError} />
         </div>
@@ -100,7 +100,6 @@ export function ConfigEditor() {
   return (
     <>
       <PageHeader
-        crumbs={[{ label: site.domain, to: `/sites/${site.id}` }, { label: t.config.title }]}
         title={t.config.title}
         actions={
           <>
@@ -215,7 +214,12 @@ export function ConfigEditor() {
           setPublishing(false);
           setPublished(r);
           setSite({ ...site, publishedRevision: r.revision });
-          setConfig((c) => (c ? { ...c, revision: r.revision } : c));
+          if (config) {
+            // The draft now carries the stamped revision: store it and read as saved.
+            const next = { ...config, revision: r.revision };
+            setConfig(next);
+            void autosave.commit(next).catch(() => {});
+          }
         }}
       />
     </>

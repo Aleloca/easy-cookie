@@ -23,7 +23,7 @@ export function CurrentRevisionNotice({ stats }: { stats: Stats }) {
   const { t, lang } = useI18n();
   const cur = stats.currentRevision;
   if (!cur) return <RevisionNotice tone="ink">{t.overview.noRevision}</RevisionNotice>;
-  const text = t.overview.revisionNotice('\u0000', relativeDay(cur.publishedAt, t), formatNumber(cur.recordsSince, lang));
+  const text = t.overview.revisionNotice('\u0000', relativeDay(cur.publishedAt, t), cur.recordsSince, formatNumber(cur.recordsSince, lang));
   const [before, after] = text.split('\u0000');
   return (
     <RevisionNotice>

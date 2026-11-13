@@ -180,24 +180,11 @@ export function Shell({ site, sites, children }: { site?: Site; sites?: Site[]; 
   );
 }
 
-export interface Crumb {
-  label: string;
-  to?: string;
-}
-
-/** Page header on the guilloche band: breadcrumb trail, title, actions. */
-export function PageHeader({ crumbs, title, actions, children }: { crumbs: Crumb[]; title: string; actions?: ReactNode; children?: ReactNode }) {
-  const { t } = useI18n();
+/** Page header on the guilloche band: title, actions at right. */
+export function PageHeader({ title, actions, children }: { title: string; actions?: ReactNode; children?: ReactNode }) {
   return (
     <div className="top">
       <div className="top-text">
-        <nav aria-label={t.nav.breadcrumb}>
-          <ol className="crumb">
-            {crumbs.map((c, i) => (
-              <li key={i}>{c.to ? <Link to={c.to}>{c.label}</Link> : <span aria-current="page">{c.label}</span>}</li>
-            ))}
-          </ol>
-        </nav>
         <h1>{title}</h1>
         {children}
       </div>

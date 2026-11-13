@@ -83,5 +83,38 @@ export function useAutosave<T>(
   /** Save now (used before publishing). Rejects if the save fails. */
   const flush = useCallback(() => run(), [run]);
 
-  return { status, savedAt, flush };
+  /**
+   * Adopt `next` as the value the server holds and save it right away, without
+   * passing through the dirty/debounce phase. Used after publishing, when the
+   * draft only changes by the revision the server just stamped. Call it in the
+   * same tick as the state update that makes `next` the current value.
+   */
+  const commit = useCallback(async (next: T): Promise<void> => {
+    const previous = lastSaved.current;
+    const snapshot = JSON.stringify(next);
+    // Set synchronously so the change effect does not flag `next` as dirty.
+    lastSaved.current = snapshot;
+    if (inflight.current) await inflight.current.catch(() => {});
+    lastSaved.current = snapshot;
+    setStatus('saving');
+    const p = saveRef.current(next).then(
+      () => {
+        setSavedAt(new Date().toISOString());
+        setStatus(JSON.stringify(valueRef.current) === snapshot ? 'saved' : 'dirty');
+      },
+      (e) => {
+        if (lastSaved.current === snapshot) lastSaved.current = previous;
+        setStatus('error');
+        throw e;
+      },
+    );
+    inflight.current = p;
+    try {
+      await p;
+    } finally {
+      if (inflight.current === p) inflight.current = null;
+    }
+  }, []);
+
+  return { status, savedAt, flush, commit };
 }

@@ -431,6 +431,16 @@ textarea.input {
   align-items: center;
   gap: 8px;
 }
+.copyblock-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.copyblock-inline .code {
+  flex: 1;
+  min-width: 0;
+}
 .code {
   display: block;
   font-family: var(--mono);

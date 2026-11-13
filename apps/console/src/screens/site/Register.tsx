@@ -295,7 +295,7 @@ export function Register() {
         </div>
         <div className="pager">
           <span className="tnum dim" aria-live="polite">
-            {t.register.showing(formatNumber(items.length, lang))}
+            {t.register.showing(items.length, formatNumber(items.length, lang))}
           </span>
           {status === 'error' && <span className="field-error">{errorMessage(error, t)}</span>}
           {cursor ? (
@@ -312,7 +312,6 @@ export function Register() {
   return (
     <>
       <PageHeader
-        crumbs={[{ label: site.domain, to: `/sites/${site.id}` }, { label: t.register.title }]}
         title={t.register.title}
         actions={
           <>

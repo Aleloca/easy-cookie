@@ -5,8 +5,19 @@
   grid-template-columns: var(--rail-w) minmax(0, 1fr);
   min-height: 100vh;
 }
-.login-band {
+/* Same navy rail as the app shell: brand on top, language at the foot. */
+.login-rail {
   background: var(--navy);
+  color: var(--rail-ink);
+  padding: 24px 18px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.login-rail :focus-visible {
+  outline-color: var(--ground);
 }
 .login-main {
   min-width: 0;
@@ -17,12 +28,6 @@
   background: var(--guilloche);
   border-bottom: 1px solid var(--hair);
 }
-.login-brand {
-  font-weight: 700;
-  font-size: var(--fs-lg);
-  color: var(--navy);
-  letter-spacing: -0.01em;
-}
 .login-body {
   padding: 0 var(--gutter) 48px;
   max-width: 520px;
@@ -30,17 +35,18 @@
 .login h1 {
   font-size: var(--fs-h1);
   font-weight: 600;
-  margin-top: 28px;
   letter-spacing: -0.01em;
 }
 .login-lead {
   color: var(--ink-2);
   margin-top: 6px;
+  max-width: 52ch;
 }
 .login-form {
   display: grid;
   gap: 16px;
-  margin-top: 24px;
+  margin-top: 28px;
+  max-width: 440px;
   padding: 22px;
   background: var(--paper);
   border: 1px solid var(--hair);
@@ -51,26 +57,29 @@
 }
 .login-hint {
   margin-top: 14px;
-}
-.login-foot {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 24px;
-}
-.mock-badge {
-  font-family: var(--mono);
-  font-size: var(--fs-xs);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: var(--label);
-  border: 1px dashed var(--field-line);
-  padding: 4px 8px;
+  max-width: 440px;
 }
 @media (max-width: 900px) {
   .login {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 8px auto;
+    grid-template-rows: auto 1fr;
+  }
+  /* The rail folds into the same top bar the shell uses on narrow screens. */
+  .login-rail {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 0 var(--gutter);
+    min-height: 52px;
+  }
+  .login-rail .rail-foot {
+    margin: 0 0 0 auto;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   .login-head {
     padding-top: 28px;

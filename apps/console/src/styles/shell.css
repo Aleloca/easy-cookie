@@ -283,28 +283,7 @@
 .top-text {
   min-width: 0;
 }
-.crumb {
-  display: flex;
-  flex-wrap: wrap;
-  font-family: var(--mono);
-  font-size: var(--fs-xs);
-  letter-spacing: var(--track-crumb);
-  text-transform: uppercase;
-  color: var(--green);
-}
-.crumb li + li::before {
-  content: '/';
-  margin: 0 0.6em;
-}
-.crumb a {
-  color: var(--green);
-  text-decoration: none;
-}
-.crumb a:hover {
-  text-decoration: underline;
-}
 .top h1 {
-  margin-top: 6px;
   font-size: var(--fs-h1);
   font-weight: 600;
   letter-spacing: -0.01em;

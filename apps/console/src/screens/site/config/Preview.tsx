@@ -22,6 +22,9 @@ export function Preview({ config, lang }: { config: EasyCookieConfig; lang: stri
   const key = useMemo(() => JSON.stringify([runConfig, view]), [runConfig, view]);
   const doc = useMemo(() => previewDocument(window.location.origin), []);
   const unavailable = useRef(false);
+  // `key` encodes both; the frame only restarts when what it shows changes.
+  const run = useRef({ runConfig, view });
+  run.current = { runConfig, view };
 
   useEffect(() => {
     if (unavailable.current) return;
@@ -33,7 +36,8 @@ export function Preview({ config, lang }: { config: EasyCookieConfig; lang: stri
     const onMsg = (e: MessageEvent) => {
       if (!frame.current || e.source !== frame.current.contentWindow) return;
       const type = (e.data as { type?: string } | null)?.type;
-      if (type === 'ec-preview:ready') frame.current.contentWindow?.postMessage({ type: 'ec-preview:run', config: runConfig, view }, '*');
+      if (type === 'ec-preview:ready')
+        frame.current.contentWindow?.postMessage({ type: 'ec-preview:run', config: run.current.runConfig, view: run.current.view }, '*');
       else if (type === 'ec-preview:ran') {
         clearTimeout(timer);
         setState('ready');
@@ -48,7 +52,7 @@ export function Preview({ config, lang }: { config: EasyCookieConfig; lang: stri
       clearTimeout(timer);
       window.removeEventListener('message', onMsg);
     };
-  }, [key, runConfig, view]);
+  }, [key]);
 
   return (
     <section className="preview" aria-labelledby="preview-h">

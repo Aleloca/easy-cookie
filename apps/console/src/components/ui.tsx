@@ -224,17 +224,34 @@ export function CopyBlock({
   const t = useT();
   const { copied, copy } = useCopy();
   const id = useId();
+  const button = (
+    <Button variant="quiet" icon={copied === id ? 'check' : 'copy'} onClick={() => copy(id, value)} aria-describedby={`${id}-l`}>
+      {copied === id ? t.common.copied : t.common.copy}
+    </Button>
+  );
+  // With no visible label, a single-line value carries the button at the right end of its own row.
+  const inline = hideLabel && !multiline;
   return (
     <div className={`copyblock${secret ? ' copyblock-secret' : ''}`}>
-      <div className="copyblock-head">
-        <span className={hideLabel ? 'sr-only' : 'label'} id={`${id}-l`}>
-          {label}
-        </span>
-        <Button variant="quiet" icon={copied === id ? 'check' : 'copy'} onClick={() => copy(id, value)} aria-describedby={`${id}-l`}>
-          {copied === id ? t.common.copied : t.common.copy}
-        </Button>
-      </div>
-      {multiline ? (
+      {inline ? (
+        <div className="copyblock-inline">
+          <span className="sr-only" id={`${id}-l`}>
+            {label}
+          </span>
+          <code className="code code-line" aria-labelledby={`${id}-l`}>
+            {value}
+          </code>
+          {button}
+        </div>
+      ) : (
+        <div className="copyblock-head">
+          <span className={hideLabel ? 'sr-only' : 'label'} id={`${id}-l`}>
+            {label}
+          </span>
+          {button}
+        </div>
+      )}
+      {inline ? null : multiline ? (
         <pre className="code" aria-labelledby={`${id}-l`} tabIndex={0}>
           <code>{value}</code>
         </pre>

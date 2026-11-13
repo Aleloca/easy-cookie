@@ -60,7 +60,7 @@ export function Settings() {
 
   return (
     <>
-      <PageHeader crumbs={[{ label: site.domain, to: `/sites/${site.id}` }, { label: t.settings.title }]} title={t.settings.title} />
+      <PageHeader title={t.settings.title} />
       <div className="pad settings">
         <section className="section" aria-labelledby="gen-h">
           <h2 id="gen-h" className="section-title">
