@@ -10,6 +10,8 @@ export interface PostHogLike {
   has_opted_in_capturing?(): boolean;
   has_opted_out_capturing?(): boolean;
   clear_opt_in_out_capturing?(): void;
+  /** posthog-js ≥ 1.2xx: 'granted' | 'denied' | 'pending' (reliable with cookieless_mode). */
+  get_explicit_consent_status?(): string;
   startSessionRecording?(...args: unknown[]): void;
   stopSessionRecording?(): void;
   identify?(distinctId?: string, ...rest: unknown[]): void;
@@ -49,7 +51,8 @@ export interface ConnectPostHogOptions {
  * Keep PostHog's capture state in sync with the visitor's consent, without reloads.
  *
  * PostHog must be initialised by the host with `cookieless_mode: 'on_reject'`
- * (see {@link posthogInitOptions}): before a choice it captures nothing, after a
+ * (see {@link posthogInitOptions}): before a choice it captures nothing (or counts
+ * cookieless with `beforeChoice: 'cookieless'`), after a
  * rejection it keeps counting anonymously with no cookies or storage, and after
  * an acceptance it switches to normal cookie-based capture.
  *
@@ -61,14 +64,29 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
   const granted = () => (options.service ? api.isServiceGranted(options.service) : api.isGranted(category));
   let last: 'in' | 'out' | null = null;
 
+  // With cookieless_mode, has_opted_out_capturing() is already true while consent
+  // is pending, so prefer the explicit consent status when the client has it.
+  const status = (): 'in' | 'out' | 'pending' => {
+    const explicit = posthog.get_explicit_consent_status?.();
+    if (explicit === 'granted') return 'in';
+    if (explicit === 'denied') return 'out';
+    if (explicit === 'pending') return 'pending';
+    if (posthog.has_opted_in_capturing?.()) return 'in';
+    if (posthog.has_opted_out_capturing?.()) return 'out';
+    return 'pending';
+  };
+
   const apply = () => {
+    // Until run() has read the stored choice, "no choice" is not known yet:
+    // acting now could opt out (and reset) a returning visitor who accepted.
+    if (!api.getConfig()) return;
     if (!api.get()) {
       if (options.beforeChoice === 'cookieless') {
         if (last !== 'out') {
-          if (!posthog.has_opted_out_capturing?.()) posthog.opt_out_capturing();
+          if (status() !== 'out') posthog.opt_out_capturing();
           last = 'out';
         }
-      } else if (posthog.has_opted_in_capturing?.()) {
+      } else if (status() === 'in') {
         // Pending: an opt-in stored by a previous banner must not keep capturing.
         posthog.clear_opt_in_out_capturing?.();
       }
@@ -77,7 +95,7 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
     if (granted()) {
       if (last !== 'in') {
         // No `$opt_in` event: the consent itself is recorded by easy-cookie.
-        if (!posthog.has_opted_in_capturing?.()) posthog.opt_in_capturing({ captureEventName: false });
+        if (status() !== 'in') posthog.opt_in_capturing({ captureEventName: false });
         if (options.sessionReplay) posthog.startSessionRecording?.();
         last = 'in';
       }
@@ -85,12 +103,12 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
       if (id && posthog.identify && posthog.get_distinct_id?.() !== id) posthog.identify(id);
     } else if (last !== 'out') {
       if (options.sessionReplay) posthog.stopSessionRecording?.();
-      if (!posthog.has_opted_out_capturing?.()) posthog.opt_out_capturing();
+      if (status() !== 'out') posthog.opt_out_capturing();
       last = 'out';
     }
   };
 
-  const events: EasyCookieEvent[] = ['replay', 'consent', 'change'];
+  const events: EasyCookieEvent[] = ['ready', 'replay', 'consent', 'change'];
   const unsubs = events.map((ev) => api.on(ev, apply));
   // The stored choice may have been replayed before we subscribed.
   apply();

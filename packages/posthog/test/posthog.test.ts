@@ -181,3 +181,23 @@ describe('connectPostHog options', () => {
     expect(ph.startSessionRecording).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('connectPostHog with posthog-js consent status', () => {
+  it('opts out for cookieless counting even when has_opted_out_capturing() is already true while pending', async () => {
+    const { api } = createFakeApi();
+    await api.run(testConfig);
+    const ph = { ...fakePostHog(), has_opted_out_capturing: () => true, get_explicit_consent_status: () => 'pending' };
+    connectPostHog(ph, api, { beforeChoice: 'cookieless' });
+    expect(ph.opt_out_capturing).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for run() before acting, so a returning visitor is not opted out', async () => {
+    const { api } = createFakeApi({ categories: ['necessary', 'measurement'] });
+    const ph = fakePostHog();
+    connectPostHog(ph, api, { beforeChoice: 'cookieless' });
+    expect(ph.opt_out_capturing).not.toHaveBeenCalled();
+    await api.run(testConfig);
+    expect(ph.opt_out_capturing).not.toHaveBeenCalled();
+    expect(ph.opt_in_capturing).toHaveBeenCalledTimes(1);
+  });
+});

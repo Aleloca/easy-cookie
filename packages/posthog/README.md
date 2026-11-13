@@ -2,7 +2,7 @@
 
 Keeps [PostHog](https://posthog.com) in sync with easy-cookie consent, with no page reload. It follows the pattern MythicVoices uses in production:
 
-- **Before a choice:** PostHog captures nothing.
+- **Before a choice:** PostHog captures nothing (default), or counts visits without cookies with `beforeChoice: 'cookieless'`. The adapter waits for the runtime to be ready before acting, so a returning visitor is never opted out by mistake.
 - **After a rejection:** cookieless mode only. PostHog sets no cookies and no storage, and creates no person profiles. Autocapture, exceptions, web vitals and heatmaps are dropped.
 - **After an acceptance:** normal capture with cookies, then `identify()` for logged-in users.
 
