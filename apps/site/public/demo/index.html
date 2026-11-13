@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Rivista Esempio · demo di easy-cookie</title>
+  <title>Example Magazine · easy-cookie demo</title>
   <script src="config.js"></script>
   <script>
     // Demo instrumentation: mirror what the runtime does to the parent page.
@@ -51,15 +51,15 @@
   </style>
 </head>
 <body>
-  <header><b>Rivista Esempio</b><span data-en="Stories · Guides · Shop">Storie · Guide · Negozio</span></header>
+  <header><b>Example Magazine</b><span>Stories · Guides · Shop</span></header>
   <main>
-    <h1 data-en="How to pick a backpack for a weekend in the mountains">Come scegliere uno zaino per un weekend in montagna</h1>
-    <p class="kick" data-en="Guide · 12 November 2026">Guida · 12 novembre 2026</p>
-    <p class="lede" data-en="Weight, volume and pockets: what really matters when you leave on Friday night and come back on Sunday.">Peso, volume e tasche: quello che conta davvero quando parti il venerdì sera e torni la domenica.</p>
-    <iframe data-category="experience" data-service="video" data-src="video.html" width="640" height="360" title="Video: preparare lo zaino"></iframe>
-    <p data-en="The first mistake is buying it too big. For two nights in a mountain hut, 30–35 litres is enough: what doesn't fit usually wasn't needed.">Il primo errore è comprarlo troppo grande. Per due notti in rifugio bastano 30–35 litri: quello che non entra, di solito, non serviva.</p>
-    <p data-en="The second is looking only at the empty weight. How the pack carries the load matters more: back panel, shoulder straps and hip belt.">Il secondo è guardare solo il peso a vuoto. Conta di più come lo zaino porta il carico: schienale, spallacci e cintura in vita.</p>
-    <p><button type="button" class="prefs" data-cc="show-preferencesModal" data-en="Cookie preferences">Preferenze cookie</button></p>
+    <h1>How to pick a backpack for a weekend in the mountains</h1>
+    <p class="kick">Guide · 12 November 2026</p>
+    <p class="lede">Weight, volume and pockets: what really matters when you leave on Friday night and come back on Sunday.</p>
+    <iframe data-category="experience" data-service="video" data-src="video.html" width="640" height="360" title="Video: packing the backpack"></iframe>
+    <p>The first mistake is buying it too big. For two nights in a mountain hut, 30–35 litres is enough: what doesn't fit usually wasn't needed.</p>
+    <p>The second is looking only at the empty weight. How the pack carries the load matters more: back panel, shoulder straps and hip belt.</p>
+    <p><a href="#" class="prefs" data-ec-open-preferences>Cookie preferences</a></p>
   </main>
 
   <!-- Blocked until "measurement" is granted: the parent page shows when it runs. -->
@@ -71,11 +71,6 @@
   </script>
 
   <script>
-    if (document.documentElement.lang === 'en') {
-      document.querySelectorAll('[data-en]').forEach(function (el) { el.textContent = el.getAttribute('data-en'); });
-      document.title = 'Example Magazine · easy-cookie demo';
-      document.querySelector('header b').textContent = 'Example Magazine';
-    }
     ['ready', 'consent', 'change', 'replay'].forEach(function (type) {
       window.addEventListener('easycookie:' + type, function (e) {
         var d = e.detail;

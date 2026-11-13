@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="robots" content="noindex">
-  <title>Video di esempio</title>
+  <title>Example video</title>
   <style>
     html, body { margin: 0; height: 100%; }
     body { display: grid; place-items: center; background: #26221e; color: #fbfaf7; font: 15px/1.4 system-ui, sans-serif; text-align: center; }
@@ -13,11 +13,7 @@
 <body>
   <div>
     <svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19 15l14 9-14 9z" fill="currentColor"/></svg>
-    <p id="t">Contenuto incorporato caricato. È una pagina locale: nessuna richiesta a terzi.</p>
+    <p>Embedded content loaded. It is a local page: no third-party requests.</p>
   </div>
-  <script>
-    if (window.parent && window.parent.document && window.parent.document.documentElement.lang === 'en')
-      document.getElementById('t').textContent = 'Embedded content loaded. It is a local page: no third-party requests.';
-  </script>
 </body>
 </html>

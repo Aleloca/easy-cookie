@@ -6,9 +6,9 @@ import libretto from './src/lib/libretto-shiki.json' with { type: 'json' };
 import { rehypeBaseLinks } from './src/lib/rehype-base-links.mjs';
 
 // GitHub Pages serves a project site under /<repo>/: build with
-//   SITE_BASE=/easy-cookie/ SITE_URL=https://OWNER.github.io pnpm --filter @easy-cookie/site build
+//   SITE_BASE=/easy-cookie/ SITE_URL=https://aleloca.github.io pnpm --filter @easy-cookie/site build
 const base = process.env.SITE_BASE ?? '/';
-const site = process.env.SITE_URL ?? 'https://OWNER.github.io';
+const site = process.env.SITE_URL ?? 'https://aleloca.github.io';
 
 export default defineConfig({
   site,

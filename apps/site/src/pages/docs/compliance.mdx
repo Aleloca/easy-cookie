@@ -1,0 +1,150 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Compliance
+description: The requirements of the Italian Garante's 2021 cookie guidelines and the EDPB cookie banner taskforce report (2023), one by one. What easy-cookie guarantees by construction and what remains the site owner's responsibility.
+---
+
+<div class="note note--legal">
+<p class="note__title">This page is not legal advice</p>
+<p>It describes how the software behaves against the most cited requirements. Whether a site complies also depends on what you install on it, how you configure it and the texts you publish. Have your setup checked by whoever looks after the site's privacy.</p>
+</div>
+
+## The references
+
+The rules for cookie banners in the EU come from the ePrivacy Directive (art. 5.3: storing or reading information on a device needs consent, unless it is strictly necessary) and from the GDPR, which defines what valid consent is. National data protection authorities and the EDPB turn those principles into concrete rules about banners. easy-cookie follows two of them:
+
+- **The Italian Garante's cookie guidelines.** The [Guidelines on cookies and other tracking tools](https://www.garanteprivacy.it/home/docweb/-/docweb-display/docweb/9677876) of the Garante per la protezione dei dati personali, Italy's data protection authority (10 June 2021, doc. web 9677876). They are among the most detailed national texts: equal prominence for accepting and rejecting, the X as a rejection, no re-prompt within 6 months, and the conditions under which analytics cookies can be treated as technical.
+- **The EDPB cookie banner taskforce report.** The [Report of the work undertaken by the Cookie Banner Taskforce](https://www.edpb.europa.eu/system/files/2023-01/edpb_20230118_report_cookie_banner_taskforce_en.pdf) (January 2023), in which the European Data Protection Board records the positions shared by EU authorities on common banner practices: no reject button on the first layer, pre-ticked boxes, deceptive colours and contrast, misclassified "essential" cookies, hard-to-find withdrawal.
+
+Most other EU authorities reach similar conclusions, but details differ from country to country. Below, for each requirement: what easy-cookie does, and what is left to you.
+
+## Requirements
+
+### No trackers before consent
+
+**Requirement.** Non-technical cookies and other tracking tools (third-party scripts, pixels, iframes) only after consent. Art. 5.3 of the ePrivacy Directive; art. 122 of the Italian Privacy Code.
+
+**easy-cookie.** Scripts with `type="text/plain" data-category` and iframes with `data-src` do not run until their category is granted. The Consent Mode head snippet denies every signal until there is a valid choice.
+
+**Left to you.** Marking **every** third-party tag, including those added by plugins and fonts or libraries loaded from external CDNs. easy-cookie does not block what is not marked. See [Prior blocking](/docs/prior-blocking/).
+
+### A complete first layer
+
+**Requirement.** A short notice, a link to the cookie policy, access to the detailed choices, one control to accept and one to reject (or an X that equals rejecting).
+
+**easy-cookie.** The first layer always has a title, a text, the policy link (`policyUrl`), **Accept all**, **Reject all**, **Customize** and an X. The buttons cannot be hidden through the config.
+
+**Left to you.** Setting `policyUrl` to a page that exists, and keeping the text neutral if you override it with `texts`.
+
+### Equal prominence for accepting and rejecting
+
+**Requirement.** No dark patterns: rejecting must not be smaller, less visible or further away than accepting (EDPB, on the reject button and on deceptive colours and contrast).
+
+**easy-cookie.** Accept and Reject are two equal halves of the same grid, with the same style; the runtime forces equal-weight buttons. Rejecting is on the first layer.
+
+**Left to you.** If you restyle the banner with CSS variables, do not tell the two buttons apart with your own rules on internal selectors.
+
+### The X counts as a rejection
+
+**Requirement.** Closing the banner keeps the default settings, that is, no consent.
+
+**easy-cookie.** The X records a rejection with `method: 'close'`, distinct from `reject_all` in the register.
+
+**Left to you.** Nothing.
+
+### Scrolling is not consent
+
+**Requirement.** Continuing to browse or scrolling the page does not count as consent.
+
+**easy-cookie.** Consent only comes from a click on a control of the banner or the panel, or from an explicit API call. The banner does not block the page and has no timer.
+
+**Left to you.** Not calling `acceptAll()` or `accept()` from anything other than an explicit action of the visitor.
+
+### No cookie wall
+
+**Requirement.** Consent cannot be a condition for accessing the site, unless an equivalent alternative is offered.
+
+**easy-cookie.** The banner does not cover or block the page.
+
+**Left to you.** Not making content depend on consent in your own code (for example a `ConsentGate` around the whole article).
+
+### Granular categories, off by default
+
+**Requirement.** Choices per purpose, no pre-ticked boxes (Court of Justice of the EU, Planet49, C-673/17).
+
+**easy-cookie.** In the panel every non-necessary category starts off, with per-service toggles when `ui.serviceToggles` is on. Only `readOnly` categories are always on. Optional categories with no declared services are not shown at all.
+
+**Left to you.** Using `readOnly` only for truly technical cookies. A third-party statistics cookie is not technical just because it is useful.
+
+### Withdrawing is as easy as consenting
+
+**Requirement.** GDPR art. 7.3. The visitor must be able to change their mind at any time, just as easily.
+
+**easy-cookie.** A floating button reopens the preferences on every page, and any element with `data-ec-open-preferences` does the same. On withdrawal the declared cookies are cleared, Consent Mode receives the `update`, the page reloads (configurable) and a record goes into the register.
+
+**Left to you.** If you hide the button on some paths with `hideOn`, offer a "Cookie preferences" link there (`openPreferences()`, `<PreferencesLink />` or `data-ec-open-preferences`). Declare every cookie in `services`, otherwise it cannot be cleared.
+
+### Do not ask too often
+
+**Requirement.** The Garante says the banner should not be shown again within 6 months of the last choice (even a rejection), unless purposes or third parties change, or the choice is no longer available.
+
+**easy-cookie.** `expiryDays` defaults to 182. The banner comes back earlier only when you change `revision`. Publishing a new version of a legal document does not re-prompt visitors.
+
+**Left to you.** Changing `revision` when you add services or purposes, and not lowering `expiryDays` without a reason.
+
+### A complete, reachable cookie policy
+
+**Requirement.** For every cookie: name, provider, purpose, duration, recipients. A link from the banner and from every page.
+
+**easy-cookie.** The cookie tables are generated from the same config as the banner, so they cannot drift: with [`@easy-cookie/policy`](/docs/cookie-policy/), or with the `{{cookie-table}}` directive of the [legal documents](/docs/legal-documents/), which also ship editable cookie policy and privacy policy drafts.
+
+**Left to you.** The policy text (controller, legal bases, transfers, rights), reviewed by a professional, and a link to the policy in the footer of every page.
+
+### Proof of consent
+
+**Requirement.** GDPR art. 7.1: the controller must be able to demonstrate consent. Art. 5.2: accountability.
+
+**easy-cookie.** The [consent register](/docs/consent-register/) keeps, for every choice, the id, method, categories, services, time, page and revision, plus a snapshot of the config that was shown. It is append-only.
+
+**Left to you.** Hosting the server, backing it up, deciding the retention period and mentioning it in your privacy policy.
+
+### Analytics
+
+**Requirement.** Under the Garante's guidelines, third-party analytics cookies can be treated like technical cookies only with a masked IP and without combining the data with other information. GA4 in its standard setup does not qualify.
+
+**easy-cookie.** No automatic decision: you choose the category of every service. The [service library](/docs/service-library/) puts third-party analytics in `measurement`, which needs consent, and the docs examples do the same for GA4.
+
+**Left to you.** Assessing every tool. When in doubt, ask for consent.
+
+### Accessibility and languages
+
+**Requirement.** The banner must be understandable and usable by everyone, in the language of the site.
+
+**easy-cookie.** Full keyboard use, a focus trap in the panel, ARIA roles, WCAG 2.2 AA contrast in the default themes, `prefers-reduced-motion`. Complete texts in Italian and English, all overridable.
+
+**Left to you.** Checking contrast if you change the colours, and translating the texts for the site's other languages.
+
+## Summary
+
+| Requirement | Guaranteed by the software | Depends on you |
+|---|---|---|
+| Prior blocking | The mechanism | Marking every tag |
+| Complete first layer | Yes | A valid `policyUrl`, neutral texts |
+| Equal prominence accept / reject | Yes | Not restyling the buttons apart |
+| X = rejection | Yes | |
+| Scrolling is not consent | Yes | Not calling the API without an action |
+| No cookie wall | Yes | Not locking content |
+| Categories off by default | Yes | `readOnly` only for technical cookies |
+| Easy withdrawal | Yes | An alternative link where you hide the button |
+| No re-prompt within 6 months | Default | Changing `revision` when needed |
+| Cookie policy | Tables and drafts | The legal text, reviewed; footer link |
+| Proof of consent | Register | Hosting, backups, retention |
+| Analytics | | Classifying the services |
+| Accessibility and languages | Default themes, IT and EN | Contrast of custom colours |
+
+## Out of scope
+
+- **IAB TCF v2.2**, needed for programmatic advertising (AdSense, Ad Manager).
+- **Non-EU regimes** (US state laws, LGPD, FADP) and visitor geolocation.
+- **Automatic generation of legal texts.** The built-in drafts are a starting point to fill in and have reviewed.
+- **Records of processing activities** and impact assessments.

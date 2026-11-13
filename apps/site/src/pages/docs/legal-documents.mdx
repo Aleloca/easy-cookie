@@ -1,0 +1,190 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Legal documents
+description: Write the cookie policy, privacy policy and terms of each site in the console, in Markdown and in several languages, publish them as immutable versions, and show them on a hosted page, through a loader script or rendered on your own server.
+---
+
+Each site on the consent server has three legal documents: a **cookie policy**, a **privacy policy** and **terms**. You write them in the [console](/docs/console/), in Markdown, with one translation per language. Directives such as `{{cookie-table}}` are filled from the site's banner config, so the tables in the policy always match what the banner declares.
+
+| Kind | Id |
+|---|---|
+| Cookie policy | `cookie` |
+| Privacy policy | `privacy` |
+| Terms | `terms` |
+
+If you keep your config in code and only need the cookie tables, you don't need any of this: see [Cookie policy tables](/docs/cookie-policy/).
+
+## Starting from the templates
+
+The first time you open a site's legal documents, the server creates all three from built-in drafts, one translation per language of the site's banner config. The drafts exist in Italian and English; any other language starts from the English text, to translate.
+
+- **Privacy policy:** controller, categories of data, purposes and legal bases (art. 6 GDPR), whether providing data is required, retention, recipients, `{{services-list}}`, transfers outside the EEA, data subject rights (arts. 15–22), complaint to the supervisory authority, contact.
+- **Cookie policy:** what cookies are, technical versus consent-based cookies, categories, `{{cookie-table}}`, managing consent (`{{preferences-link}}`), browser settings, controller, last update.
+- **Terms:** a generic skeleton for a website or service.
+
+These templates are **starting drafts, not legal advice**. Every value that only you know is a `[[placeholder]]`, and the first line of each template is a placeholder asking for a professional review. Have the text reviewed by a lawyer or by whoever handles your site's privacy, then delete that line.
+
+## Writing
+
+The body is Markdown. Raw HTML is disabled (it shows as text), bare URLs become links, and links accept only `http:`, `https:`, `mailto:` and relative URLs. External links get `rel="noopener noreferrer"`.
+
+### Directives
+
+| Directive | Output |
+|---|---|
+| `{{cookie-table}}` | The per-category cookie tables generated from the site's **published** banner config, the same markup as [`@easy-cookie/policy`](/docs/cookie-policy/). In the console preview, the draft config is used. |
+| `{{services-list}}` | The list of third-party services in the config: label, provider, purpose, category and privacy link. For services added from the [service library](/docs/service-library/), it also shows the countries data is transferred to and the safeguard. Services without a provider (first party) are skipped. |
+| `{{preferences-link}}` | A link that opens the cookie preferences: `<a href="#" data-ec-open-preferences>`, which the easy-cookie runtime binds to the preferences panel. |
+| `{{last-updated}}` | The publication date of the version being shown, in the document's language. On its own line it renders as a full sentence ("Last updated: …"); inline, just the date. |
+| `{{site.name}}`, `{{site.domain}}` | The site's name and domain. |
+
+`{{cookie-table}}` and `{{services-list}}` go on their own line. Because the tables are read from the published banner config at request time, publishing a new banner revision updates them without republishing the document.
+
+### Placeholders
+
+Text that the owner must fill in is written between double square brackets:
+
+```md
+The data controller is [[company name]], with registered office in [[address]].
+```
+
+Placeholders render highlighted (`<mark class="ec-legal__todo">`). The console counts the ones left in each document and warns you before publishing. It does not block publishing: the decision is yours.
+
+### Stable anchors
+
+Every heading in the body gets an `id` derived from its text, so other pages (or a checkbox at signup) can link to a section:
+
+```md
+## 4.2 Purchasing credits
+```
+
+becomes `<h2 id="4-2-purchasing-credits">`, linkable as `#4-2-purchasing-credits`. The id is the heading text with accents removed, lowercased, every run of characters other than `a–z` and `0–9` replaced by a single `-`, leading and trailing dashes trimmed, and cut at 80 characters. Duplicate headings get `-2`, `-3`… A heading with no letters or digits becomes `section`. Ids change if you change the heading text, so keep headings stable once other pages link to them.
+
+## Publishing and versions
+
+The draft is editable. Publishing creates an immutable **version**, and the newest one is the version visitors see. Version ids default to the date (`YYYY-MM-DD`, with `-2`, `-3`… on collision), or you can set your own (1–64 characters from `A–Z a–z 0–9 . _ -`) and add a note.
+
+Legal document versions are **independent of the banner `revision`**. Publishing a legal document does not re-prompt visitors; changing what the banner declares, and bumping its revision, does. Every published version is kept, with its note, date and author.
+
+## Showing a document
+
+Once a document is published, there are four ways to show it.
+
+### Hosted page
+
+The consent server hosts a complete, readable page for each published document:
+
+```html
+<a href="https://consent.example.com/p/pk_live_xxx/cookie?lang=en">Cookie policy</a>
+```
+
+The page has a language switcher, links to the site's other published documents, `canonical` and `hreflang` alternates, and the legal stylesheet. It is the Iubenda-style hosted link: you can use it as the banner's `policyUrl` when the site has no page of its own. The banner is not loaded on the hosted page, so there `{{preferences-link}}` points back to `https://<your domain>/`, where the visitor can reopen the preferences.
+
+### Loader script
+
+Put a container where the document should appear, and load `legal.js`:
+
+```html
+<div data-easy-cookie-legal="privacy"></div>
+<script src="https://consent.example.com/v1/sites/pk_live_xxx/legal.js" defer></script>
+```
+
+- `data-easy-cookie-legal` is `cookie`, `privacy` or `terms`; a page can have several containers.
+- Without `data-lang`, the loader asks for the language of the page's `<html lang>`. Add `data-lang="it"` to choose.
+- The loader injects the legal stylesheet once. Add `data-no-style` to the script tag or to a container to opt out.
+- Containers get `data-ec-legal-state="loading|ready|error"`. Call `window.__easyCookieLegal.scan()` to fill containers added later.
+
+### JSON or HTML from the API
+
+```
+GET /v1/sites/:publicKey/legal/:kind.json?lang=en
+GET /v1/sites/:publicKey/legal/:kind.html?lang=en
+```
+
+The `.json` response is `{ kind, lang, languages, title, html, version, publishedAt }`; `.html` is the same `html` as a bare fragment. The HTML is already sanitised and starts with the `<h1>` title. Both endpoints are public (`Access-Control-Allow-Origin: *`) and cached for 5 minutes. When nothing is published they return `404`.
+
+If the requested language doesn't exist, the server tries the base language (`en-GB` → `en`), then the banner config's default language, then the first translation. The response reports the language it used.
+
+### Next.js, server-rendered
+
+```tsx
+// app/[lang]/privacy/page.tsx
+import { getLegalDocument } from '@easy-cookie/next/server';
+import { LegalDocumentHtml } from '@easy-cookie/policy/react';
+import '@easy-cookie/policy/legal.css'; // optional
+import { notFound } from 'next/navigation';
+
+const endpoint = process.env.NEXT_PUBLIC_CONSENT_ENDPOINT!;
+const siteKey = process.env.NEXT_PUBLIC_CONSENT_SITE_KEY!;
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+  const doc = await getLegalDocument({ endpoint, siteKey, kind: 'privacy', lang: (await params).lang });
+  return { title: doc?.title };
+}
+
+export default async function Page({ params }: { params: Promise<{ lang: string }> }) {
+  const doc = await getLegalDocument({ endpoint, siteKey, kind: 'privacy', lang: (await params).lang });
+  if (!doc) notFound();
+  return <LegalDocumentHtml doc={doc} />;
+}
+```
+
+- `getLegalDocument({ endpoint, siteKey, kind, lang?, revalidate? })` resolves to the same object as the `.json` endpoint, or `null` when nothing is published. Other errors throw.
+- It uses `fetch` with `next: { revalidate }`, 300 seconds by default (`false` caches indefinitely), and Next deduplicates the two calls above. The page is server-rendered and indexable.
+- On a page that runs the easy-cookie runtime, the `{{preferences-link}}` opens the preferences panel.
+
+Outside Next.js, `fetchLegalDocument()` from `@easy-cookie/policy/client` does the same fetch with no Markdown renderer attached. For a client-side fetch in React, use `<LegalDocument>`:
+
+```tsx
+import { LegalDocument } from '@easy-cookie/policy/react';
+
+<LegalDocument endpoint="https://consent.example.com" siteKey="pk_live_xxx" kind="cookie" lang="en" loading={<p>…</p>} />
+```
+
+## Rendering without the server
+
+The same renderer the server uses is in `@easy-cookie/policy`, for npm users who keep the text in their repository:
+
+```ts
+import { renderLegalDocument, legalTemplate } from '@easy-cookie/policy';
+
+const content = {
+  translations: {
+    en: { title: 'Cookie policy', body: '…Markdown…\n\n{{cookie-table}}\n' },
+  },
+};
+
+const { lang, title, html } = renderLegalDocument(content, 'en', {
+  config,                                     // for {{cookie-table}} and {{services-list}}
+  publishedAt: '2026-11-13',                  // for {{last-updated}}
+  site: { name: 'Acme', domain: 'acme.example' },
+});
+```
+
+`legalTemplate(kind, lang, site?)` returns one of the built-in drafts, and `countPlaceholders(content)` counts the `[[…]]` left.
+
+## Styling
+
+The rendered document is `<div class="ec-legal" lang="…">` with an `<h1 class="ec-legal__title">` and the body. `@easy-cookie/policy/legal.css` is a small, neutral stylesheet for it: a readable measure, headings, lists, tables (the cookie tables included), the services list and the placeholder marks. The consent server also serves it at `/static/easy-cookie-legal.css`, and the hosted page and the loader use it.
+
+All its selectors use `:where()`, so your own rules always win. Restyle it with these variables, set on `:root`, on `.ec-legal` or on any ancestor:
+
+| Variable | Default | Role |
+|---|---|---|
+| `--ec-legal-font` | `system-ui, sans-serif` | Font |
+| `--ec-legal-ink` | `#1c1c1a` | Text |
+| `--ec-legal-muted` | `#5a5a55` | Secondary text |
+| `--ec-legal-line` | `#dcdcd6` | Rules and table borders |
+| `--ec-legal-accent` | `#1a56c4` | Links and focus ring |
+| `--ec-legal-todo` | `#fff2a8` | Placeholder highlight |
+| `--ec-legal-max-width` | `72ch` | Measure |
+
+```css
+.ec-legal {
+  --ec-legal-font: inherit;
+  --ec-legal-accent: #1e2f5a;
+  --ec-legal-max-width: 68ch;
+}
+```
+
+The full HTTP contract is in [`docs/api.md`](https://github.com/Aleloca/easy-cookie/blob/main/docs/api.md#legal-documents-cookie-policy-privacy-policy-terms) in the repository.

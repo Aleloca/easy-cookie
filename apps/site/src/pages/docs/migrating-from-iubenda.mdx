@@ -1,0 +1,162 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Migrating from Iubenda
+description: How to move from Iubenda's Cookie Solution, Consent Database and policy generator to easy-cookie. Purposes 1–5 and category ids, the blocking markup, options, API, GTM triggers, legal documents, past records, and what changes for visitors.
+---
+
+easy-cookie covers Iubenda's **Cookie Solution** (banner, preferences, prior blocking, Consent Mode) and its **Consent Database** (proof of consent). For the cookie policy, the privacy policy and the terms, it offers [legal documents](/docs/legal-documents/) you write in the console from built-in drafts, instead of a generator. It does not replace IAB TCF or geolocation: if you need them, keep a provider that offers them.
+
+## Purposes and categories
+
+Iubenda's five purposes have an equivalent category id, with a title, a description and Consent Mode signals already set:
+
+| Iubenda purpose | easy-cookie id | Consent Mode |
+|---|---|---|
+| 1 · Strictly necessary | `necessary` (with `readOnly: true`) | `security_storage` |
+| 2 · Functionality | `functionality` | `functionality_storage` |
+| 3 · Experience | `experience` | `personalization_storage` |
+| 4 · Measurement | `measurement` | `analytics_storage` |
+| 5 · Marketing | `marketing` | `ad_storage`, `ad_user_data`, `ad_personalization` |
+
+```ts
+categories: {
+  necessary: { readOnly: true },
+  experience: {},
+  measurement: {},
+  marketing: {},
+},
+```
+
+As with Iubenda, categories follow the services: once you declare at least one service, an optional category with no services is left out of the banner, the preferences, the policy and Consent Mode, and its signals stay denied.
+
+## Services: from the Iubenda panel to the library
+
+List the services active in your Iubenda panel and recreate them in `services`, with their cookies. Most common ones are in the [service library](/docs/service-library/): in the console, **Banner configuration → Services → Add from library** copies them into the draft with provider, privacy link, default category, purpose and cookies, all editable. In code, use `catalogToService()` from `@easy-cookie/core/catalog`.
+
+## The blocking markup
+
+Iubenda uses the `_iub_cs_activate` class and the `data-iub-purposes` attribute with the purpose number. In easy-cookie you name the category:
+
+| Iubenda | easy-cookie |
+|---|---|
+| `class="_iub_cs_activate"` | not needed |
+| `type="text/plain"` | `type="text/plain"` (same) |
+| `data-iub-purposes="4"` | `data-category="measurement"` |
+| `data-suppressedsrc="…"` (script) | `data-src="…"` |
+| `data-suppressedsrc="…"` + `src="about:blank"` (iframe) | `data-src="…"`, with no `src` |
+| `data-iub-type="module"` | `data-type="module"` |
+| `_iub_cs_activate-inline` | not needed: blocked inline scripts are supported (except those that use `document.write`) |
+
+Before:
+
+```html
+<script type="text/plain" class="_iub_cs_activate" data-iub-purposes="4"
+        data-suppressedsrc="https://www.googletagmanager.com/gtag/js?id=G-XXXX"></script>
+<iframe class="_iub_cs_activate" data-iub-purposes="3"
+        data-suppressedsrc="https://www.youtube-nocookie.com/embed/ID" src="about:blank"></iframe>
+```
+
+After:
+
+```html
+<script type="text/plain" data-category="measurement" data-service="ga4"
+        data-src="https://www.googletagmanager.com/gtag/js?id=G-XXXX"></script>
+<iframe data-category="experience" data-service="youtube"
+        data-src="https://www.youtube-nocookie.com/embed/ID" width="560" height="315" title="Video"></iframe>
+```
+
+Blocked iframes now show a placeholder at the right proportions, with buttons to show the content once or always enable its category, which Iubenda does not offer as standard.
+
+Iubenda's auto-blocking (the script that blocks known domains) has no equivalent: every third-party tag must be marked. In return, you know exactly what is blocked. See [Prior blocking](/docs/prior-blocking/).
+
+## Equivalent options
+
+| `_iub.csConfiguration` | easy-cookie |
+|---|---|
+| `perPurposeConsent: true` | Always on: consent is per category. |
+| `purposes` | The keys of `categories`. |
+| `banner.acceptButtonDisplay`, `rejectButtonDisplay`, `customizeButtonDisplay` | Always shown, with equal weight. They cannot be hidden. |
+| `banner.closeButtonRejects: true` | Always: the X counts as a rejection. |
+| `floatingPreferencesButtonDisplay` | `ui.reopenButton` (with `hideOn` for excluded paths). |
+| `askConsentAtCookiePolicyUpdate`, `invalidateConsentBefore` | Change `revision`. |
+| `preferenceCookie.expireAfter` | `expiryDays` (default 182, about 6 months). |
+| `invalidateConsentWithoutLog: true` | `log.requireLog: true`. |
+| `googleConsentMode: 'template'` | `googleConsentMode: { enabled: true }`. |
+| `googleAdsDataRedaction`, `googleUrlPassthrough` | `googleConsentMode.adsDataRedaction`, `urlPassthrough`. |
+| `emitGtmEvents: true` | Always on. The event name is `googleConsentMode.eventName`, `easy_cookie_update` by default. |
+| `lang` | `language.default` and `language.available`. |
+| `cookiePolicyUrl` | `policyUrl`. |
+| `enableTcf`, `countryDetection` | Not supported. |
+
+## Google Tag Manager
+
+On the first choice and on every change, the runtime calls `gtag('consent', 'update', …)` and pushes an event to the `dataLayer`. If your GTM triggers already listen to a consent event, set `googleConsentMode.eventName` to that name and nothing has to change in GTM:
+
+```ts
+googleConsentMode: { enabled: true, eventName: 'cookie_consent_update' },
+```
+
+The payload is always `easyCookie.categories.<id>`. If a GTM variable read other dataLayer keys, point it there. Otherwise, add a Custom Event trigger on `easy_cookie_update` to your GA4, Ads and Meta base tags. See [Consent Mode and GTM](/docs/consent-mode/).
+
+## JavaScript API
+
+| `_iub.cs.api` | `EasyCookie` |
+|---|---|
+| `showBanner()` | `showBanner()` |
+| `openPreferences()` | `openPreferences()` |
+| `acceptAll()`, `rejectAll()` | `acceptAll()`, `rejectAll()` |
+| `setPreferences(…)` | `accept(['measurement'])` |
+| `isConsentGiven()`, `getPreferences()` | `get()` |
+| `getPurposesState()` | `isGranted('measurement')` per category |
+| `resetStorage()` | `reset()` |
+| `activateSnippets()` | Automatic on choice. |
+| `iubenda-cs-preferences-link` class | `data-ec-open-preferences` attribute on any element |
+
+| Iubenda callback | easy-cookie event |
+|---|---|
+| `onReady` | `on('ready', …)` |
+| `onConsentFirstGiven`, `onPreferenceFirstExpressed` | `on('consent', …)` |
+| `onPreferenceChange` | `on('change', …)` |
+| `onConsentGiven` | `onGranted('category', …)` |
+| `onPreferenceExpressed` (on every page load) | `on('replay', …)` |
+
+See [JavaScript API](/docs/api/).
+
+## Consent Database
+
+| Iubenda | easy-cookie |
+|---|---|
+| Public key, `POST /public/consent` | Public key `pk_…`, `POST /v1/consents`, sent by the runtime automatically. |
+| Private `ApiKey` | Secret key `sk_…` in `Authorization: Bearer`. |
+| `subject.id` | `identify(userId)` links the consent to the user. |
+| `legal_notices` with a version | Every record carries the `revision`; the config of that revision is kept. |
+| `GET /consent`, `/subjects` | `GET /v1/consents`, `GET /v1/subjects/:id/consents`. |
+
+Export your data from Iubenda before cancelling and keep it as proof of the consents collected until then. If you also want those records in the new register, convert the export to JSON Lines and load it with the [`import` command](/docs/importing-records/): records keep their original timestamps, under a revision such as `legacy-1.0.0`.
+
+## Cookie policy, privacy policy and terms
+
+Iubenda generates policy texts from its clauses. easy-cookie takes a different route: each site has a cookie policy, a privacy policy and terms that you write in Markdown in the console, starting from built-in Italian and English drafts.
+
+- The cookie tables and the list of third-party services come from the banner config through the `{{cookie-table}}` and `{{services-list}}` directives, so they cannot drift.
+- The drafts are **starting points, not legal advice**: every owner-specific value is a `[[placeholder]]`, and the console warns before publishing while any is left. Have the text reviewed by a professional.
+- Iubenda's hosted policy link has an equivalent: the hosted page `/p/<publicKey>/cookie` on your consent server, which you can use as the banner's `policyUrl`. You can also embed the documents in your own pages.
+
+See [Legal documents](/docs/legal-documents/). If you only need the tables inside a policy you write elsewhere, use [`@easy-cookie/policy`](/docs/cookie-policy/).
+
+## What changes for visitors
+
+- **They choose again, once.** Iubenda's cookie (`_iub_cs-…`) is not read: from the switch on, the valid consent is the one in `ec_consent`.
+- The banner looks different (colour modules per category) and the button that reopens the preferences shows their state.
+- Accept and Reject are always equal, even if your Iubenda setup styled them differently.
+
+## Steps
+
+1. [Self-host](/docs/self-hosting/) the consent server and create the site, with its origins.
+2. Recreate the services from the [library](/docs/service-library/) or by hand, with their cookies.
+3. Convert the blocking markup with the table above. Search for `_iub_cs_activate` across your code and templates.
+4. Remove `iubenda_cs.js`, `_iub.csConfiguration` and any `safe.js`.
+5. Put the easy-cookie tag in `<head>` before GTM. Keep your GTM triggers by setting `googleConsentMode.eventName`, or move them to `easy_cookie_update`.
+6. Write and publish the [legal documents](/docs/legal-documents/), or generate the cookie tables with [`@easy-cookie/policy`](/docs/cookie-policy/), and update the links in your footer.
+7. Export the Iubenda Consent Database, keep the export, and optionally [import](/docs/importing-records/) it.
+8. In a private window, check that no third-party request leaves before the choice.

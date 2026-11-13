@@ -1,11 +1,16 @@
 /** Site-wide constants and helpers. */
+import corePkg from '../../../../packages/core/package.json';
 
-/** REPLACE before publishing: the public GitHub repository of the project. */
-export const GITHUB_URL = 'https://github.com/OWNER/easy-cookie';
+/** The public GitHub repository of the project. */
+export const GITHUB_URL = 'https://github.com/Aleloca/easy-cookie';
+/** npm: the main package and the scope every package is published under. */
+export const NPM_URL = 'https://www.npmjs.com/package/@easy-cookie/core';
+export const NPM_ORG_URL = 'https://www.npmjs.com/org/easy-cookie';
 
-/** Date and version shown on the revision stamps of the docs. */
+/** Date shown on the revision stamps of the docs. */
 export const DOCS_UPDATED = '2026-11-13';
-export const VERSION = '0.1.0';
+/** Published version of the packages (they share one), read from @easy-cookie/core at build time. */
+export const VERSION: string = corePkg.version;
 
 /** Prefix a root-relative path with the configured base (GitHub Pages sub-path). */
 export function url(path: string): string {
@@ -32,36 +37,45 @@ export interface NavGroup {
 /** Docs navigation, in reading order. Prev/next follow this order. */
 export const DOCS_NAV: NavGroup[] = [
   {
-    label: 'Per iniziare',
+    label: 'Getting started',
     items: [
-      { slug: 'introduzione', title: 'Introduzione' },
-      { slug: 'avvio-rapido', title: 'Avvio rapido' },
-      { slug: 'configurazione', title: 'Configurazione' },
+      { slug: 'introduction', title: 'Introduction' },
+      { slug: 'quick-start', title: 'Quick start' },
+      { slug: 'configuration', title: 'Configuration' },
+      { slug: 'service-library', title: 'Service library' },
     ],
   },
   {
-    label: 'Sul sito',
+    label: 'On your site',
     items: [
-      { slug: 'blocco-preventivo', title: 'Blocco preventivo' },
-      { slug: 'consent-mode', title: 'Google Consent Mode v2 e GTM' },
+      { slug: 'prior-blocking', title: 'Prior blocking' },
+      { slug: 'consent-mode', title: 'Google Consent Mode v2 and GTM' },
       { slug: 'posthog', title: 'PostHog' },
-      { slug: 'tematizzazione', title: 'Tematizzazione' },
-      { slug: 'api', title: 'API JavaScript' },
+      { slug: 'theming', title: 'Theming' },
+      { slug: 'api', title: 'JavaScript API' },
     ],
   },
   {
-    label: 'Prova del consenso',
+    label: 'Policies',
     items: [
-      { slug: 'registro-consensi', title: 'Registro dei consensi' },
-      { slug: 'console', title: 'Console di amministrazione' },
-      { slug: 'cookie-policy', title: 'Cookie policy generata' },
+      { slug: 'cookie-policy', title: 'Cookie policy tables' },
+      { slug: 'legal-documents', title: 'Legal documents' },
     ],
   },
   {
-    label: 'Passare a easy-cookie',
+    label: 'Consent server',
     items: [
-      { slug: 'migrazione-iubenda', title: 'Migrazione da Iubenda' },
-      { slug: 'conformita', title: 'Conformità' },
+      { slug: 'self-hosting', title: 'Self-hosting' },
+      { slug: 'console', title: 'Admin console' },
+      { slug: 'consent-register', title: 'Consent register' },
+      { slug: 'importing-records', title: 'Importing records' },
+    ],
+  },
+  {
+    label: 'Switching to easy-cookie',
+    items: [
+      { slug: 'migrating-from-iubenda', title: 'Migrating from Iubenda' },
+      { slug: 'compliance', title: 'Compliance' },
     ],
   },
 ];

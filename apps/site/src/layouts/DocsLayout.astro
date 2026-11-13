@@ -2,7 +2,7 @@
 import Base from './Base.astro';
 import Mark from '../components/Mark.astro';
 import CopyCode from '../components/CopyCode.astro';
-import { DOCS_NAV, DOCS_FLAT, DOCS_UPDATED, VERSION, GITHUB_URL, stampDate, url } from '../lib/site';
+import { DOCS_NAV, DOCS_FLAT, DOCS_UPDATED, VERSION, GITHUB_URL, NPM_ORG_URL, stampDate, url } from '../lib/site';
 import '../styles/docs.css';
 
 interface Props {
@@ -20,13 +20,13 @@ const updated = frontmatter.updated ?? DOCS_UPDATED;
 ---
 <Base title={`${frontmatter.title} · easy-cookie`} description={frontmatter.description}>
   <div class="docs">
-    <aside class="rail" aria-label="Documentazione">
+    <aside class="rail" aria-label="Documentation">
       <div class="rail__top">
         <a class="wordmark" href={url('/')}><Mark />easy-cookie</a>
       </div>
       <details class="rail__menu" open>
         <summary>
-          <span>Indice della documentazione</span>
+          <span>Documentation index</span>
           <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
         </summary>
         <nav>
@@ -46,9 +46,9 @@ const updated = frontmatter.updated ?? DOCS_UPDATED;
           ))}
         </nav>
         <ul class="rail__foot">
-          <li><a href={url('/')}>Sito del progetto</a></li>
-          <li><a href={GITHUB_URL}>Codice su GitHub</a></li>
-          <li><a href={url('/en/')} hreflang="en" lang="en">English overview</a></li>
+          <li><a href={url('/')}>Project home</a></li>
+          <li><a href={GITHUB_URL}>Source on GitHub</a></li>
+          <li><a href={NPM_ORG_URL}>Packages on npm</a></li>
         </ul>
       </details>
     </aside>
@@ -69,20 +69,20 @@ const updated = frontmatter.updated ?? DOCS_UPDATED;
           <h1>{frontmatter.title}</h1>
           <p class="page-head__lede">{frontmatter.description}</p>
           <p class="page-head__meta">
-            <span class="stamp">Agg. {stampDate(updated)} · v{VERSION}</span>
+            <span class="stamp">Upd. {stampDate(updated)} · v{VERSION}</span>
             {frontmatter.status && <span class="page-head__status">{frontmatter.status}</span>}
           </p>
         </div>
       </header>
 
       <div class="docs__body">
-        <article class="prose" id="contenuto">
+        <article class="prose" id="content">
           <slot />
         </article>
 
         {toc.length > 1 && (
           <nav class="toc" aria-labelledby="toc-title">
-            <p class="label toc__title" id="toc-title">In questa pagina</p>
+            <p class="label toc__title" id="toc-title">On this page</p>
             <ul>
               {toc.map((h) => (
                 <li class={h.depth === 3 ? 'toc__sub' : undefined}><a href={`#${h.slug}`}>{h.text}</a></li>
@@ -92,24 +92,24 @@ const updated = frontmatter.updated ?? DOCS_UPDATED;
         )}
       </div>
 
-      <nav class="pager" aria-label="Pagine vicine">
+      <nav class="pager" aria-label="Previous and next pages">
         {prev ? (
           <a class="pager__link" href={url(`/docs/${prev.slug}/`)} rel="prev">
-            <span class="label">Precedente</span>
+            <span class="label">Previous</span>
             <span class="pager__title">{prev.title}</span>
           </a>
         ) : <span />}
         {next && (
           <a class="pager__link pager__link--next" href={url(`/docs/${next.slug}/`)} rel="next">
-            <span class="label">Successiva</span>
+            <span class="label">Next</span>
             <span class="pager__title">{next.title}</span>
           </a>
         )}
       </nav>
 
       <footer class="docs__foot">
-        <p>easy-cookie è software libero con licenza MIT. Questa documentazione non è consulenza legale.</p>
-        <p>Questo sito non imposta cookie di profilazione né di statistica.</p>
+        <p>easy-cookie is free software under the MIT licence. This documentation is not legal advice.</p>
+        <p>This site sets no profiling or analytics cookies.</p>
       </footer>
     </div>
   </div>

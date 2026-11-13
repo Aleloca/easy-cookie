@@ -1,46 +1,54 @@
 ---
 import { Code } from 'astro:components';
+import { CATALOG, CATALOG_GROUPS } from '@easy-cookie/core/catalog';
 import Base from '../layouts/Base.astro';
 import Mark from './Mark.astro';
 import CopyCode from './CopyCode.astro';
 import libretto from '../lib/libretto-shiki.json';
-import { copy, configSnippet, configStamp, installSnippets, registerRows, type Lang } from '../lib/landing-copy';
-import { GITHUB_URL, stampDate, url } from '../lib/site';
+import { copy as t, configSnippet, configStamp, installSnippets, legalSnippet, hostingSnippets, registerRows, PACKAGES } from '../lib/landing-copy';
+import { GITHUB_URL, NPM_URL, NPM_ORG_URL, VERSION, stampDate, url } from '../lib/site';
 import '../styles/landing.css';
 
-interface Props { lang: Lang }
-const { lang } = Astro.props;
-const t = copy[lang];
 const theme = libretto as any;
 const docs = (slug: string) => url(`/docs/${slug}/`);
-const demoSrc = url('/demo/') + (lang === 'en' ? '?lang=en' : '');
-const catNames = lang === 'en'
-  ? ['necessary', 'experience', 'measurement', 'marketing']
-  : ['necessari', 'esperienza', 'misurazione', 'marketing'];
-const [granted, denied] = lang === 'en' ? ['granted', 'denied'] : ['concesso', 'negato'];
-const snippets = { ...installSnippets };
-if (lang === 'en') {
-  snippets.embed = snippets.embed.replace('poi Google Tag Manager', 'then Google Tag Manager');
-  snippets.next = snippets.next.replace('prima di GTM', 'before GTM').replace('lang="it"', 'lang="en"');
-}
-const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
+const demoSrc = url('/demo/');
+const catNames = ['necessary', 'experience', 'measurement', 'marketing'];
+const snippets = installSnippets;
+const demoLabels = { ...t.log, empty: t.demoLogEmpty };
+
+// The service library, read from @easy-cookie/core/catalog at build time.
+const groupNames: Record<string, string> = {
+  analytics: 'Analytics',
+  advertising: 'Advertising',
+  'tag-management': 'Tag management',
+  embeds: 'Embeds',
+  support: 'Support chat',
+  payments: 'Payments',
+  security: 'Security',
+  infrastructure: 'Infrastructure',
+};
+const library = CATALOG_GROUPS.map((g) => {
+  const entries = CATALOG.filter((e) => e.group === g);
+  const cats = [...new Set(entries.map((e) => e.category))];
+  return { group: groupNames[g] ?? g, services: entries.map((e) => e.label), cats };
+}).filter((r) => r.services.length > 0);
 ---
-<Base title={t.title} description={t.description} lang={lang} alternate={{ it: '/', en: '/en/' }}>
+<Base title={t.title} description={t.description}>
   <header class="masthead">
     <div class="masthead__inner">
-      <a class="wordmark" href={url(lang === 'en' ? '/en/' : '/')}><Mark />easy-cookie</a>
-      <nav aria-label={lang === 'en' ? 'Main' : 'Principale'}>
+      <a class="wordmark" href={url('/')}><Mark />easy-cookie</a>
+      <nav aria-label="Main">
         <ul>
-          <li><a href={docs('introduzione')}><span class="hide-sm">{t.nav.docs}</span><span class="show-sm">Docs</span></a></li>
-          <li class="hide-sm"><a href={docs('avvio-rapido')}>{t.nav.start}</a></li>
+          <li><a href={docs('introduction')}><span class="hide-sm">{t.nav.docs}</span><span class="show-sm">Docs</span></a></li>
+          <li class="hide-sm"><a href={docs('quick-start')}>{t.nav.start}</a></li>
+          <li><a href={NPM_ORG_URL}>{t.nav.npm}</a></li>
           <li><a href={GITHUB_URL}>{t.nav.github}</a></li>
-          <li><a href={url(t.nav.otherHref)} hreflang={t.nav.otherLang} lang={t.nav.otherLang}>{t.nav.other}</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
-  <main id="contenuto">
+  <main id="content">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero__inner">
         <h1 id="hero-title">{t.h1}</h1>
@@ -49,9 +57,9 @@ const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
           <div class="hero__cta">
           <div class="hero__actions">
             <a class="btn" href="#demo">{t.ctaDemo}</a>
-            <a class="btn btn--ghost" href={docs('avvio-rapido')}>{t.ctaStart}</a>
+            <a class="btn btn--ghost" href={docs('quick-start')}>{t.ctaStart}</a>
           </div>
-          <p class="hero__terms">{t.terms}</p>
+          <p class="hero__terms">{t.terms(VERSION)}</p>
           </div>
         </div>
       </div>
@@ -86,7 +94,7 @@ const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
       <div class="demo">
         <div class="demo__stage">
           <div class="demo__bar">
-            <span class="demo__addr">rivista.example</span>
+            <span class="demo__addr">magazine.example</span>
             <button type="button" class="btn btn--ghost demo__reset" id="demo-reset">
               <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
               {t.demoReset}
@@ -102,6 +110,29 @@ const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
         </div>
       </div>
       <p class="demo__note">{t.demoNote}</p>
+    </section>
+
+    <section class="section" id="library" aria-labelledby="library-title">
+      <div class="section__head">
+        <h2 id="library-title">{t.libraryH2}</h2>
+        <p>{t.libraryLede}</p>
+      </div>
+      <div class="compare__scroll">
+        <table class="ledger library">
+          <thead><tr>{t.libraryCols.map((c) => <th scope="col">{c}</th>)}</tr></thead>
+          <tbody>
+            {library.map((r) => (
+              <tr>
+                <th scope="row">{r.group}</th>
+                <td>{r.services.join(' · ')}</td>
+                <td class="mono library__cat">{r.cats.join(', ')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="section__aside">{t.libraryNote}</p>
+      <p class="section__more"><a href={docs('service-library')}>{t.libraryLink}</a></p>
     </section>
 
     <section class="section" aria-labelledby="register-title">
@@ -126,7 +157,7 @@ const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
                   <td class="mono">{r.id}</td>
                   <td class={`method method--${r.method}`}>{t.methods[r.method]}</td>
                   <td>
-                    <span class="squares" role="img" aria-label={catNames.map((n, i) => `${n} ${r.cats[i] ? granted : denied}`).join(', ')}>
+                    <span class="squares" role="img" aria-label={catNames.map((n, i) => `${n} ${r.cats[i] ? 'granted' : 'denied'}`).join(', ')}>
                       {r.cats.map((c) => <span class={c ? 'sq sq--on' : 'sq'} />)}
                     </span>
                   </td>
@@ -144,7 +175,26 @@ const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
           <li><h3>{p.title}</h3><p>{p.body}</p></li>
         ))}
       </ul>
-      <p class="section__more"><a href={docs('registro-consensi')}>{t.registerLink}</a></p>
+      <p class="section__more"><a href={docs('consent-register')}>{t.registerLink}</a></p>
+    </section>
+
+    <section class="section" id="legal" aria-labelledby="legal-title">
+      <div class="section__head">
+        <h2 id="legal-title">{t.legalH2}</h2>
+        <p>{t.legalLede}</p>
+      </div>
+      <div class="legal">
+        <div class="legal__page">
+          <p class="label spread__head"><span>{t.legalFile}</span></p>
+          <Code code={legalSnippet} lang="md" theme={theme} />
+        </div>
+        <ul class="points points--stack">
+          {t.legalPoints.map((p) => (
+            <li><h3>{p.title}</h3><p>{p.body}</p></li>
+          ))}
+        </ul>
+      </div>
+      <p class="section__more"><a href={docs('legal-documents')}>{t.legalLink}</a></p>
     </section>
 
     <section class="section" aria-labelledby="compliance-title">
@@ -161,7 +211,7 @@ const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
         </tbody>
       </table>
       <p class="section__aside">{t.complianceNote}</p>
-      <p class="section__more"><a href={docs('conformita')}>{t.complianceLink}</a></p>
+      <p class="section__more"><a href={docs('compliance')}>{t.complianceLink}</a></p>
     </section>
 
     <section class="section" aria-labelledby="compare-title">
@@ -185,10 +235,29 @@ const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
           </tbody>
         </table>
       </div>
-      <p class="section__more"><a href={docs('migrazione-iubenda')}>{t.compareLink}</a></p>
+      <p class="section__more"><a href={docs('migrating-from-iubenda')}>{t.compareLink}</a></p>
     </section>
 
-    <section class="section" id="installa" aria-labelledby="install-title">
+    <section class="section" id="hosting" aria-labelledby="hosting-title">
+      <div class="section__head">
+        <h2 id="hosting-title">{t.hostingH2}</h2>
+        <p>{t.hostingLede}</p>
+      </div>
+      <div class="install">
+        {t.hosting.map((i) => (
+          <div class="install__item">
+            <div class="install__text">
+              <h3>{i.title}</h3>
+              <p>{i.body}</p>
+            </div>
+            <Code code={hostingSnippets[i.key as keyof typeof hostingSnippets]} lang={i.lang as any} theme={theme} />
+          </div>
+        ))}
+      </div>
+      <p class="section__more"><a href={docs('self-hosting')}>{t.hostingLink}</a></p>
+    </section>
+
+    <section class="section" id="install" aria-labelledby="install-title">
       <div class="section__head">
         <h2 id="install-title">{t.installH2}</h2>
         <p>{t.installLede}</p>
@@ -204,22 +273,24 @@ const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
           </div>
         ))}
       </div>
-      <p class="section__more"><a href={docs('avvio-rapido')}>{t.installLink}</a></p>
+      <p class="packages"><span class="label">{t.packagesLabel}</span>
+        {PACKAGES.map((p) => <a class="mono" href={`https://www.npmjs.com/package/@easy-cookie/${p}`}>@easy-cookie/{p}</a>)}
+      </p>
+      <p class="section__more"><a href={docs('quick-start')}>{t.installLink}</a></p>
     </section>
   </main>
 
   <footer class="foot">
     <div class="foot__inner">
       <div>
-        <a class="wordmark" href={url(lang === 'en' ? '/en/' : '/')}><Mark />easy-cookie</a>
+        <a class="wordmark" href={url('/')}><Mark />easy-cookie</a>
         <p>{t.footer.about}</p>
         <p>{t.footer.cookies}</p>
       </div>
       <ul>
-        <li><a href={docs('introduzione')}>{t.footer.docs}</a></li>
-        <!-- REPLACE: GITHUB_URL in src/lib/site.ts before publishing -->
-        <li><a href={GITHUB_URL}>{t.footer.repo}</a> <span class="foot__note">({t.footer.repoNote})</span></li>
-        <li><a href={url(t.nav.otherHref)} hreflang={t.nav.otherLang} lang={t.nav.otherLang}>{t.nav.other}</a></li>
+        <li><a href={docs('introduction')}>{t.footer.docs}</a></li>
+        <li><a href={GITHUB_URL}>{t.footer.repo}</a></li>
+        <li><a href={NPM_URL}>{t.footer.npm}</a> <span class="foot__note">v{VERSION}</span></li>
         <li class="foot__legal">{t.footer.legal}</li>
       </ul>
     </div>
@@ -313,5 +384,5 @@ const demoLabels = { ...t.log, empty: t.demoLogEmpty, lang };
         });
     })();
   </script>
-  <CopyCode lang={lang} />
+  <CopyCode />
 </Base>

@@ -1,0 +1,143 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Theming
+description: Every --ec-* CSS variable with its default, the dark scheme, and two examples of adapting the banner, the preferences panel, the reopen button and the placeholders to your brand.
+---
+
+The default theme is called **Modulo**: white ground, near-black ink, 1px borders, square corners, no shadow. Each category is a colour module, filled when granted and empty when denied, so the visitor's choice reads as a small composition. It is neutral on purpose, so it sits well on very different sites.
+
+Every visual decision is a `--ec-*` CSS variable. Set them on `:root` (or on a more specific selector) after loading `easy-cookie.css`, without touching the internal selectors.
+
+```css
+@import '@easy-cookie/core/style.css';
+
+:root {
+  --ec-font: inherit;
+  --ec-ink: #14213d;
+}
+```
+
+## Variables
+
+### Colours
+
+| Variable | Light | Dark | Role |
+|---|---|---|---|
+| `--ec-bg` | `#ffffff` | `#161615` | Ground of the banner, panel and placeholders |
+| `--ec-ink` | `#1c1c1a` | `#f1f1ec` | Text, borders, filled buttons |
+| `--ec-ink-2` | `#4a4a46` | `#b9b9b1` | Secondary text |
+| `--ec-hair` | `#d9d9d3` | `#3a3a36` | Hairlines and separators |
+| `--ec-wash` | `#f4f4f1` | `#22221f` | Hover ground, panel footer |
+| `--ec-on-ink` | `#ffffff` | `#161615` | Text on filled buttons |
+| `--ec-overlay` | `rgba(28, 28, 26, 0.45)` | `rgba(0, 0, 0, 0.6)` | Veil behind the preferences panel |
+
+### Category modules
+
+| Variable | Light | Dark | Category |
+|---|---|---|---|
+| `--ec-c-necessary` | `var(--ec-ink)` | `var(--ec-ink)` | `necessary` |
+| `--ec-c-measurement` | `#2457c5` | `#7a9cff` | `measurement` |
+| `--ec-c-functionality` | `#b8800f` | `#f0b33a` | `functionality` |
+| `--ec-c-experience` | `#2f8f5b` | `#4cc283` | `experience` |
+| `--ec-c-marketing` | `#d63a26` | `#ff6a52` | `marketing` |
+| `--ec-c-extra-1` | `#7a4fa0` | `#b48ae0` | First category with an unknown id |
+| `--ec-c-extra-2` | `#0f7f86` | `#3cc4cc` | Second |
+| `--ec-c-extra-3` | `#8a5a2b` | `#d39a5f` | Third |
+
+You can also colour a single category from the config, with `categories.<id>.color`.
+
+### Shape, sizes, motion
+
+| Variable | Default | Role |
+|---|---|---|
+| `--ec-font` | `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` | Font of the whole banner. `inherit` uses your site's. |
+| `--ec-font-mono` | `ui-monospace, "SF Mono", Menlo, Consolas, monospace` | Cookie names in the tables |
+| `--ec-border` | `1px solid var(--ec-ink)` | Banner and button border |
+| `--ec-radius` | `0px` | Corner radius, everywhere |
+| `--ec-shadow` | `none` | Banner shadow |
+| `--ec-width` | `560px` | Banner width (full width below 641px) |
+| `--ec-pad` | `28px` | Banner padding |
+| `--ec-module` | `40px` | Side of the category modules |
+| `--ec-text` | `15px` | Body text |
+| `--ec-title` | `20px` | Title |
+| `--ec-small` | `13px` | Small text (legend, tables) |
+| `--ec-focus` | `0 0 0 2px var(--ec-bg), 0 0 0 4px var(--ec-ink)` | Focus ring, as a `box-shadow` |
+| `--ec-step` | `120ms` | Duration of one step of the module animation |
+
+The `--cc-*` variables of the original engine (vanilla-cookieconsent) are derived from these: you do not need to set them.
+
+## Dark scheme
+
+Three ways:
+
+- `ui.colorScheme: 'dark'` always applies the dark scheme;
+- `ui.colorScheme: 'auto'` applies it when the visitor's system prefers a dark theme;
+- if your site already has a toggle, add the `ec--dark` class to the `<html>` element while it is on.
+
+To adjust the dark scheme, redefine the variables under that class:
+
+```css
+html.ec--dark {
+  --ec-bg: #0f172a;
+  --ec-ink: #e2e8f0;
+  --ec-hair: #334155;
+  --ec-wash: #1e293b;
+  --ec-on-ink: #0f172a;
+}
+```
+
+## Example: an editorial site
+
+The site's own ink and paper, an amber accent for measurement, the site's font:
+
+```css
+:root {
+  --ec-font: inherit;
+  --ec-bg: #fffaf0;
+  --ec-ink: #1f1a17;
+  --ec-ink-2: #5b524b;
+  --ec-hair: #e4d9c8;
+  --ec-wash: #f6eedf;
+  --ec-c-measurement: #b7791f;
+}
+```
+
+## Example: an app with rounded corners
+
+```css
+:root {
+  --ec-font: "Inter", system-ui, sans-serif;
+  --ec-radius: 10px;
+  --ec-ink: #1b1530;
+  --ec-border: 1px solid #d8d4e6;
+  --ec-shadow: 0 12px 32px rgba(27, 21, 48, 0.16);
+  --ec-c-measurement: #6d4aff;
+}
+```
+
+## Accessibility
+
+The default colours meet WCAG 2.2 AA contrast in both schemes. If you change them, keep:
+
+- text (`--ec-ink`, `--ec-ink-2`) on `--ec-bg` at 4.5:1 or more;
+- button text (`--ec-on-ink`) on `--ec-ink` at 4.5:1 or more;
+- the focus ring (`--ec-focus`) visible against your site's background.
+
+Category state never relies on colour alone: a filled module is granted, an empty one is denied, and there is always a text legend. Accept and Reject stay identical whatever values you choose, because they use the same variables.
+
+## Parts of the theme
+
+| Class | Element |
+|---|---|
+| `#cc-main .cm` | Banner (first layer) |
+| `#cc-main .pm` | Preferences panel |
+| `.ec-mosaic`, `.ec-module` | Category mosaic |
+| `.ec-reopen` | Reopen button |
+| `.ec-embed`, `.ec-embed__text`, `.ec-embed__actions` | Placeholders of blocked iframes |
+| `.ec-error` | Error message with `requireLog` |
+
+Use them for position tweaks, for example moving `.ec-reopen` above a fixed bar on your site. For colours and shapes always use the variables, so theme updates don't break your styling.
+
+## Legal documents
+
+The banner theme does not style legal documents. Those have their own small stylesheet, `@easy-cookie/policy/legal.css`, driven by `--ec-legal-*` variables: see [Legal documents](/docs/legal-documents/#styling).
