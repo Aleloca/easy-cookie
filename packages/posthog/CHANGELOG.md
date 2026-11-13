@@ -1,5 +1,14 @@
 # @easy-cookie/posthog
 
+## 0.1.2
+
+### Patch Changes
+
+- [`9d6adb7`](https://github.com/Aleloca/easy-cookie/commit/9d6adb76f01cc77572741dc63f23bb6155bd93ed) Thanks [@Aleloca](https://github.com/Aleloca)! - `connectPostHog` reads posthog-js' explicit consent status (`get_explicit_consent_status()`), so `beforeChoice: 'cookieless'` and rejections work with `cookieless_mode: 'on_reject'`, where `has_opted_out_capturing()` is already true while pending. The adapter also waits for the runtime to be ready, so a returning visitor who accepted is never opted out (and reset) before the stored choice is read.
+
+- Updated dependencies []:
+  - @easy-cookie/core@0.1.2
+
 ## 0.1.1
 
 ### Patch Changes
