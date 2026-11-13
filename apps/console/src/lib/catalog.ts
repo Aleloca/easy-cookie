@@ -13,12 +13,13 @@ import { freeId } from './configEdit';
  * Everything is deep-copied so editing the service never touches the catalog.
  */
 export function catalogToService(entry: CatalogEntry): ConfigService {
+  // Empty provider/privacyUrl (e.g. the `easy-cookie` entry itself) are left out, as on the server.
   return structuredClone({
     category: entry.category,
     label: entry.label,
-    provider: entry.provider,
+    ...(entry.provider ? { provider: entry.provider } : {}),
+    ...(entry.privacyUrl ? { privacyUrl: entry.privacyUrl } : {}),
     purpose: entry.purpose,
-    privacyUrl: entry.privacyUrl,
     cookies: entry.cookies,
     from: entry.id,
   });

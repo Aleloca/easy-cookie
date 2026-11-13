@@ -35,15 +35,19 @@ function Detail({ entry }: { entry: CatalogEntry }) {
         </div>
         <div>
           <dt className="label">{t.library.provider}</dt>
-          <dd>{entry.provider}</dd>
+          <dd>{entry.provider || <span className="dim">{t.library.ownSite}</span>}</dd>
         </div>
         <div>
           <dt className="label">{t.library.privacy}</dt>
           <dd>
-            <a className="link link-ext" href={entry.privacyUrl} target="_blank" rel="noreferrer noopener">
-              {entry.privacyUrl.replace(/^https?:\/\//, '')}
-              <Icon name="external" size={14} />
-            </a>
+            {entry.privacyUrl ? (
+              <a className="link link-ext" href={entry.privacyUrl} target="_blank" rel="noreferrer noopener">
+                {entry.privacyUrl.replace(/^https?:\/\//, '')}
+                <Icon name="external" size={14} />
+              </a>
+            ) : (
+              <span className="dim">{t.library.ownPolicy}</span>
+            )}
           </dd>
         </div>
         {entry.transfer && (
@@ -174,7 +178,7 @@ export function Library() {
                 <NavLink to={`/library/${e.id}`} className="lib-link">
                   <span className="lib-name">
                     <span className="lib-label">{e.label}</span>
-                    <span className="lib-provider">{e.provider}</span>
+                    {e.provider && <span className="lib-provider">{e.provider}</span>}
                   </span>
                   <CategoryTag id={e.category} />
                 </NavLink>

@@ -1,7 +1,9 @@
 import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import { legal } from '../../../api/endpoints';
-import { LEGAL_KINDS, type LegalDoc, type LegalDocContent, type LegalKind, type LegalVersionSummary } from '../../../api/types';
+import { LEGAL_KINDS, type LegalDoc, type LegalDocContent, type LegalKind, type LegalVersionSummary, type RenderedLegal } from '../../../api/types';
+import { LEGAL_PREVIEW_CSS, LEGAL_PREVIEW_MARKS_CSS } from '../../../lib/legalPreviewCss';
+import { serverOrigin } from '../../../lib/snippets';
 import { useAuth } from '../../../auth';
 import { Icon } from '../../../components/Icon';
 import { PageHeader } from '../../../components/Shell';
@@ -33,10 +35,11 @@ const EDIT_LANGS = ['it', 'en'];
 function LegalPreview({ siteId, kind, content, lang }: { siteId: string; kind: LegalKind; content: LegalDocContent; lang: string }) {
   const { t } = useI18n();
   const settled = useDebounced(content, 600);
-  const [state, setState] = useState<{ title: string; html: string } | null>(null);
+  const [state, setState] = useState<RenderedLegal | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const shadow = useRef<{ root: ShadowRoot; doc: HTMLDivElement } | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -61,11 +64,28 @@ function LegalPreview({ siteId, kind, content, lang }: { siteId: string; kind: L
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteId, kind, settled, lang]);
 
-  // The HTML comes from the server renderer (raw HTML disabled, safe link schemes).
+  // The HTML comes from the server renderer (raw HTML disabled, safe link
+  // schemes) and already carries its <h1> and placeholder marks. It lives in a
+  // shadow root with the public legal stylesheet, so the preview reads like the
+  // hosted page and neither side's CSS leaks into the other.
   useLayoutEffect(() => {
-    if (!ref.current || !state) return;
-    ref.current.innerHTML = state.html;
-    markPlaceholders(ref.current);
+    const host = ref.current;
+    if (!host || !state) return;
+    if (!shadow.current) {
+      const root = host.attachShadow({ mode: 'open' });
+      const base = document.createElement('style');
+      base.textContent = LEGAL_PREVIEW_CSS;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `${serverOrigin()}/static/easy-cookie-legal.css`;
+      const marks = document.createElement('style');
+      marks.textContent = LEGAL_PREVIEW_MARKS_CSS;
+      const doc = document.createElement('div');
+      root.append(base, link, marks, doc);
+      shadow.current = { root, doc };
+    }
+    shadow.current.doc.innerHTML = state.html;
+    markPlaceholders(shadow.current.doc);
   }, [state]);
 
   return (
@@ -83,14 +103,15 @@ function LegalPreview({ siteId, kind, content, lang }: { siteId: string; kind: L
         </div>
       ) : (
         <div className="legal-paper">
-          {state ? <p className="legal-paper-title">{state.title}</p> : <Loading rows={8} />}
+          {!state && <Loading rows={8} />}
           <div
             ref={ref}
             className="legal-preview"
-            lang={lang}
-            // Links in the preview must not navigate away from the editor.
+            lang={state?.lang ?? lang}
+            // Links in the preview must not navigate away from the editor (the
+            // click is retargeted out of the shadow root, so look at the path).
             onClick={(e) => {
-              if ((e.target as HTMLElement).closest('a')) e.preventDefault();
+              if (e.nativeEvent.composedPath().some((n) => n instanceof HTMLAnchorElement)) e.preventDefault();
             }}
           />
         </div>
@@ -173,7 +194,7 @@ function MarkdownEditor({
             {titlePh.map((p) => (
               <li key={`t${p.start}`}>
                 <span className="ph-item ph-static">
-                  <mark className="ph">{p.label}</mark>
+                  <mark className="ph">{p.label || "[[ ]]"}</mark>
                   <span className="ph-line">{t.legal.titleField}</span>
                 </span>
               </li>
@@ -181,7 +202,7 @@ function MarkdownEditor({
             {placeholders.map((p) => (
               <li key={p.start}>
                 <button type="button" className="ph-item" onClick={() => jump(p.start, p.end, p.line)} aria-label={t.legal.jumpLabel(p.label, p.line)}>
-                  <mark className="ph">{p.label}</mark>
+                  <mark className="ph">{p.label || "[[ ]]"}</mark>
                   <span className="ph-line">{t.legal.line(p.line)}</span>
                 </button>
               </li>

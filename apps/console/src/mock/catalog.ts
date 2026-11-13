@@ -276,6 +276,24 @@ const ENTRIES: CatalogEntry[] = [
     transfer: { countries: ['US'], safeguard: DPF },
     keywords: ['cdn', 'waf', 'turnstile'],
   },
+  {
+    // The consent banner itself. Like the server's entry, it has no third-party
+    // provider or privacy URL: both are the site's own.
+    id: 'easy-cookie',
+    label: 'easy-cookie',
+    provider: '',
+    privacyUrl: '',
+    group: 'infrastructure',
+    category: 'necessary',
+    purpose: {
+      it: 'Ricorda le scelte sui cookie e registra la prova del consenso.',
+      en: 'Remembers cookie choices and records the proof of consent.',
+    },
+    cookies: [
+      { name: 'ec_consent', duration: { it: '6 mesi', en: '6 months' }, description: { it: 'Le scelte del visitatore.', en: 'The visitor’s choices.' } },
+    ],
+    keywords: ['consenso', 'consent', 'banner'],
+  },
 ];
 
 const GROUP_ORDER = ['analytics', 'advertising', 'tag-management', 'embeds', 'support', 'payments', 'security', 'infrastructure'];

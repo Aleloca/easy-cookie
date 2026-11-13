@@ -496,6 +496,8 @@ const it = {
     noCookiesLong: 'Questo servizio non imposta cookie da solo.',
     detailEmpty: 'Seleziona un servizio per vedere cookie, finalità e note.',
     readOnly: 'Sola lettura',
+    ownSite: 'Il titolare del sito',
+    ownPolicy: 'La privacy policy del sito stesso',
     howToAdd: 'Per usarlo su un sito: Configurazione banner → Servizi → Aggiungi dalla libreria.',
     loadError: 'Non è stato possibile caricare la libreria.',
     entryCount: (n: number) => (n === 1 ? '1 servizio nella libreria' : `${n} servizi nella libreria`),
@@ -568,7 +570,7 @@ const it = {
     publishing: 'Pubblicazione…',
     versionExists: 'Esiste già una versione con questo ID. Scegline un altro.',
     versionInvalid: 'Usa da 1 a 64 caratteri tra lettere, numeri, punto, trattino e trattino basso.',
-    emptyDocument: 'Il documento è vuoto: scrivi almeno un titolo o un testo.',
+    emptyDocument: 'Il documento è vuoto: scrivi il testo in almeno una lingua.',
     published: (v: string) => `Versione ${v} pubblicata: è quella che vedono i visitatori.`,
     // versions
     colStamp: 'Timbro',

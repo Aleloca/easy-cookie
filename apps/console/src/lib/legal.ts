@@ -5,8 +5,8 @@
  */
 import type { LegalDocContent, LegalKind } from '../api/types';
 
-/** `[[Testo da compilare]]`: on one line, not blank, no nested brackets. */
-const PLACEHOLDER_SRC = /\[\[([^[\]\n]*[^[\]\s][^[\]\n]*)\]\]/.source;
+/** `[[Testo da compilare]]`: on one line, no nested brackets. Same pattern as the server, so the counts agree. */
+const PLACEHOLDER_SRC = /\[\[([^[\]\n]+?)\]\]/.source;
 /** A fresh global regex per use: a shared one would leak `lastIndex` between calls. */
 const placeholderRe = () => new RegExp(PLACEHOLDER_SRC, 'g');
 

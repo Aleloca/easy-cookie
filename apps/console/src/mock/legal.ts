@@ -265,7 +265,7 @@ function safeHref(url: string): string | null {
 /** Inline Markdown on already-escaped text: placeholders, bold, italic, code, links. */
 function inline(text: string): string {
   return esc(text)
-    .replace(/\[\[([^[\]\n]+)\]\]/g, '<mark class="ec-legal-placeholder">[[$1]]</mark>')
+    .replace(/\[\[([^[\]\n]+?)\]\]/g, '<mark class="ec-legal__todo">[[$1]]</mark>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>')
@@ -329,7 +329,7 @@ function servicesList(config: EasyCookieConfig, lang: string): string {
  * links (http, https, mailto, relative), lists, pipe tables and the four
  * directives. Raw HTML in the source is escaped, as on the server.
  */
-export function renderMockMarkdown(md: string, lang: string, opts: { config: EasyCookieConfig; updatedAt?: string }): string {
+export function renderMockMarkdown(md: string, lang: string, opts: { config: EasyCookieConfig; updatedAt?: string; title?: string }): string {
   const out: string[] = [];
   const lines = md.replace(/\r\n/g, '\n').split('\n');
   let para: string[] = [];
@@ -398,5 +398,6 @@ export function renderMockMarkdown(md: string, lang: string, opts: { config: Eas
     para.push(t);
   }
   flush();
-  return `<div class="ec-legal" lang="${esc(lang)}">${out.join('\n')}</div>`;
+  const title = opts.title === undefined ? '' : `<h1 class="ec-legal__title">${inline(opts.title)}</h1>`;
+  return `<div class="ec-legal" lang="${esc(lang)}">${title}${out.join('\n')}</div>`;
 }

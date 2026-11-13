@@ -35,6 +35,13 @@ describe('catalog conversion', () => {
     expect(s).not.toHaveProperty('note');
   });
 
+  it('leaves out an empty provider and privacy URL', () => {
+    const s = catalogToService(entry('easy-cookie'));
+    expect(s).not.toHaveProperty('provider');
+    expect(s).not.toHaveProperty('privacyUrl');
+    expect(s).toMatchObject({ category: 'necessary', from: 'easy-cookie' });
+  });
+
   it('deep-copies, so editing the service never touches the catalog', () => {
     const s = catalogToService(entry('ga4'));
     s.cookies![0].name = 'changed';
@@ -96,16 +103,17 @@ describe('catalog conversion', () => {
 });
 
 describe('legal placeholders', () => {
-  const body = 'Titolare: [[Ragione sociale]].\n\nScrivi a [[email]].\n[[ ]] e [[]] e [x] non contano\n[[Città\ndel foro]] nemmeno';
+  // Same pattern as the server: `[[ ]]` counts (the owner left a blank to fill), `[[]]` and multi-line marks do not.
+  const body = 'Titolare: [[Ragione sociale]].\n\nScrivi a [[email]].\n[[ ]] conta, [[]] e [x] no\n[[Città\ndel foro]] nemmeno';
 
   it('counts only single-line, non-empty [[…]] marks', () => {
-    expect(countPlaceholders(body)).toBe(2);
+    expect(countPlaceholders(body)).toBe(3);
     expect(countPlaceholders('')).toBe(0);
   });
 
   it('locates each placeholder with its offsets and line', () => {
     const p = findPlaceholders(body);
-    expect(p.map((x) => x.label)).toEqual(['Ragione sociale', 'email']);
+    expect(p.map((x) => x.label)).toEqual(['Ragione sociale', 'email', '']);
     expect(p[0].line).toBe(1);
     expect(p[1].line).toBe(3);
     expect(body.slice(p[1].start, p[1].end)).toBe('[[email]]');
@@ -189,12 +197,13 @@ describe('mock markdown renderer', () => {
   });
 
   it('expands directives and highlights placeholders', () => {
-    const html = renderMockMarkdown('## Cookie\n\n{{cookie-table}}\n\n{{preferences-link}}\n\nTitolare: [[nome]]', 'it', { config });
+    const html = renderMockMarkdown('## Cookie\n\n{{cookie-table}}\n\n{{preferences-link}}\n\nTitolare: [[nome]]', 'it', { config, title: 'Cookie policy' });
+    expect(html).toContain('<h1 class="ec-legal__title">Cookie policy</h1>');
     expect(html).toContain('<h3>Cookie</h3>');
     expect(html).toContain('<h3>Misura</h3>');
     expect(html).toContain('<code>_ga</code>');
     expect(html).toContain('data-ec-open-preferences');
-    expect(html).toContain('<mark class="ec-legal-placeholder">[[nome]]</mark>');
+    expect(html).toContain('<mark class="ec-legal__todo">[[nome]]</mark>');
   });
 });
 

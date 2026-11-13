@@ -333,13 +333,19 @@ export function createMockServer(opts: MockServerOptions = {}) {
       if (sub === '' && method === 'GET') return json(200, view());
       if (sub === 'draft' && method === 'PUT') {
         const draft = body?.draft as LegalDocContent | undefined;
-        if (!draft || typeof draft.translations !== 'object') return fail(400, 'invalid', 'draft.translations is required');
+        const valid =
+          !!draft &&
+          typeof draft.translations === 'object' &&
+          draft.translations !== null &&
+          Object.values(draft.translations).every((tr) => typeof tr?.title === 'string' && typeof tr?.body === 'string');
+        if (!valid) return fail(400, 'invalid_document', 'draft.translations must map languages to { title, body }');
         doc.draft = structuredClone(draft);
         doc.draftUpdatedAt = new Date(now()).toISOString();
         return json(200, view());
       }
       if (sub === 'versions' && method === 'POST') {
-        if (!Object.values(doc.draft.translations).some((tr) => tr.body.trim() || tr.title.trim()))
+        // Empty when there is no translation or every body is blank (a title alone is not a document).
+        if (!Object.values(doc.draft.translations).some((tr) => tr.body.trim()))
           return fail(422, 'empty_document', 'The document has no content');
         const explicit = (body?.version as string | undefined)?.trim();
         if (explicit && !/^[A-Za-z0-9._-]{1,64}$/.test(explicit)) return fail(400, 'invalid_version', 'Invalid version id');
@@ -367,10 +373,12 @@ export function createMockServer(opts: MockServerOptions = {}) {
         const content = body?.content as LegalDocContent | undefined;
         const lang = (body?.lang as string | undefined) ?? 'it';
         const tr = content?.translations?.[lang] ?? (content ? Object.values(content.translations)[0] : undefined);
-        if (!tr) return json(200, { title: '', html: '<div class="ec-legal"></div>' });
+        if (!tr) return json(200, { title: '', html: '<div class="ec-legal"></div>', lang });
         return json(200, {
-          title: tr.title,
-          html: renderMockMarkdown(tr.body, lang, { config: entry.draft.config, updatedAt: doc.versions[0]?.publishedAt }),
+          // As on the server: the JSON title drops the [[ ]] brackets; the HTML keeps them marked.
+          title: tr.title.replace(/\[\[([^[\]\n]+?)\]\]/g, '$1'),
+          html: renderMockMarkdown(tr.body, lang, { config: entry.draft.config, updatedAt: doc.versions[0]?.publishedAt, title: tr.title }),
+          lang,
         });
       }
     }

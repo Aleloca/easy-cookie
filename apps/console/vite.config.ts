@@ -16,19 +16,22 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
  * `/static` paths the server uses.
  */
 function mockStatic(): Plugin {
-  const dist = fileURLToPath(new URL('../../packages/core/dist/', import.meta.url));
-  const files: Record<string, [string, string]> = {
-    '/static/easy-cookie.css': ['easy-cookie.css', 'text/css'],
-    '/static/easy-cookie.iife.js': ['easy-cookie.iife.js', 'text/javascript'],
+  const pkgs = fileURLToPath(new URL('../../packages/', import.meta.url));
+  // [file under packages/, content type, optional: serve empty when not built]
+  const files: Record<string, [string, string, boolean?]> = {
+    '/static/easy-cookie.css': ['core/dist/easy-cookie.css', 'text/css'],
+    '/static/easy-cookie.iife.js': ['core/dist/easy-cookie.iife.js', 'text/javascript'],
+    // Legal preview stylesheet; the preview has its own fallback styles.
+    '/static/easy-cookie-legal.css': ['policy/dist/easy-cookie-legal.css', 'text/css', true],
   };
   const serve = (req: IncomingMessage, res: ServerResponse, next: () => void) => {
     const hit = files[(req.url ?? '').split('?')[0]];
     if (!hit) return next();
+    res.setHeader('Content-Type', `${hit[1]}; charset=utf-8`);
     try {
-      const body = readFileSync(dist + hit[0]);
-      res.setHeader('Content-Type', `${hit[1]}; charset=utf-8`);
-      res.end(body);
+      res.end(readFileSync(pkgs + hit[0]));
     } catch {
+      if (hit[2]) return void res.end('/* not built: using the console fallback */');
       res.statusCode = 404;
       res.end('Build @easy-cookie/core first: pnpm --filter @easy-cookie/core build');
     }

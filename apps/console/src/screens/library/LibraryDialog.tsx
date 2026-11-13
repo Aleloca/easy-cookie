@@ -106,7 +106,7 @@ export function LibraryDialog({
                     <input type="checkbox" checked={on || !!as} disabled={!!as} onChange={(ev) => toggle(e.id, ev.target.checked)} />
                     <span className="lib-name">
                       <span className="lib-label">{e.label}</span>
-                      <span className="lib-provider">{e.provider}</span>
+                      {e.provider && <span className="lib-provider">{e.provider}</span>}
                     </span>
                     <CategoryTag id={e.category} />
                     <span className="lib-cookies">{t.library.cookieCount(e.cookies.length)}</span>

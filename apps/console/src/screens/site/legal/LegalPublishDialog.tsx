@@ -61,6 +61,7 @@ export function LegalPublishDialog({
       onPublished(await legal.publish(siteId, kind, { version: explicit, note: note.trim() || undefined }));
     } catch (err) {
       if (err instanceof ApiError && err.code === 'version_exists') setFieldError(t.legal.versionExists);
+      else if (err instanceof ApiError && err.code === 'invalid_version') setFieldError(t.legal.versionInvalid);
       else if (err instanceof ApiError && err.code === 'empty_document') setError(t.legal.emptyDocument);
       else setError(errorMessage(err, t));
     } finally {

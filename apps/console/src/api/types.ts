@@ -192,7 +192,13 @@ export interface LegalVersion {
   content: LegalDocContent;
 }
 
+/**
+ * `POST …/render`. `html` is the whole document: it starts with
+ * `<h1 class="ec-legal__title">` and marks placeholders with
+ * `<mark class="ec-legal__todo">`. `title` has the `[[ ]]` brackets stripped.
+ */
 export interface RenderedLegal {
   title: string;
   html: string;
+  lang: string;
 }
