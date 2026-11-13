@@ -169,6 +169,8 @@ The catalog lives in `@easy-cookie/core/catalog` (`packages/core/src/catalog/`),
 |---|---|---|---|
 | GET | `/admin/api/catalog` | session | `CatalogEntry[]`, sorted by group then label |
 
+Group order is `CATALOG_GROUPS` (`analytics, advertising, tag-management, embeds, support, payments, security, infrastructure`), not alphabetical; labels sort with `localeCompare(…, 'en')`. `CATALOG` itself is already in that order. An entry's `provider` and `privacyUrl` may be empty strings (the first-party `easy-cookie` entry); `catalogToService` omits them then.
+
 ## Legal documents (cookie policy, privacy policy, terms)
 
 Each site has exactly three documents, `kind ∈ { cookie, privacy, terms }`. They are created lazily on first read, pre-filled from the built-in templates for the site's languages.
@@ -214,6 +216,14 @@ Placeholders the owner must fill in are written as `[[Testo da compilare]]` (dou
 | POST | `/sites/:id/legal/:kind/render` | `{ content, lang }` → `{ title, html }`: preview of unsaved content, with directives expanded against the **draft** banner config |
 | GET | `/legal-templates/:kind?lang=it` | `{ title, body }`: the built-in template, with `{{site.name}}` and `{{site.domain}}` already replaced when `siteId` is passed as a query parameter |
 
+Admin API details:
+- Unknown `kind` → `404 not_found`. Unknown `siteId` on `/legal-templates` → 404.
+- Lazy creation pre-fills one translation per language of the site's **draft** banner config: `language.available`, else `[language.default]`, else `['it']`. Templates exist in `it` and `en`; any other language is pre-filled with the English text, to translate. `{{site.name}}` / `{{site.domain}}` are replaced with the site's values.
+- `GET /sites/:id/legal`: always the three kinds, in the order `cookie, privacy, terms`. `publishedVersion` and `publishedAt` are `null` until the first publication. `title` falls back like the public language (default language, then first translation); `''` when there are no translations.
+- `PUT …/draft`: an invalid body (`draft` missing, not `{ translations: { [lang]: { title: string ≤ 300, body: string ≤ 200 000 } } }`, or a malformed language code) → `400 invalid_document`. Language order is kept (json column).
+- `POST …/versions`: `422 empty_document` also when every translation has a blank body. A malformed explicit `version` → `400 invalid_version`. `publishedBy` is the admin's email.
+- `POST …/render`: also returns `lang` (the language actually rendered), so the response is `{ title, html, lang }`. `lang` defaults to the site's default language. Content is validated like the draft (`400 invalid_document`). If the draft banner config has validation issues, the tables are left out (a notice is shown instead). `{{last-updated}}` shows today.
+
 ### Public endpoints (no auth, `Access-Control-Allow-Origin: *`, `Cache-Control: public, max-age=300`)
 
 | Method | Path | Response |
@@ -223,13 +233,22 @@ Placeholders the owner must fill in are written as `[[Testo da compilare]]` (dou
 | GET | `/v1/sites/:publicKey/legal.js` | Loader script that fills every `<div data-easy-cookie-legal="cookie\|privacy\|terms" [data-lang="it"]>` on the page with the published document, and injects `/static/easy-cookie-legal.css` once (opt out with `data-no-style`). |
 | GET | `/p/:publicKey/:kind?lang=` | Hosted page: a complete, standalone, readable HTML page for the document, with a language switcher and links to the site's other published documents. Use it as the banner's `policyUrl` when the site has no page of its own (the Iubenda-style hosted link). |
 
-The rendered HTML is wrapped in `<div class="ec-legal" lang="…">`. Cookie tables keep the `@easy-cookie/policy` markup. `/static/easy-cookie-legal.css` is a small, neutral, variable-driven stylesheet (`--ec-legal-*`) built from `@easy-cookie/policy`.
+The rendered HTML is wrapped in `<div class="ec-legal" lang="…" data-version="…">` and starts with `<h1 class="ec-legal__title">` (the title, placeholders highlighted). Cookie tables keep the `@easy-cookie/policy` markup (category titles as `<h3>`). `title` in JSON responses is plain text with `[[…]]` brackets removed.
+
+Public endpoint details:
+- 404s (unknown key, unknown kind, nothing published) also carry `Access-Control-Allow-Origin: *`, with `Cache-Control: no-store`. The `.json` 404 body is `{ error: { code: 'not_published' } }`; `.html` returns an HTML comment; `legal.js` for an unknown key returns a JS comment; `/p/…` returns a small `noindex` page.
+- Language fallback also tries the base language (`en-GB` → `en`). "Config default" is the **published** banner config's `language.default`, else the draft's.
+- `legal.js`: without `data-lang`, the loader sends the page's `<html lang>`. `data-no-style` works on the `<script>` tag or on a container. Filled containers get `data-ec-legal-state="loading|ready|error"`; `window.__easyCookieLegal.scan()` fills containers added later.
+- `/p/:publicKey/:kind`: links to other documents only list published ones. The banner is not loaded there, so `{{preferences-link}}` points to `https://<site domain>/` (no `data-ec-open-preferences`). The page is localized (IT/EN chrome, "Generato con / Generated with easy-cookie"), has `canonical` and `hreflang` alternates, and loads `/static/easy-cookie-legal.css`.
+- `/static/easy-cookie-legal.css` is read from `STATIC_DIR`, falling back to `POLICY_DIR` (default `packages/policy/dist`). The Docker image copies it into `STATIC_DIR`. `/static/easy-cookie-legal.css` is a small, neutral, variable-driven stylesheet (`--ec-legal-*`) built from `@easy-cookie/policy`.
 
 ### Packages
 
 - `@easy-cookie/policy`:
-  - `renderLegalDocument(content, lang, { config, version?, publishedAt? }) → { title, html }` (shared by the server and SSR);
-  - `fetchLegalDocument({ endpoint, siteKey, kind, lang })`.
+  - `renderLegalDocument(content, lang, { config, version?, publishedAt?, site?, heading?, preferencesHref? }) → { lang, title, html }` (shared by the server and SSR);
+  - `fetchLegalDocument({ endpoint, siteKey, kind, lang, init?, fetch? })` → the `.json` body, or `null` on 404. Also available from the small `@easy-cookie/policy/client` entry (no Markdown renderer), which `@easy-cookie/next` uses;
+  - `LEGAL_TEMPLATES`, `legalTemplate(kind, lang, site?)`, `countPlaceholders(content)`, `legalContentError(value)`;
+  - `@easy-cookie/policy/legal.css` (`dist/easy-cookie-legal.css`).
 - `@easy-cookie/policy/react`: `<LegalDocument endpoint siteKey kind lang />`, which fetches on the client, and `<LegalDocumentHtml doc={…} />` to render a document fetched on the server.
 - `@easy-cookie/next/server`: `getLegalDocument({ endpoint, siteKey, kind, lang, revalidate? })` for Server Components, using `fetch` with `next: { revalidate }` (default 300 s), so legal pages are server-rendered and indexable.
 

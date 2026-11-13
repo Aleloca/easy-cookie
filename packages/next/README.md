@@ -4,12 +4,13 @@ Next.js App Router integration for [easy-cookie](../../README.md):
 
 - **`<EasyCookieHead>`** renders the inline Google Consent Mode v2 "default" snippet, generated from your config, in `<head>` before GTM.
 - **`getServerConsent()` / `isGrantedOnServer()`** read the visitor's consent in Server Components, route handlers, server actions and middleware.
+- **`getLegalDocument()`** fetches a published cookie policy, privacy policy or terms from the consent server for a Server Component, so legal pages are server-rendered and indexable.
 - **React bindings** (`EasyCookieProvider`, `useConsent`, `ConsentGate`, …) are re-exported from `@easy-cookie/react`. That bundle carries the `"use client"` boundary, so you can import them from server files.
 
 | Entry | Contents |
 |---|---|
 | `@easy-cookie/next` | Everything below |
-| `@easy-cookie/next/server` | `getServerConsent`, `isGrantedOnServer`, `isServiceGrantedOnServer` only. No React, so it is Edge-friendly. |
+| `@easy-cookie/next/server` | `getServerConsent`, `isGrantedOnServer`, `isServiceGrantedOnServer` and `getLegalDocument` only. No React, so it is Edge-friendly. |
 | `@easy-cookie/next/client` | The React bindings only, marked `"use client"` |
 
 Peer dependencies: `next >= 14`, `react >= 18`.
@@ -136,6 +137,37 @@ Rules of thumb:
 - Read consent **at request time**, in the handler that has the visitor's cookies.
 - For events fired later from webhooks or queues, persist the boolean (and `consent.id`) with the domain object at the moment of the request. Check that stored value instead.
 - The GA client id comes from the `_ga` cookie, which only exists after consent. If it is missing, skip the event.
+
+## Legal pages from the consent server
+
+When the cookie policy, privacy policy or terms are written and published in the console, render them on the server:
+
+```tsx
+// app/[lang]/privacy/page.tsx
+import { getLegalDocument } from '@easy-cookie/next/server';
+import { LegalDocumentHtml } from '@easy-cookie/policy/react';
+import '@easy-cookie/policy/legal.css'; // optional neutral styles, restyle with --ec-legal-* variables
+import { notFound } from 'next/navigation';
+
+const endpoint = process.env.NEXT_PUBLIC_CONSENT_ENDPOINT!;
+const siteKey = process.env.NEXT_PUBLIC_CONSENT_SITE_KEY!;
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }) {
+  const doc = await getLegalDocument({ endpoint, siteKey, kind: 'privacy', lang: (await params).lang });
+  return { title: doc?.title };
+}
+
+export default async function Page({ params }: { params: Promise<{ lang: string }> }) {
+  const doc = await getLegalDocument({ endpoint, siteKey, kind: 'privacy', lang: (await params).lang });
+  if (!doc) notFound();
+  return <LegalDocumentHtml doc={doc} />;
+}
+```
+
+- `getLegalDocument({ endpoint, siteKey, kind, lang?, revalidate? })` resolves to `{ kind, lang, languages, title, html, version, publishedAt }`, or `null` when nothing is published (404). Other errors throw.
+- It calls `fetch(…, { next: { revalidate } })`, 300 seconds by default (`false` caches indefinitely). Next deduplicates the two calls above.
+- `html` is already sanitised by the server and includes the `<h1>` title. A `{{preferences-link}}` in the document is an `<a data-ec-open-preferences>`, which the easy-cookie runtime binds to the preferences panel.
+- The function needs `@easy-cookie/policy` (a dependency of this package). It imports only its small fetch client, not the Markdown renderer.
 
 ## Migration notes
 

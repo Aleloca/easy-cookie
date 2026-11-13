@@ -11,7 +11,7 @@ A self-hosted, open-source replacement for the parts of Iubenda that small proje
 
 It is reusable across projects and replaces the two custom implementations in FermoUnAttimo and MythicVoices.
 
-**Non-goals (v1):** IAB TCF, privacy policy / T&C text generation, records of processing, US/LGPD/FADP regimes, geo-targeting, auto-blocking via a domain list, cookie scanner.
+**Non-goals (v1):** IAB TCF, automatic privacy policy / T&C text generation (v1 ships editable IT/EN drafts, see [api.md](api.md) "Legal documents"), records of processing, US/LGPD/FADP regimes, geo-targeting, auto-blocking via a domain list, cookie scanner.
 
 ## Decisions
 

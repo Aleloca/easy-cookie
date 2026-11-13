@@ -1,23 +1,16 @@
 /*
  * @easy-cookie/policy: legal documents (cookie policy, privacy policy, terms).
- * Neutral and readable on its own; restyle it through the --ec-legal-* variables.
+ * Neutral and readable on its own; restyle it through the --ec-legal-* variables,
+ * set on :root, on .ec-legal or on any ancestor.
  * Selectors use :where() so any site rule wins without !important.
  */
 :where(.ec-legal) {
-  --ec-legal-font: system-ui, sans-serif;
-  --ec-legal-ink: #1c1c1a;
-  --ec-legal-muted: #5a5a55;
-  --ec-legal-line: #dcdcd6;
-  --ec-legal-accent: #1a56c4;
-  --ec-legal-todo: #fff2a8;
-  --ec-legal-max-width: 72ch;
-
   box-sizing: border-box;
-  max-width: var(--ec-legal-max-width);
-  font-family: var(--ec-legal-font);
+  max-width: var(--ec-legal-max-width, 72ch);
+  font-family: var(--ec-legal-font, system-ui, sans-serif);
   font-size: 1rem;
   line-height: 1.6;
-  color: var(--ec-legal-ink);
+  color: var(--ec-legal-ink, #1c1c1a);
   overflow-wrap: break-word;
 }
 
@@ -33,7 +26,7 @@
   font-weight: 650;
 }
 :where(.ec-legal) :where(h1) { font-size: 2em; margin-top: 0; }
-:where(.ec-legal) :where(h2) { font-size: 1.4em; padding-bottom: 0.3em; border-bottom: 1px solid var(--ec-legal-line); }
+:where(.ec-legal) :where(h2) { font-size: 1.4em; padding-bottom: 0.3em; border-bottom: 1px solid var(--ec-legal-line, #dcdcd6); }
 :where(.ec-legal) :where(h3) { font-size: 1.15em; }
 :where(.ec-legal) :where(h4) { font-size: 1em; }
 
@@ -42,12 +35,12 @@
 :where(.ec-legal) :where(li) { margin: 0.25em 0; }
 
 :where(.ec-legal) :where(a) {
-  color: var(--ec-legal-accent);
+  color: var(--ec-legal-accent, #1a56c4);
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
 :where(.ec-legal) :where(a:focus-visible) {
-  outline: 2px solid var(--ec-legal-accent);
+  outline: 2px solid var(--ec-legal-accent, #1a56c4);
   outline-offset: 2px;
 }
 
@@ -59,13 +52,13 @@
 :where(.ec-legal) :where(blockquote) {
   margin-left: 0;
   padding-left: 1em;
-  border-left: 3px solid var(--ec-legal-line);
-  color: var(--ec-legal-muted);
+  border-left: 3px solid var(--ec-legal-line, #dcdcd6);
+  color: var(--ec-legal-muted, #5a5a55);
 }
 
 :where(.ec-legal) :where(hr) {
   border: 0;
-  border-top: 1px solid var(--ec-legal-line);
+  border-top: 1px solid var(--ec-legal-line, #dcdcd6);
   margin: 2em 0;
 }
 
@@ -80,7 +73,7 @@
   text-align: left;
   vertical-align: top;
   padding: 0.5em 0.75em;
-  border-bottom: 1px solid var(--ec-legal-line);
+  border-bottom: 1px solid var(--ec-legal-line, #dcdcd6);
 }
 :where(.ec-legal) :where(thead th) {
   font-weight: 600;
@@ -95,34 +88,34 @@
   caption-side: top;
   text-align: left;
   font-size: 0.85em;
-  color: var(--ec-legal-muted);
+  color: var(--ec-legal-muted, #5a5a55);
   padding-bottom: 0.4em;
 }
 :where(.ec-legal) :where(.ec-policy__badge) {
   display: inline-block;
   font-size: 0.8em;
   padding: 0.1em 0.6em;
-  border: 1px solid var(--ec-legal-line);
+  border: 1px solid var(--ec-legal-line, #dcdcd6);
   border-radius: 999px;
-  color: var(--ec-legal-muted);
+  color: var(--ec-legal-muted, #5a5a55);
 }
-:where(.ec-legal) :where(.ec-policy__domain, .ec-policy__none, .ec-policy__empty) { color: var(--ec-legal-muted); }
+:where(.ec-legal) :where(.ec-policy__domain, .ec-policy__none, .ec-policy__empty) { color: var(--ec-legal-muted, #5a5a55); }
 
 /* Services list (`{{services-list}}`). */
 :where(.ec-legal) :where(.ec-legal__services) { list-style: none; padding: 0; }
 :where(.ec-legal) :where(.ec-legal__service) {
   margin: 0;
   padding: 0.75em 0;
-  border-bottom: 1px solid var(--ec-legal-line);
+  border-bottom: 1px solid var(--ec-legal-line, #dcdcd6);
 }
 :where(.ec-legal) :where(.ec-legal__service p) { margin: 0.15em 0; }
-:where(.ec-legal) :where(.ec-legal__service-meta) { font-size: 0.9em; color: var(--ec-legal-muted); }
+:where(.ec-legal) :where(.ec-legal__service-meta) { font-size: 0.9em; color: var(--ec-legal-muted, #5a5a55); }
 
-:where(.ec-legal) :where(.ec-legal__updated, .ec-legal__notice, .ec-legal__empty) { color: var(--ec-legal-muted); }
+:where(.ec-legal) :where(.ec-legal__updated, .ec-legal__notice, .ec-legal__empty) { color: var(--ec-legal-muted, #5a5a55); }
 
 /* `[[placeholders]]` the owner still has to fill in. */
 :where(.ec-legal) :where(.ec-legal__todo) {
-  background: var(--ec-legal-todo);
+  background: var(--ec-legal-todo, #fff2a8);
   color: inherit;
   padding: 0.05em 0.25em;
   border-radius: 3px;
