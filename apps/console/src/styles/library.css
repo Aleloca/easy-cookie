@@ -146,6 +146,7 @@
   color: var(--ink-2);
   text-align: right;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .lib-added {
   grid-column: 2 / -1;
