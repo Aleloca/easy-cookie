@@ -14,13 +14,22 @@ export interface PostHogLike {
   get_explicit_consent_status?(): string;
   startSessionRecording?(...args: unknown[]): void;
   stopSessionRecording?(): void;
-  // posthog-js internals, used only to restart session replay after a cookieless → opt-in switch.
-  _onRemoteConfig?(config: Record<string, unknown>): void;
-  sessionRecording?: { onRemoteConfig?(config: Record<string, unknown>): void } | null;
-  config?: { token?: string };
-  requestRouter?: { endpointFor?(target: string, path: string): string };
   identify?(distinctId?: string, ...rest: unknown[]): void;
   get_distinct_id?(): string;
+}
+
+/**
+ * posthog-js internals used only to restart session replay after a cookieless →
+ * opt-in switch. Kept out of {@link PostHogLike} so posthog-js' own (stricter)
+ * signatures never conflict with ours; accessed through a guarded cast.
+ */
+interface PostHogInternals {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _onRemoteConfig?: (config: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sessionRecording?: { onRemoteConfig?(config: any): void } | null;
+  config?: { token?: string };
+  requestRouter?: { endpointFor?(target: string, path: string): string };
 }
 
 /** Minimal shape of a PostHog event passed to `before_send`. */
@@ -75,18 +84,27 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
   // Keep the config posthog-js receives, or fetch it again, and hand it to the new
   // recorder. Every call is guarded: with a different posthog-js the replay simply
   // starts on the next page load, as before.
+  const ph = posthog as PostHogLike & PostHogInternals;
   let remoteConfig: Record<string, unknown> | undefined;
-  if (options.sessionReplay && typeof posthog._onRemoteConfig === 'function') {
-    const original = posthog._onRemoteConfig.bind(posthog);
-    posthog._onRemoteConfig = (config) => {
+  let restoreRemoteConfig: (() => void) | undefined;
+  if (options.sessionReplay && typeof ph._onRemoteConfig === 'function') {
+    const hadOwn = Object.prototype.hasOwnProperty.call(ph, '_onRemoteConfig');
+    const previous = ph._onRemoteConfig;
+    const bound = previous.bind(ph);
+    ph._onRemoteConfig = (config: Record<string, unknown>) => {
       remoteConfig = config;
-      original(config);
+      bound(config);
+    };
+    // Undo on disconnect, so reconnecting never stacks wrappers.
+    restoreRemoteConfig = () => {
+      if (hadOwn) ph._onRemoteConfig = previous;
+      else delete ph._onRemoteConfig;
     };
   }
   const fetchRemoteConfig = async (): Promise<Record<string, unknown> | undefined> => {
     try {
-      const token = posthog.config?.token;
-      const url = token && posthog.requestRouter?.endpointFor?.('assets', `/array/${token}/config`);
+      const token = ph.config?.token;
+      const url = token && ph.requestRouter?.endpointFor?.('assets', `/array/${token}/config`);
       if (!url) return undefined;
       const res = await fetch(url);
       return res.ok ? ((await res.json()) as Record<string, unknown>) : undefined;
@@ -97,7 +115,7 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
   const restartReplay = async () => {
     try {
       const config = remoteConfig ?? (await fetchRemoteConfig());
-      if (config && 'sessionRecording' in config) posthog.sessionRecording?.onRemoteConfig?.(config);
+      if (config && 'sessionRecording' in config) ph.sessionRecording?.onRemoteConfig?.(config);
       posthog.startSessionRecording?.();
     } catch {
       /* replay starts on the next page load */
@@ -158,7 +176,10 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
   const unsubs = events.map((ev) => api.on(ev, apply));
   // The stored choice may have been replayed before we subscribed.
   apply();
-  return () => unsubs.forEach((u) => u());
+  return () => {
+    unsubs.forEach((u) => u());
+    restoreRemoteConfig?.();
+  };
 }
 
 /** Events dropped by {@link consentBeforeSend} while consent is missing. */

@@ -254,3 +254,29 @@ describe('session replay after a cookieless opt-in', () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe('connectPostHog with posthog-js signatures', () => {
+  it('accepts a client whose internals have stricter types, and restores _onRemoteConfig on disconnect', async () => {
+    interface RemoteConfig { sessionRecording?: { endpoint: string } | false; supportedCompression?: string[] }
+    class StrictClient {
+      opt_in_capturing = vi.fn();
+      opt_out_capturing = vi.fn();
+      _onRemoteConfig(config: RemoteConfig): void {
+        void config;
+      }
+    }
+    const client = new StrictClient();
+    const { api } = createFakeApi();
+    await api.run(testConfig);
+    // Compiles without a cast: the internals are not part of PostHogLike.
+    const disconnect = connectPostHog(client, api, { sessionReplay: true });
+    expect(Object.prototype.hasOwnProperty.call(client, '_onRemoteConfig')).toBe(true);
+    disconnect();
+    expect(Object.prototype.hasOwnProperty.call(client, '_onRemoteConfig')).toBe(false);
+    expect(client._onRemoteConfig).toBe(StrictClient.prototype._onRemoteConfig);
+    // Reconnecting twice does not stack wrappers.
+    connectPostHog(client, api, { sessionReplay: true })();
+    connectPostHog(client, api, { sessionReplay: true })();
+    expect(client._onRemoteConfig).toBe(StrictClient.prototype._onRemoteConfig);
+  });
+});
