@@ -24,7 +24,6 @@ export function pickApi(mod: unknown): EasyCookieApi {
  * render), so importing `@easy-cookie/react` on the server never touches the DOM.
  */
 export async function loadDefaultApi(): Promise<EasyCookieApi> {
-  // @ts-ignore -- the runtime entry is built separately; adapters only rely on the EasyCookieApi interface.
   const mod: unknown = await import('@easy-cookie/core');
   return pickApi(mod);
 }

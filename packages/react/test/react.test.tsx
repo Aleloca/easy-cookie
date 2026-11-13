@@ -265,7 +265,7 @@ describe('ConsentEmbed', () => {
     expect(container.querySelector('.ec-embed__text')!.textContent).toBe(
       'This YouTube content is blocked until you accept “Experience” cookies.',
     );
-    expect(screen.getByRole('button', { name: 'Show content' }).className).toContain('ec-embed__btn--primary');
+    expect(screen.getByRole('button', { name: 'Show content' }).className).toBe('ec-btn');
     expect(screen.getByRole('button', { name: 'Always enable “Experience”' })).toBeTruthy();
   });
 

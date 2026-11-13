@@ -262,16 +262,17 @@ export function ConsentEmbed({
       role="region"
       aria-label={title}
     >
+      <span className="ec-module" aria-hidden="true" />
       {placeholder ?? <p className="ec-embed__text">{fill(texts.blocked, vars)}</p>}
       <div className="ec-embed__actions">
         {service && (
-          <button type="button" className="ec-embed__btn ec-embed__btn--primary" onClick={acceptService}>
+          <button type="button" className="ec-btn" onClick={acceptService}>
             {fill(texts.enable, vars)}
           </button>
         )}
         <button
           type="button"
-          className={service ? 'ec-embed__btn' : 'ec-embed__btn ec-embed__btn--primary'}
+          className={service ? 'ec-btn ec-btn--secondary' : 'ec-btn'}
           onClick={acceptCategory}
         >
           {fill(service ? texts.enableAlways : texts.enable, vars)}
