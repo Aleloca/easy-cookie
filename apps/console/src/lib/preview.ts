@@ -2,6 +2,46 @@ import type { EasyCookieConfig } from '@easy-cookie/core/shared';
 
 export const PREVIEW_COOKIE = 'ec_console_preview';
 
+export type Device = 'desktop' | 'mobile';
+export const DEVICES: Record<Device, { width: number; height: number }> = {
+  desktop: { width: 1280, height: 800 },
+  mobile: { width: 390, height: 780 },
+};
+export const DEVICE_STORAGE_KEY = 'ec-console-preview-device';
+
+export function readDevice(): Device {
+  try {
+    return localStorage.getItem(DEVICE_STORAGE_KEY) === 'mobile' ? 'mobile' : 'desktop';
+  } catch {
+    return 'desktop';
+  }
+}
+
+export function storeDevice(d: Device): void {
+  try {
+    localStorage.setItem(DEVICE_STORAGE_KEY, d);
+  } catch {
+    /* storage unavailable: the choice lasts for this page only */
+  }
+}
+
+/**
+ * How to fit a device viewport into the preview stage: the frame is rendered
+ * at the real viewport size and scaled with a CSS transform, never stretched.
+ * Width always fits; height fits too when `maxHeight` is given (mobile, so the
+ * whole phone is visible). Never scales above 1.
+ */
+export function fitViewport(
+  device: { width: number; height: number },
+  available: { width: number; maxHeight?: number },
+): { scale: number; width: number; height: number } {
+  if (available.width <= 0) return { scale: 0, width: 0, height: 0 };
+  let scale = Math.min(1, available.width / device.width);
+  if (available.maxHeight && available.maxHeight > 0) scale = Math.min(scale, available.maxHeight / device.height);
+  scale = Math.floor(scale * 1000) / 1000;
+  return { scale, width: Math.round(device.width * scale), height: Math.round(device.height * scale) };
+}
+
 /**
  * Config actually run in the preview: never logs consents to the server,
  * uses its own cookie (so it cannot clash with a real choice on this origin)
@@ -34,12 +74,37 @@ export function previewDocument(origin: string): string {
 <link rel="stylesheet" href="${css}">
 <style>
   body{margin:0;font:15px/1.5 system-ui,sans-serif;background:#fff;color:#2a2c30}
-  .host{max-width:640px;margin:0 auto;padding:28px 22px}
+  .nav{display:flex;align-items:center;gap:28px;height:64px;padding:0 max(22px,calc((100vw - 1120px)/2));border-bottom:1px solid #e4e6e1}
+  .logo{width:112px;height:18px;background:#c9cdc5}
+  .links{display:flex;gap:22px;margin-left:auto}
+  .links i{display:block;width:58px;height:10px;background:#e1e4de}
+  .cta{width:96px;height:32px;background:#d5d9d1}
+  .host{max-width:1120px;margin:0 auto;padding:36px 22px 120px}
+  .hero{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center;margin-bottom:44px}
   .bar{height:12px;background:#e9ebe7;margin:0 0 10px}
-  .hd{height:22px;width:55%;background:#d9dcd6;margin:0 0 22px}
-  .img{height:150px;background:#eef0ec;margin:18px 0}
+  .hd{height:30px;width:80%;background:#d9dcd6;margin:0 0 12px}
+  .hd2{height:30px;width:56%;background:#d9dcd6;margin:0 0 22px}
+  .img{height:260px;background:#eef0ec}
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+  .card .img{height:140px;margin-bottom:14px}
+  @media (max-width:720px){
+    .links,.cta{display:none}
+    .nav{height:56px}
+    .host{padding:24px 22px 120px}
+    .hero{grid-template-columns:1fr;gap:20px}
+    .img{height:170px}
+    .cols{grid-template-columns:1fr}
+  }
 </style></head>
-<body><div class="host" aria-hidden="true"><div class="hd"></div><div class="bar"></div><div class="bar" style="width:92%"></div><div class="bar" style="width:84%"></div><div class="img"></div><div class="bar"></div><div class="bar" style="width:76%"></div><div class="bar" style="width:88%"></div></div>
+<body><div aria-hidden="true">
+<div class="nav"><div class="logo"></div><div class="links"><i></i><i></i><i></i><i></i></div><div class="cta"></div></div>
+<div class="host">
+<div class="hero"><div><div class="hd"></div><div class="hd2"></div><div class="bar"></div><div class="bar" style="width:92%"></div><div class="bar" style="width:84%"></div></div><div class="img"></div></div>
+<div class="cols">
+<div class="card"><div class="img"></div><div class="bar"></div><div class="bar" style="width:76%"></div></div>
+<div class="card"><div class="img"></div><div class="bar"></div><div class="bar" style="width:88%"></div></div>
+<div class="card"><div class="img"></div><div class="bar"></div><div class="bar" style="width:70%"></div></div>
+</div></div></div>
 <script>
 (function(){
   var post=function(m){parent.postMessage(m,'*')};

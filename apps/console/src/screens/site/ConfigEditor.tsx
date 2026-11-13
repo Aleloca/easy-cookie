@@ -199,7 +199,7 @@ export function ConfigEditor() {
               </div>
             </div>
             <aside className="editor-side">
-              <Preview config={config} lang={lang} />
+              <Preview config={config} lang={lang} domain={site.domain} />
             </aside>
           </div>
         )}

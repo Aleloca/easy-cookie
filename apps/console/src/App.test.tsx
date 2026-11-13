@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 import { setTransport } from './api/client';
@@ -7,9 +7,11 @@ import { I18nProvider } from './i18n';
 import { createMockServer } from './mock/server';
 import { useAutosave } from './lib/autosave';
 import { renderHook } from '@testing-library/react';
+import { catalog } from './api/endpoints';
 
 function mount(path: string, loggedIn = true) {
   setTransport(createMockServer({ latency: 0, scenario: null, loggedIn }));
+  catalog.reset();
   return render(
     <I18nProvider lang="it">
       <MemoryRouter initialEntries={[path]}>
@@ -42,6 +44,64 @@ describe('console screens (mock mode)', () => {
     expect(stamps[0].getAttribute('aria-expanded')).toBe('true');
     expect(await screen.findByText('Prova del consenso')).toBeTruthy();
     expect(await screen.findByText(/Storico di questo consentId/)).toBeTruthy();
+  });
+});
+
+describe('service library', () => {
+  it('adds catalog entries to the draft with their category and a provenance tag', async () => {
+    mount('/sites/site_mv/config');
+    fireEvent.click(await screen.findByRole('tab', { name: 'Servizi' }, { timeout: 4000 }));
+    fireEvent.click(screen.getByRole('button', { name: 'Aggiungi dalla libreria' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Aggiungi dalla libreria' });
+    // GA4 is already in the draft: listed, but not selectable.
+    const ga4 = await within(dialog).findByRole('checkbox', { name: /Google Analytics 4/ });
+    expect((ga4 as HTMLInputElement).disabled).toBe(true);
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: /Intercom/ }));
+    expect(within(dialog).getByText(/Verrà aggiunta anche la categoria Funzionalità/)).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Aggiungi 1 servizio' }));
+    expect(await screen.findByText(/1 servizio aggiunto alla bozza, insieme alla categoria Funzionalità/)).toBeTruthy();
+    expect(screen.getByText('dalla libreria: Intercom')).toBeTruthy();
+  });
+
+  it('browses the read-only catalog with an entry in detail', async () => {
+    mount('/library/stripe');
+    expect(await screen.findByRole('heading', { name: 'Stripe' }, { timeout: 4000 })).toBeTruthy();
+    expect(screen.getByText('__stripe_mid')).toBeTruthy();
+    expect(screen.getByText(/Necessario solo nelle pagine di pagamento/)).toBeTruthy();
+  });
+});
+
+describe('legal documents', () => {
+  it('lists the three documents with stamp, placeholders and hosted URL', async () => {
+    mount('/sites/site_fua/legal');
+    expect(await screen.findByRole('link', { name: 'Cookie policy' }, { timeout: 4000 })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Termini e condizioni' })).toBeTruthy();
+    expect(screen.getByText('Non pubblicato')).toBeTruthy();
+    expect(screen.getAllByText('3 campi da compilare')).toHaveLength(2);
+    expect(screen.getByText(/nel testo basta la riga \{\{cookie-table\}\}/)).toBeTruthy();
+  });
+
+  it('edits the draft, counts placeholders live and warns before publishing', async () => {
+    mount('/sites/site_fua/legal/privacy');
+    const body = (await screen.findByLabelText(/Testo in Markdown/, undefined, { timeout: 4000 })) as HTMLTextAreaElement;
+    expect(screen.getByRole('heading', { name: /3 campi da compilare/ })).toBeTruthy();
+    fireEvent.change(body, { target: { value: `${body.value}\n\nTelefono: [[numero di telefono]]` } });
+    expect(screen.getByRole('heading', { name: /4 campi da compilare/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Vai a «numero di telefono»/ }));
+    expect(body.value.slice(body.selectionStart, body.selectionEnd)).toBe('[[numero di telefono]]');
+    fireEvent.click(screen.getByRole('button', { name: 'Pubblica versione' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/Restano 4 campi da compilare/)).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Timbra e pubblica' }));
+    expect(await screen.findByText(/pubblicata: è quella che vedono i visitatori/)).toBeTruthy();
+  });
+
+  it('sets the hosted cookie policy as the banner link', async () => {
+    mount('/sites/site_fua/legal');
+    const btn = await screen.findByRole('button', { name: 'Usa questa pagina come link del banner' }, { timeout: 4000 });
+    await waitFor(() => expect((btn as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(btn);
+    expect(await screen.findByText(/la bozza del banner ora rimanda a questa pagina/)).toBeTruthy();
   });
 });
 

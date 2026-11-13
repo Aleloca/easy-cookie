@@ -3,7 +3,7 @@
  * themselves come from the shared core module so the console, the server and
  * the runtime can never disagree on them.
  */
-import type { ConfigIssue, ConsentMethod, EasyCookieConfig } from '@easy-cookie/core/shared';
+import type { ConfigIssue, ConsentMethod, CookieDeclaration, EasyCookieConfig, Localized, ServiceDeclaration } from '@easy-cookie/core/shared';
 
 export type { ConfigIssue, ConsentMethod, EasyCookieConfig };
 
@@ -110,3 +110,95 @@ export interface Stats {
 }
 
 export const METHODS: ConsentMethod[] = ['accept_all', 'reject_all', 'custom', 'close', 'withdraw'];
+
+/* ------------------------------------------------------------ catalog */
+
+/**
+ * Mirrored from `packages/core/src/catalog/types.ts` (docs/api.md, "Service
+ * catalog"). `@easy-cookie/core` does not export `./catalog` yet, so the
+ * console keeps its own copy of the shape it receives from the API.
+ */
+export type CatalogGroup = 'analytics' | 'advertising' | 'tag-management' | 'embeds' | 'support' | 'payments' | 'security' | 'infrastructure';
+
+export const CATALOG_GROUPS: CatalogGroup[] = ['analytics', 'advertising', 'tag-management', 'embeds', 'support', 'payments', 'security', 'infrastructure'];
+
+export type CatalogCategory = 'necessary' | 'functionality' | 'experience' | 'measurement' | 'marketing';
+
+export interface CatalogEntry {
+  /** Stable id, used as the default service key in the config (e.g. `ga4`). */
+  id: string;
+  label: string;
+  /** Legal entity that processes the data for EU visitors. */
+  provider: string;
+  privacyUrl: string;
+  group: CatalogGroup;
+  /** Consent category the service belongs to by default. */
+  category: CatalogCategory;
+  purpose: Localized;
+  cookies: CookieDeclaration[];
+  /** Short note for the site owner (not shown to visitors). */
+  note?: Localized;
+  /** Where the service sends data, for the transfer section of the privacy policy. */
+  transfer?: { countries: string[]; safeguard?: Localized };
+  keywords?: string[];
+}
+
+/** A service in the draft config; `from` records the catalog entry it was added from. */
+export type ConfigService = ServiceDeclaration & { from?: string };
+
+/* ----------------------------------------------------- legal documents */
+
+export type LegalKind = 'cookie' | 'privacy' | 'terms';
+export const LEGAL_KINDS: LegalKind[] = ['cookie', 'privacy', 'terms'];
+
+export interface LegalDocContent {
+  /** One entry per language the document is written in. */
+  translations: Record<string, { title: string; body: string }>;
+}
+
+/** Row of `GET /sites/:id/legal`. */
+export interface LegalDocSummary {
+  kind: LegalKind;
+  title: string;
+  languages: string[];
+  draftUpdatedAt: string;
+  publishedVersion: string | null;
+  publishedAt: string | null;
+  placeholders: number;
+}
+
+export interface LegalVersionSummary {
+  version: string;
+  note: string | null;
+  publishedAt: string;
+  publishedBy: string | null;
+}
+
+/** `GET /sites/:id/legal/:kind` (and the PUT draft response). */
+export interface LegalDoc {
+  kind: LegalKind;
+  draft: LegalDocContent;
+  draftUpdatedAt: string;
+  publishedVersion: string | null;
+  placeholders: number;
+  /** Newest first. */
+  versions: LegalVersionSummary[];
+}
+
+export interface LegalVersion {
+  version: string;
+  note: string | null;
+  publishedAt: string;
+  content: LegalDocContent;
+}
+
+/**
+ * `POST …/render`. `html` is the whole document: it starts with
+ * `<h1 class="ec-legal__title">` and marks placeholders with
+ * `<mark class="ec-legal__todo">`. `title` has the `[[ ]]` brackets stripped.
+ */
+export interface RenderedLegal {
+  title: string;
+  html: string;
+  lang: string;
+}

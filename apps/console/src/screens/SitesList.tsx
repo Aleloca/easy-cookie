@@ -80,7 +80,7 @@ export function SitesList() {
     );
 
   return (
-    <Shell>
+    <Shell sites={list.data}>
       <PageHeader title={t.sites.title} actions={list.data?.length ? newButton : undefined} />
       <div className="pad">{body}</div>
       <CreateSiteDialog open={creating} onClose={() => setCreating(false)} onCreated={list.reload} />

@@ -1,21 +1,62 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite';
+import { readFileSync } from 'node:fs';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { fileURLToPath } from 'node:url';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // Consent server the dev proxy forwards to (apps/server, `pnpm dev:server`).
 const target = process.env.EASY_COOKIE_SERVER ?? 'http://localhost:8787';
+const mock = process.env.VITE_MOCK === '1';
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
+
+/**
+ * Mock mode has no consent server, so the live preview would find no runtime.
+ * Serve the core build (`pnpm --filter @easy-cookie/core build`) at the same
+ * `/static` paths the server uses.
+ */
+function mockStatic(): Plugin {
+  const pkgs = fileURLToPath(new URL('../../packages/', import.meta.url));
+  // [file under packages/, content type, optional: serve empty when not built]
+  const files: Record<string, [string, string, boolean?]> = {
+    '/static/easy-cookie.css': ['core/dist/easy-cookie.css', 'text/css'],
+    '/static/easy-cookie.iife.js': ['core/dist/easy-cookie.iife.js', 'text/javascript'],
+    // Legal preview stylesheet; the preview has its own fallback styles.
+    '/static/easy-cookie-legal.css': ['policy/dist/easy-cookie-legal.css', 'text/css', true],
+  };
+  const serve = (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+    const hit = files[(req.url ?? '').split('?')[0]];
+    if (!hit) return next();
+    res.setHeader('Content-Type', `${hit[1]}; charset=utf-8`);
+    try {
+      res.end(readFileSync(pkgs + hit[0]));
+    } catch {
+      if (hit[2]) return void res.end('/* not built: using the console fallback */');
+      res.statusCode = 404;
+      res.end('Build @easy-cookie/core first: pnpm --filter @easy-cookie/core build');
+    }
+  };
+  return {
+    name: 'easy-cookie-mock-static',
+    configureServer: (server) => void server.middlewares.use(serve),
+    configurePreviewServer: (server) => void server.middlewares.use(serve),
+  };
+}
 
 export default defineConfig({
   base: '/admin/',
-  plugins: [react()],
+  define: { __CONSOLE_VERSION__: JSON.stringify(pkg.version) },
+  plugins: [react(), ...(mock ? [mockStatic()] : [])],
   server: {
     port: 5173,
-    proxy: {
-      '/admin/api': { target },
-      '/v1': { target },
-      // Built core runtime, loaded by the live preview iframe.
-      '/static': { target },
-    },
+    proxy: mock
+      ? undefined
+      : {
+          '/admin/api': { target },
+          '/v1': { target },
+          // Built core runtime, loaded by the live preview iframe.
+          '/static': { target },
+        },
   },
   build: { outDir: 'dist', sourcemap: true },
   test: {
