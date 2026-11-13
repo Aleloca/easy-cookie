@@ -21,7 +21,12 @@
       "import": "./dist/react.js",
       "require": "./dist/react.cjs"
     },
-    "./legal.css": "./dist/easy-cookie-legal.css",
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js",
+      "require": "./dist/client.cjs"
+    },
+    "./legal.css":"./dist/easy-cookie-legal.css",
     "./package.json": "./package.json"
   },
   "files": [

@@ -13,7 +13,7 @@ export default defineConfig([
   // file, kept external so its "use client" directive survives bundling.
   {
     ...shared,
-    entry: { index: 'src/index.ts', react: 'src/react.tsx' },
+    entry: { index: 'src/index.ts', react: 'src/react.tsx', client: 'src/legal-client.ts' },
     esbuildPlugins: [
       {
         name: 'external-client-component',

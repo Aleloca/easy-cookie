@@ -1,3 +1,4 @@
+import { fetchLegalDocument, type LegalKind, type PublishedLegalDocument } from '@easy-cookie/policy/client';
 import {
   parseConsent,
   readCookie,
@@ -99,3 +100,31 @@ export function isServiceGrantedOnServer(
   // Without per-service detail the category decision applies to all its services.
   return !list || list.includes(service);
 }
+
+export interface GetLegalDocumentOptions {
+  /** Base URL of the consent server. */
+  endpoint: string;
+  /** Public site key (`pk_…`). */
+  siteKey: string;
+  kind: LegalKind;
+  lang?: string;
+  /** Seconds Next.js caches the response (`fetch(…, { next: { revalidate } })`). Default 300. */
+  revalidate?: number | false;
+}
+
+/**
+ * A published legal document (cookie policy, privacy policy, terms) for a
+ * Server Component, or null when nothing is published yet. Rendered on the
+ * server, so legal pages are indexable:
+ *
+ * ```tsx
+ * const doc = await getLegalDocument({ endpoint, siteKey, kind: 'privacy', lang: 'it' });
+ * return <LegalDocumentHtml doc={doc} />; // from @easy-cookie/policy/react
+ * ```
+ */
+export function getLegalDocument(opts: GetLegalDocumentOptions): Promise<PublishedLegalDocument | null> {
+  const { revalidate = 300, ...rest } = opts;
+  return fetchLegalDocument({ ...rest, init: { next: { revalidate } } });
+}
+
+export type { LegalKind, PublishedLegalDocument };

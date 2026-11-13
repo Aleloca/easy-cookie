@@ -5,7 +5,7 @@ const shared: Options = {
   dts: true,
   sourcemap: true,
   target: 'es2020',
-  external: ['react', 'next', '@easy-cookie/react', '@easy-cookie/core', '@easy-cookie/core/shared'],
+  external: ['react', 'next', '@easy-cookie/react', '@easy-cookie/core', '@easy-cookie/core/shared', '@easy-cookie/policy/client'],
 };
 
 export default defineConfig([

@@ -9,6 +9,7 @@ export default defineConfig({
       { find: /^@easy-cookie\/core\/shared$/, replacement: here('../core/src/shared/index.ts') },
       { find: /^@easy-cookie\/core$/, replacement: here('../react/test/core-stub.ts') },
       { find: /^@easy-cookie\/react$/, replacement: here('../react/src/index.ts') },
+      { find: /^@easy-cookie\/policy\/client$/, replacement: here('../policy/src/legal-client.ts') },
     ],
   },
   test: {

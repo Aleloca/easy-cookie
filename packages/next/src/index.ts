@@ -6,6 +6,8 @@ export {
   getServerConsent,
   isGrantedOnServer,
   isServiceGrantedOnServer,
+  getLegalDocument,
+  type GetLegalDocumentOptions,
   type ConsentSource,
   type CookieStoreLike,
   type HeadersLike,

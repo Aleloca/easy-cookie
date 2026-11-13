@@ -6,7 +6,8 @@
     "baseUrl": ".",
     "paths": {
       "@easy-cookie/core/shared": ["../core/src/shared/index.ts"],
-      "@easy-cookie/react": ["../react/src/index.ts"]
+      "@easy-cookie/react": ["../react/src/index.ts"],
+      "@easy-cookie/policy/client": ["../policy/src/legal-client.ts"]
     },
     "types": ["vitest/globals"]
   },

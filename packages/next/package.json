@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@easy-cookie/core": "workspace:^",
+    "@easy-cookie/policy": "workspace:^",
     "@easy-cookie/react": "workspace:^"
   },
   "peerDependencies": {
