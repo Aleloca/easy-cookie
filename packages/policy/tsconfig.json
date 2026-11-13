@@ -5,7 +5,8 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@easy-cookie/core/shared": ["../core/src/shared/index.ts"]
+      "@easy-cookie/core/shared": ["../core/src/shared/index.ts"],
+      "@easy-cookie/core/catalog": ["../core/src/catalog/index.ts"]
     },
     "types": ["vitest/globals"]
   },

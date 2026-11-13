@@ -14,3 +14,26 @@ export {
   type PolicyService,
 } from './model';
 export { escapeHtml, policyRows, renderPolicyHtml, renderPolicyMarkdown, type PolicyRow, type RenderPolicyOptions } from './render';
+export {
+  LEGAL_KINDS,
+  LEGAL_LABELS,
+  PLACEHOLDER_RE,
+  countPlaceholders,
+  fetchLegalDocument,
+  fillSiteVariables,
+  isLegalKind,
+  isSafeLegalUrl,
+  legalContentError,
+  legalDocumentUrl,
+  pickLegalLanguage,
+  renderLegalDocument,
+  type FetchLegalDocumentOptions,
+  type LegalDocContent,
+  type LegalKind,
+  type LegalLabels,
+  type LegalTranslation,
+  type PublishedLegalDocument,
+  type RenderLegalOptions,
+  type RenderedLegalDocument,
+} from './legal';
+export { LEGAL_TEMPLATES, LEGAL_TEMPLATE_LANGUAGES, legalTemplate } from './templates';

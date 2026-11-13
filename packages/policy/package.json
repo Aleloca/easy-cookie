@@ -4,7 +4,9 @@
   "description": "Generate the cookie policy (HTML, Markdown, React) and autoClear rules from an easy-cookie config.",
   "license": "MIT",
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "*.css"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,18 +21,20 @@
       "import": "./dist/react.js",
       "require": "./dist/react.cjs"
     },
+    "./legal.css": "./dist/easy-cookie-legal.css",
     "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup && node -e \"require('fs').copyFileSync('src/legal.css','dist/easy-cookie-legal.css')\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@easy-cookie/core": "workspace:^"
+    "@easy-cookie/core": "workspace:^",
+    "markdown-it": "^14.3.3"
   },
   "peerDependencies": {
     "react": ">=18"
@@ -41,6 +45,7 @@
     }
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.2.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "react": "^19.1.0",

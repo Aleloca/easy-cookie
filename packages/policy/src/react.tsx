@@ -1,6 +1,8 @@
 import type { EasyCookieConfig } from '@easy-cookie/core/shared';
 import { buildPolicyModel, formatPolicyDate, type BuildPolicyOptions } from './model';
 import { policyRows, type RenderPolicyOptions } from './render';
+import type { ReactNode } from 'react';
+import type { PublishedLegalDocument } from './legal-client';
 
 export interface CookiePolicyProps extends BuildPolicyOptions, RenderPolicyOptions {
   config: EasyCookieConfig;
@@ -114,3 +116,25 @@ export function CookiePolicy({
 }
 
 export { buildPolicyModel, type PolicyModel } from './model';
+
+export interface LegalDocumentHtmlProps {
+  /** A document from `fetchLegalDocument()` / `getLegalDocument()` (or anything with `html`). */
+  doc: Pick<PublishedLegalDocument, 'html'> | null | undefined;
+  className?: string;
+  /** Shown when `doc` is null (nothing published yet). */
+  fallback?: ReactNode;
+}
+
+/**
+ * Render a legal document fetched on the server. The HTML comes from the
+ * consent server's renderer (raw HTML disabled, safe links only), so it is
+ * inserted as-is. Works as a React Server Component.
+ */
+export function LegalDocumentHtml({ doc, className, fallback = null }: LegalDocumentHtmlProps) {
+  if (!doc?.html) return <>{fallback}</>;
+  return <div className={className} dangerouslySetInnerHTML={{ __html: doc.html }} />;
+}
+
+// Client component: built as its own file with a "use client" banner (see tsup.config.ts).
+export { LegalDocument, type LegalDocumentProps } from './legal-document';
+export { fetchLegalDocument, type FetchLegalDocumentOptions, type PublishedLegalDocument } from './legal-client';
