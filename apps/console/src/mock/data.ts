@@ -7,7 +7,8 @@
  * maintainer's own projects, used only as placeholders.
  */
 import type { ConsentMethod, EasyCookieConfig } from '@easy-cookie/core/shared';
-import type { ConsentRecord, RevisionSummary, Site } from '../api/types';
+import type { ConfigService, ConsentRecord, LegalKind, RevisionSummary, Site } from '../api/types';
+import type { MockLegalDoc } from './legal';
 
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -320,6 +321,8 @@ export interface MockSite {
   revisions: MockRevision[]; // newest first
   records: ConsentRecord[] | null; // generated lazily
   gen: Omit<RecordGenOptions, 'now' | 'revisions'> | null;
+  /** Legal documents, created lazily from the templates on first read (seeded for the first site). */
+  legal?: Record<LegalKind, MockLegalDoc>;
 }
 
 export function createMockDb(now = Date.now()): MockSite[] {
@@ -364,6 +367,8 @@ export function createMockDb(now = Date.now()): MockSite[] {
 
   const fuaDraft = fuaConfig(4, fuaRevisions[0].revision);
   fuaDraft.texts = { it: { banner: { title: 'Due parole sui cookie, poi torni a leggere', rejectAll: 'Rifiuta tutti' } } };
+  // Hotjar was added to the draft from the service library, then edited.
+  (fuaDraft.services!.hotjar as ConfigService).from = 'hotjar';
 
   return [
     {

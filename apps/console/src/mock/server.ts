@@ -11,9 +11,12 @@
  * and `sessionStorage['ec-mock-session'] = '0'` starts logged out.
  */
 import { validateConfig, type ConsentMethod, type EasyCookieConfig } from '@easy-cookie/core/shared';
-import type { ConsentRecord, CreatedSite, Stats } from '../api/types';
-import { METHODS } from '../api/types';
+import type { ConsentRecord, CreatedSite, LegalDocContent, LegalKind, Stats } from '../api/types';
+import { LEGAL_KINDS, METHODS } from '../api/types';
+import { contentPlaceholders } from '../lib/legal';
+import { MOCK_CATALOG } from './catalog';
 import { base62, createMockDb, dateId, ensureRecords, mulberry32, starterConfig, type MockSite } from './data';
+import { freshDoc, legalTemplate, renderMockMarkdown, seedLegal, type MockLegalDoc } from './legal';
 
 const DAY = 86_400_000;
 
@@ -58,6 +61,24 @@ export function createMockServer(opts: MockServerOptions = {}) {
     json(status, { error: { code, message, ...(issues ? { issues } : {}) } });
 
   const find = (id: string) => db.find((e) => e.site.id === id);
+
+  /** The three documents of a site, created from the templates on first read. */
+  function legalDocs(entry: MockSite): Record<LegalKind, MockLegalDoc> {
+    if (!entry.legal) {
+      const at = new Date(now()).toISOString();
+      if (entry.site.id === 'site_fua') entry.legal = seedLegal(entry.site, now(), user.email);
+      else {
+        const c = entry.draft.config.language;
+        const langs = [...new Set([c?.default ?? 'it', ...(c?.available ?? [])])];
+        entry.legal = {
+          cookie: freshDoc('cookie', langs, entry.site, at),
+          privacy: freshDoc('privacy', langs, entry.site, at),
+          terms: freshDoc('terms', langs, entry.site, at),
+        };
+      }
+    }
+    return entry.legal;
+  }
 
   function stats(entry: MockSite, days: number): Stats {
     const recs = ensureRecords(entry, now());
@@ -183,6 +204,14 @@ export function createMockServer(opts: MockServerOptions = {}) {
       return json(201, site);
     }
 
+    // Service catalog and legal templates
+    if (path === '/catalog' && method === 'GET') return json(200, MOCK_CATALOG);
+    const tm = /^\/legal-templates\/(cookie|privacy|terms)$/.exec(path);
+    if (tm && method === 'GET') {
+      const forSite = url.searchParams.get('siteId') ? find(url.searchParams.get('siteId')!) : undefined;
+      return json(200, legalTemplate(tm[1] as LegalKind, url.searchParams.get('lang') ?? 'it', forSite?.site));
+    }
+
     const m = /^\/sites\/([^/]+)(?:\/(.*))?$/.exec(path);
     if (!m) return fail(404, 'not_found', 'Not found');
     const entry = find(decodeURIComponent(m[1]));
@@ -265,6 +294,85 @@ export function createMockServer(opts: MockServerOptions = {}) {
     }
     if (rest === 'stats' && method === 'GET') {
       return json(200, stats(entry, Number(url.searchParams.get('days') ?? 30)));
+    }
+
+    // Legal documents
+    if (rest === 'legal' && method === 'GET') {
+      const docs = legalDocs(entry);
+      const def = entry.draft.config.language?.default ?? 'it';
+      return json(
+        200,
+        LEGAL_KINDS.map((kind) => {
+          const d = docs[kind];
+          const tr = d.draft.translations;
+          return {
+            kind,
+            title: (tr[def] ?? Object.values(tr)[0])?.title ?? kind,
+            languages: Object.keys(tr),
+            draftUpdatedAt: d.draftUpdatedAt,
+            publishedVersion: d.versions[0]?.version ?? null,
+            publishedAt: d.versions[0]?.publishedAt ?? null,
+            placeholders: contentPlaceholders(d.draft),
+          };
+        }),
+      );
+    }
+    const lm = /^legal\/(cookie|privacy|terms)(?:\/(.*))?$/.exec(rest);
+    if (lm) {
+      const kind = lm[1] as LegalKind;
+      const sub = lm[2] ?? '';
+      const doc = legalDocs(entry)[kind];
+      const view = () => ({
+        kind,
+        draft: doc.draft,
+        draftUpdatedAt: doc.draftUpdatedAt,
+        publishedVersion: doc.versions[0]?.version ?? null,
+        placeholders: contentPlaceholders(doc.draft),
+        versions: doc.versions.map(({ content: _c, ...v }) => v),
+      });
+      if (sub === '' && method === 'GET') return json(200, view());
+      if (sub === 'draft' && method === 'PUT') {
+        const draft = body?.draft as LegalDocContent | undefined;
+        if (!draft || typeof draft.translations !== 'object') return fail(400, 'invalid', 'draft.translations is required');
+        doc.draft = structuredClone(draft);
+        doc.draftUpdatedAt = new Date(now()).toISOString();
+        return json(200, view());
+      }
+      if (sub === 'versions' && method === 'POST') {
+        if (!Object.values(doc.draft.translations).some((tr) => tr.body.trim() || tr.title.trim()))
+          return fail(422, 'empty_document', 'The document has no content');
+        const explicit = (body?.version as string | undefined)?.trim();
+        if (explicit && !/^[A-Za-z0-9._-]{1,64}$/.test(explicit)) return fail(400, 'invalid_version', 'Invalid version id');
+        if (explicit && doc.versions.some((v) => v.version === explicit)) return fail(409, 'version_exists', 'Version already exists');
+        let version = explicit || dateId(new Date(now()));
+        const base = version;
+        for (let i = 2; doc.versions.some((v) => v.version === version); i++) version = `${base}-${i}`;
+        const v = {
+          version,
+          note: (body?.note as string | undefined)?.trim() || null,
+          publishedAt: new Date(now()).toISOString(),
+          publishedBy: user.email,
+          content: structuredClone(doc.draft),
+        };
+        doc.versions = [v, ...doc.versions];
+        return json(201, { version: v.version, note: v.note, publishedAt: v.publishedAt });
+      }
+      const vm = /^versions\/(.+)$/.exec(sub);
+      if (vm && method === 'GET') {
+        const v = doc.versions.find((x) => x.version === decodeURIComponent(vm[1]));
+        if (!v) return fail(404, 'not_found', 'Version not found');
+        return json(200, { version: v.version, note: v.note, publishedAt: v.publishedAt, content: v.content });
+      }
+      if (sub === 'render' && method === 'POST') {
+        const content = body?.content as LegalDocContent | undefined;
+        const lang = (body?.lang as string | undefined) ?? 'it';
+        const tr = content?.translations?.[lang] ?? (content ? Object.values(content.translations)[0] : undefined);
+        if (!tr) return json(200, { title: '', html: '<div class="ec-legal"></div>' });
+        return json(200, {
+          title: tr.title,
+          html: renderMockMarkdown(tr.body, lang, { config: entry.draft.config, updatedAt: doc.versions[0]?.publishedAt }),
+        });
+      }
     }
     return fail(404, 'not_found', 'Not found');
   }
