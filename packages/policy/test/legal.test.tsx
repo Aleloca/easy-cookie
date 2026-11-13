@@ -139,6 +139,30 @@ describe('renderLegalDocument', () => {
     expect(r.title).toBe('Acme <srl> privacy');
   });
 
+  it('renders directive labels and {{last-updated}} in es, fr, de and pt', () => {
+    const body = '{{last-updated}}\n\n{{preferences-link}}\n\n{{services-list}}';
+    const render = (lang: string) =>
+      renderLegalDocument({ translations: { [lang]: { title: 'T', body } } }, lang, { config, publishedAt: '2026-11-13T09:00:00Z' }).html;
+    const de = render('de');
+    expect(de).toContain('Zuletzt aktualisiert: <time datetime="2026-11-13">13. November 2026</time>');
+    expect(de).toContain('data-ec-open-preferences>Cookie-Einstellungen ändern</a>');
+    expect(de).toContain('Kategorie: Messung');
+    expect(de).toContain('Datenübermittlung: Vereinigte Staaten');
+    const fr = render('fr');
+    expect(fr).toContain('Dernière mise à jour: <time datetime="2026-11-13">13 novembre 2026</time>');
+    expect(fr).toContain('>Modifier vos préférences cookies</a>');
+    expect(fr).toContain('Catégorie: Mesure');
+    expect(fr).toContain('Transfert de données: États-Unis');
+    const es = render('es');
+    expect(es).toContain('Última actualización: <time datetime="2026-11-13">13 de noviembre de 2026</time>');
+    expect(es).toContain('Política de privacidad</a>');
+    const pt = render('pt');
+    expect(pt).toContain('Última atualização: <time datetime="2026-11-13">13 de novembro de 2026</time>');
+    expect(pt).toContain('>Alterar as preferências de cookies</a>');
+    // A language without built-in labels uses English.
+    expect(render('nl')).toContain('Last updated: <time');
+  });
+
   it('falls back to the config default language, then to the first translation', () => {
     const content: LegalDocContent = { translations: { en: { title: 'EN', body: 'en' }, it: { title: 'IT', body: 'it' } } };
     expect(renderLegalDocument(content, 'en', { config }).title).toBe('EN');

@@ -177,4 +177,18 @@ describe('runtime', () => {
     expect(other.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))).toBe(true);
     expect(spy).toHaveBeenCalledTimes(1);
   });
+  it('also opens the preferences from Iubenda’s .iubenda-cs-preferences-link class', async () => {
+    const ec = await fresh();
+    await ec.run(base as any);
+    const spy = vi.spyOn(ec, 'openPreferences');
+    // Markup kept as-is from an Iubenda setup, added after run().
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      '<a href="#" class="iubenda-cs-preferences-link"><span>Cookie preferences</span></a>',
+    );
+    const span = document.querySelector('.iubenda-cs-preferences-link span')!;
+    const notPrevented = span.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    expect(notPrevented).toBe(false);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
 });

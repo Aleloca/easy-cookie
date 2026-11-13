@@ -1,3 +1,4 @@
+import type { BuiltinLanguage } from '../shared/defaults';
 import type { CookieDeclaration, Localized } from '../shared/types';
 import type { CatalogEntry } from './types';
 
@@ -7,44 +8,136 @@ import type { CatalogEntry } from './types';
  * the provider does not document them or makes them configurable without a
  * stable default. Site owners must still review every entry: providers change
  * their cookies, and the transfer section depends on the owner's contracts.
+ *
+ * Every localized field is written in all the built-in languages.
  */
 
-const t = (it: string, en: string): Record<'it' | 'en', string> => ({ it, en });
+type L = Record<BuiltinLanguage, string>;
 
-function ck(
-  name: string,
-  duration: Record<'it' | 'en', string> | undefined,
-  description: Record<'it' | 'en', string>,
-  extra: Partial<CookieDeclaration> = {},
-): CookieDeclaration {
+function ck(name: string, duration: L | undefined, description: L, extra: Partial<CookieDeclaration> = {}): CookieDeclaration {
   return { name, ...extra, ...(duration ? { duration } : {}), description };
 }
 
 const pattern = { pattern: true } as const;
 
 // Durations.
-const SESSION = t('sessione', 'session');
-const MIN30 = t('30 minuti', '30 minutes');
-const DAY1 = t('1 giorno', '1 day');
-const DAYS7 = t('7 giorni', '7 days');
-const DAYS30 = t('30 giorni', '30 days');
-const MONTHS3 = t('3 mesi', '3 months');
-const MONTHS6 = t('6 mesi', '6 months');
-const MONTHS9 = t('9 mesi', '9 months');
-const YEAR1 = t('1 anno', '1 year');
-const MONTHS13 = t('13 mesi', '13 months');
-const YEARS2 = t('2 anni', '2 years');
+const SESSION: L = { it: 'sessione', en: 'session', es: 'sesión', fr: 'session', de: 'Sitzung', pt: 'sessão' };
+const MIN30: L = { it: '30 minuti', en: '30 minutes', es: '30 minutos', fr: '30 minutes', de: '30 Minuten', pt: '30 minutos' };
+const DAY1: L = { it: '1 giorno', en: '1 day', es: '1 día', fr: '1 jour', de: '1 Tag', pt: '1 dia' };
+const DAYS7: L = { it: '7 giorni', en: '7 days', es: '7 días', fr: '7 jours', de: '7 Tage', pt: '7 dias' };
+const DAYS30: L = { it: '30 giorni', en: '30 days', es: '30 días', fr: '30 jours', de: '30 Tage', pt: '30 dias' };
+const MONTHS3: L = { it: '3 mesi', en: '3 months', es: '3 meses', fr: '3 mois', de: '3 Monate', pt: '3 meses' };
+const MONTHS6: L = { it: '6 mesi', en: '6 months', es: '6 meses', fr: '6 mois', de: '6 Monate', pt: '6 meses' };
+const MONTHS9: L = { it: '9 mesi', en: '9 months', es: '9 meses', fr: '9 mois', de: '9 Monate', pt: '9 meses' };
+const YEAR1: L = { it: '1 anno', en: '1 year', es: '1 año', fr: '1 an', de: '1 Jahr', pt: '1 ano' };
+const MONTHS13: L = { it: '13 mesi', en: '13 months', es: '13 meses', fr: '13 mois', de: '13 Monate', pt: '13 meses' };
+const YEARS2: L = { it: '2 anni', en: '2 years', es: '2 años', fr: '2 ans', de: '2 Jahre', pt: '2 anos' };
 
 // Transfer safeguards.
-const DPF = t('EU-US Data Privacy Framework', 'EU-US Data Privacy Framework');
-const SCC = t('Clausole contrattuali standard', 'Standard contractual clauses');
-const BCR = t('Norme vincolanti d’impresa (BCR)', 'Binding corporate rules (BCR)');
+const DPF: L = {
+  it: 'EU-US Data Privacy Framework',
+  en: 'EU-US Data Privacy Framework',
+  es: 'EU-US Data Privacy Framework',
+  fr: 'EU-US Data Privacy Framework',
+  de: 'EU-US Data Privacy Framework',
+  pt: 'EU-US Data Privacy Framework',
+};
+const SCC: L = {
+  it: 'Clausole contrattuali standard',
+  en: 'Standard contractual clauses',
+  es: 'Cláusulas contractuales tipo',
+  fr: 'Clauses contractuelles types',
+  de: 'Standardvertragsklauseln',
+  pt: 'Cláusulas contratuais-tipo',
+};
+const BCR: L = {
+  it: 'Norme vincolanti d’impresa (BCR)',
+  en: 'Binding corporate rules (BCR)',
+  es: 'Normas corporativas vinculantes (BCR)',
+  fr: 'Règles d’entreprise contraignantes (BCR)',
+  de: 'Verbindliche interne Datenschutzvorschriften (BCR)',
+  pt: 'Regras vinculativas aplicáveis às empresas (BCR)',
+};
 const us = (safeguard: Localized) => ({ countries: ['US'], safeguard });
 
 const GOOGLE = 'Google Ireland Ltd';
 const GOOGLE_PRIVACY = 'https://policies.google.com/privacy';
 const MICROSOFT = 'Microsoft Ireland Operations Ltd';
 const MICROSOFT_PRIVACY = 'https://privacy.microsoft.com/privacystatement';
+
+// Strings shared by several entries.
+const VISITS_PURPOSE: L = {
+  it: 'Statistiche sulle visite e sull’uso del sito.',
+  en: 'Statistics about visits and site usage.',
+  es: 'Estadísticas sobre las visitas y el uso del sitio.',
+  fr: 'Statistiques sur les visites et l’utilisation du site.',
+  de: 'Statistiken über Besuche und die Nutzung der Website.',
+  pt: 'Estatísticas sobre as visitas e a utilização do site.',
+};
+const EVENT_ANALYTICS: L = {
+  it: 'Analisi del prodotto basata su eventi.',
+  en: 'Event-based product analytics.',
+  es: 'Análisis de producto basado en eventos.',
+  fr: 'Analyse de produit basée sur les événements.',
+  de: 'Ereignisbasierte Produktanalyse.',
+  pt: 'Análise de produto baseada em eventos.',
+};
+const MS_BROWSER_ID: L = {
+  it: 'Identificativo del browser usato dai servizi Microsoft.',
+  en: 'Browser identifier used by Microsoft services.',
+  es: 'Identificador del navegador utilizado por los servicios de Microsoft.',
+  fr: 'Identifiant du navigateur utilisé par les services Microsoft.',
+  de: 'Browserkennung, die von Microsoft-Diensten verwendet wird.',
+  pt: 'Identificador do navegador utilizado pelos serviços da Microsoft.',
+};
+const PAYMENTS_PURPOSE: L = {
+  it: 'Elabora i pagamenti e previene le frodi.',
+  en: 'Processes payments and prevents fraud.',
+  es: 'Procesa los pagos y previene el fraude.',
+  fr: 'Traite les paiements et prévient la fraude.',
+  de: 'Wickelt Zahlungen ab und beugt Betrug vor.',
+  pt: 'Processa os pagamentos e previne a fraude.',
+};
+const FRAUD_PREVENTION: L = {
+  it: 'Prevenzione delle frodi.',
+  en: 'Fraud prevention.',
+  es: 'Prevención del fraude.',
+  fr: 'Prévention de la fraude.',
+  de: 'Betrugsprävention.',
+  pt: 'Prevenção da fraude.',
+};
+const PAYMENT_SESSION: L = {
+  it: 'Sessione del pagamento.',
+  en: 'Payment session.',
+  es: 'Sesión del pago.',
+  fr: 'Session de paiement.',
+  de: 'Zahlungssitzung.',
+  pt: 'Sessão do pagamento.',
+};
+const CAPTCHA_PURPOSE: L = {
+  it: 'Protegge i moduli da spam e abusi automatizzati.',
+  en: 'Protects forms from spam and automated abuse.',
+  es: 'Protege los formularios del spam y de los abusos automatizados.',
+  fr: 'Protège les formulaires contre le spam et les abus automatisés.',
+  de: 'Schützt Formulare vor Spam und automatisiertem Missbrauch.',
+  pt: 'Protege os formulários contra spam e abusos automatizados.',
+};
+const HEATMAPS: L = {
+  it: 'Mappe di calore e registrazioni delle sessioni.',
+  en: 'Heatmaps and session recordings.',
+  es: 'Mapas de calor y grabaciones de sesiones.',
+  fr: 'Cartes de chaleur et enregistrements de sessions.',
+  de: 'Heatmaps und Sitzungsaufzeichnungen.',
+  pt: 'Mapas de calor e gravações de sessões.',
+};
+const CHAT_VISITOR_ID: L = {
+  it: 'Identificativo del visitatore per la chat.',
+  en: 'Visitor identifier for the chat.',
+  es: 'Identificador del visitante para el chat.',
+  fr: 'Identifiant du visiteur pour le chat.',
+  de: 'Besucherkennung für den Chat.',
+  pt: 'Identificador do visitante para o chat.',
+};
 
 export const ENTRIES: CatalogEntry[] = [
   // ---- analytics ------------------------------------------------------------
@@ -55,19 +148,46 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: GOOGLE_PRIVACY,
     group: 'analytics',
     category: 'measurement',
-    purpose: t(
-      'Statistiche sulle visite e sull’uso del sito (pagine viste, sorgenti di traffico, eventi).',
-      'Statistics about visits and site usage (page views, traffic sources, events).',
-    ),
+    purpose: {
+      it: 'Statistiche sulle visite e sull’uso del sito (pagine viste, sorgenti di traffico, eventi).',
+      en: 'Statistics about visits and site usage (page views, traffic sources, events).',
+      es: 'Estadísticas sobre las visitas y el uso del sitio (páginas vistas, fuentes de tráfico, eventos).',
+      fr: 'Statistiques sur les visites et l’utilisation du site (pages vues, sources de trafic, événements).',
+      de: 'Statistiken über Besuche und die Nutzung der Website (Seitenaufrufe, Traffic-Quellen, Ereignisse).',
+      pt: 'Estatísticas sobre as visitas e a utilização do site (páginas vistas, fontes de tráfego, eventos).',
+    },
     cookies: [
-      ck('_ga', YEARS2, t('Distingue i visitatori con un identificativo casuale.', 'Distinguishes visitors with a random identifier.')),
-      ck('^_ga_', YEARS2, t('Mantiene lo stato della sessione per la proprietà GA4.', 'Keeps the session state for the GA4 property.'), pattern),
+      ck('_ga', YEARS2, {
+        it: 'Distingue i visitatori con un identificativo casuale.',
+        en: 'Distinguishes visitors with a random identifier.',
+        es: 'Distingue a los visitantes mediante un identificador aleatorio.',
+        fr: 'Distingue les visiteurs grâce à un identifiant aléatoire.',
+        de: 'Unterscheidet Besucher anhand einer zufälligen Kennung.',
+        pt: 'Distingue os visitantes através de um identificador aleatório.',
+      }),
+      ck(
+        '^_ga_',
+        YEARS2,
+        {
+          it: 'Mantiene lo stato della sessione per la proprietà GA4.',
+          en: 'Keeps the session state for the GA4 property.',
+          es: 'Mantiene el estado de la sesión para la propiedad de GA4.',
+          fr: 'Conserve l’état de la session pour la propriété GA4.',
+          de: 'Speichert den Sitzungsstatus für die GA4-Property.',
+          pt: 'Mantém o estado da sessão para a propriedade do GA4.',
+        },
+        pattern,
+      ),
     ],
     transfer: us(DPF),
-    note: t(
-      'Senza consenso Google Analytics non deve impostare cookie: abilita Consent Mode v2. Nel contratto con Google valuta le impostazioni di condivisione dei dati.',
-      'Without consent Google Analytics must not set cookies: enable Consent Mode v2. Review the data-sharing settings in your Google agreement.',
-    ),
+    note: {
+      it: 'Senza consenso Google Analytics non deve impostare cookie: abilita Consent Mode v2. Nel contratto con Google valuta le impostazioni di condivisione dei dati.',
+      en: 'Without consent Google Analytics must not set cookies: enable Consent Mode v2. Review the data-sharing settings in your Google agreement.',
+      es: 'Sin consentimiento, Google Analytics no debe instalar cookies: activa Consent Mode v2. Revisa la configuración de uso compartido de datos de tu contrato con Google.',
+      fr: 'Sans consentement, Google Analytics ne doit déposer aucun cookie : activez Consent Mode v2. Vérifiez les paramètres de partage des données dans votre contrat avec Google.',
+      de: 'Ohne Einwilligung darf Google Analytics keine Cookies setzen: Aktivieren Sie Consent Mode v2. Prüfen Sie die Einstellungen zur Datenfreigabe in Ihrer Vereinbarung mit Google.',
+      pt: 'Sem consentimento, o Google Analytics não deve definir cookies: ative o Consent Mode v2. Reveja as definições de partilha de dados no contrato com a Google.',
+    },
     keywords: ['google analytics', 'gtag', 'analytics'],
   },
   {
@@ -77,16 +197,24 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: GOOGLE_PRIVACY,
     group: 'tag-management',
     category: 'necessary',
-    purpose: t(
-      'Carica gli script configurati nel contenitore; da solo non imposta cookie.',
-      'Loads the scripts configured in the container; on its own it sets no cookies.',
-    ),
+    purpose: {
+      it: 'Carica gli script configurati nel contenitore; da solo non imposta cookie.',
+      en: 'Loads the scripts configured in the container; on its own it sets no cookies.',
+      es: 'Carga los scripts configurados en el contenedor; por sí solo no instala cookies.',
+      fr: 'Charge les scripts configurés dans le conteneur ; à lui seul, il ne dépose aucun cookie.',
+      de: 'Lädt die im Container konfigurierten Skripte; setzt selbst keine Cookies.',
+      pt: 'Carrega os scripts configurados no contentor; por si só não define cookies.',
+    },
     cookies: [],
     transfer: us(DPF),
-    note: t(
-      'GTM non imposta cookie, ma i tag che carica sì: dichiara ogni tag (GA4, Ads, Meta…) come servizio separato e attivali solo col consenso tramite Consent Mode.',
-      'GTM sets no cookies, but the tags it loads do: declare each tag (GA4, Ads, Meta…) as its own service and fire them only with consent through Consent Mode.',
-    ),
+    note: {
+      it: 'GTM non imposta cookie, ma i tag che carica sì: dichiara ogni tag (GA4, Ads, Meta…) come servizio separato e attivali solo col consenso tramite Consent Mode.',
+      en: 'GTM sets no cookies, but the tags it loads do: declare each tag (GA4, Ads, Meta…) as its own service and fire them only with consent through Consent Mode.',
+      es: 'GTM no instala cookies, pero las etiquetas que carga sí: declara cada etiqueta (GA4, Ads, Meta…) como un servicio independiente y actívalas solo con consentimiento mediante Consent Mode.',
+      fr: 'GTM ne dépose aucun cookie, mais les balises qu’il charge, si : déclarez chaque balise (GA4, Ads, Meta…) comme un service distinct et ne les déclenchez qu’avec le consentement via Consent Mode.',
+      de: 'GTM setzt keine Cookies, die geladenen Tags aber schon: Geben Sie jedes Tag (GA4, Ads, Meta …) als eigenen Dienst an und lösen Sie es über Consent Mode nur mit Einwilligung aus.',
+      pt: 'O GTM não define cookies, mas as tags que carrega sim: declare cada tag (GA4, Ads, Meta…) como um serviço separado e ative-as apenas com consentimento através do Consent Mode.',
+    },
     keywords: ['gtm', 'tag manager'],
   },
   {
@@ -96,18 +224,38 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://posthog.com/privacy',
     group: 'analytics',
     category: 'measurement',
-    purpose: t(
-      'Analisi del prodotto: eventi, funnel, registrazioni di sessione e feature flag.',
-      'Product analytics: events, funnels, session recordings and feature flags.',
-    ),
+    purpose: {
+      it: 'Analisi del prodotto: eventi, funnel, registrazioni di sessione e feature flag.',
+      en: 'Product analytics: events, funnels, session recordings and feature flags.',
+      es: 'Análisis de producto: eventos, embudos, grabaciones de sesiones y feature flags.',
+      fr: 'Analyse de produit : événements, entonnoirs, enregistrements de sessions et feature flags.',
+      de: 'Produktanalyse: Ereignisse, Funnels, Sitzungsaufzeichnungen und Feature-Flags.',
+      pt: 'Análise de produto: eventos, funis, gravações de sessões e feature flags.',
+    },
     cookies: [
-      ck('^ph_.*_posthog$', YEAR1, t('Identificativo anonimo del visitatore e stato della sessione.', 'Anonymous visitor identifier and session state.'), pattern),
+      ck(
+        '^ph_.*_posthog$',
+        YEAR1,
+        {
+          it: 'Identificativo anonimo del visitatore e stato della sessione.',
+          en: 'Anonymous visitor identifier and session state.',
+          es: 'Identificador anónimo del visitante y estado de la sesión.',
+          fr: 'Identifiant anonyme du visiteur et état de la session.',
+          de: 'Anonyme Besucherkennung und Sitzungsstatus.',
+          pt: 'Identificador anónimo do visitante e estado da sessão.',
+        },
+        pattern,
+      ),
     ],
     transfer: us(SCC),
-    note: t(
-      'Con PostHog EU Cloud (eu.posthog.com) i dati restano nell’UE: aggiorna la sezione trasferimenti. Senza consenso usa persistence: "memory" (con @easy-cookie/posthog).',
-      'With PostHog EU Cloud (eu.posthog.com) data stays in the EU: update the transfer section. Without consent use persistence: "memory" (with @easy-cookie/posthog).',
-    ),
+    note: {
+      it: 'Con PostHog EU Cloud (eu.posthog.com) i dati restano nell’UE: aggiorna la sezione trasferimenti. Senza consenso usa persistence: "memory" (con @easy-cookie/posthog).',
+      en: 'With PostHog EU Cloud (eu.posthog.com) data stays in the EU: update the transfer section. Without consent use persistence: "memory" (with @easy-cookie/posthog).',
+      es: 'Con PostHog EU Cloud (eu.posthog.com) los datos permanecen en la UE: actualiza la sección de transferencias. Sin consentimiento usa persistence: "memory" (con @easy-cookie/posthog).',
+      fr: 'Avec PostHog EU Cloud (eu.posthog.com), les données restent dans l’UE : mettez à jour la section sur les transferts. Sans consentement, utilisez persistence: "memory" (avec @easy-cookie/posthog).',
+      de: 'Mit PostHog EU Cloud (eu.posthog.com) bleiben die Daten in der EU: Passen Sie den Abschnitt zur Datenübermittlung an. Ohne Einwilligung verwenden Sie persistence: "memory" (mit @easy-cookie/posthog).',
+      pt: 'Com o PostHog EU Cloud (eu.posthog.com) os dados permanecem na UE: atualize a secção de transferências. Sem consentimento, utilize persistence: "memory" (com @easy-cookie/posthog).',
+    },
     keywords: ['product analytics', 'session replay'],
   },
   {
@@ -117,15 +265,43 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://matomo.org/privacy-policy/',
     group: 'analytics',
     category: 'measurement',
-    purpose: t('Statistiche sulle visite e sull’uso del sito.', 'Statistics about visits and site usage.'),
+    purpose: VISITS_PURPOSE,
     cookies: [
-      ck('^_pk_id\\.', MONTHS13, t('Identificativo del visitatore.', 'Visitor identifier.'), pattern),
-      ck('^_pk_ses\\.', MIN30, t('Dati temporanei della visita in corso.', 'Temporary data for the current visit.'), pattern),
+      ck(
+        '^_pk_id\\.',
+        MONTHS13,
+        {
+          it: 'Identificativo del visitatore.',
+          en: 'Visitor identifier.',
+          es: 'Identificador del visitante.',
+          fr: 'Identifiant du visiteur.',
+          de: 'Besucherkennung.',
+          pt: 'Identificador do visitante.',
+        },
+        pattern,
+      ),
+      ck(
+        '^_pk_ses\\.',
+        MIN30,
+        {
+          it: 'Dati temporanei della visita in corso.',
+          en: 'Temporary data for the current visit.',
+          es: 'Datos temporales de la visita en curso.',
+          fr: 'Données temporaires de la visite en cours.',
+          de: 'Vorübergehende Daten des aktuellen Besuchs.',
+          pt: 'Dados temporários da visita em curso.',
+        },
+        pattern,
+      ),
     ],
-    note: t(
-      'Se Matomo è installato sul tuo server, il fornitore sei tu: modifica il campo. Con IP mascherato, senza incrocio con altri dati e con cookie disattivati o di prima parte, le linee guida del Garante (2021) lo equiparano a un cookie tecnico: puoi spostarlo tra i necessari.',
-      'If Matomo runs on your own server, you are the provider: edit the field. With masked IPs, no cross-referencing with other data and cookies disabled or first-party, the Italian Garante guidelines (2021) treat it like a technical cookie: you may move it to necessary.',
-    ),
+    note: {
+      it: 'Se Matomo è installato sul tuo server, il fornitore sei tu: modifica il campo. Con IP mascherato, senza incrocio con altri dati e con cookie disattivati o di prima parte, le linee guida del Garante (2021) lo equiparano a un cookie tecnico: puoi spostarlo tra i necessari.',
+      en: 'If Matomo runs on your own server, you are the provider: edit the field. With masked IPs, no cross-referencing with other data and cookies disabled or first-party, the Italian Garante guidelines (2021) treat it like a technical cookie: you may move it to necessary.',
+      es: 'Si Matomo está instalado en tu propio servidor, el proveedor eres tú: modifica el campo. Con la IP enmascarada, sin cruce con otros datos y con las cookies desactivadas o propias, las directrices del Garante italiano (2021) lo equiparan a una cookie técnica: puedes moverlo a necesarias. Comprueba también las indicaciones de la autoridad de tu país.',
+      fr: 'Si Matomo est installé sur votre propre serveur, c’est vous le fournisseur : modifiez le champ. Avec une IP masquée, sans recoupement avec d’autres données et avec des cookies désactivés ou internes, les lignes directrices du Garante italien (2021) l’assimilent à un cookie technique : vous pouvez le déplacer vers les nécessaires. Vérifiez aussi la position de votre autorité nationale (en France, la CNIL).',
+      de: 'Wenn Matomo auf Ihrem eigenen Server läuft, sind Sie der Anbieter: Passen Sie das Feld an. Mit maskierter IP, ohne Abgleich mit anderen Daten und mit deaktivierten oder First-Party-Cookies stellen die Leitlinien der italienischen Datenschutzbehörde (2021) es einem technischen Cookie gleich: Sie können es zu den notwendigen verschieben. Prüfen Sie auch die Vorgaben Ihrer nationalen Aufsichtsbehörde.',
+      pt: 'Se o Matomo estiver instalado no seu próprio servidor, o fornecedor é você: altere o campo. Com o IP mascarado, sem cruzamento com outros dados e com cookies desativados ou próprios, as diretrizes do Garante italiano (2021) equiparam-no a um cookie técnico: pode movê-lo para os necessários. Verifique também as orientações da autoridade do seu país.',
+    },
     keywords: ['piwik', 'self-hosted'],
   },
   {
@@ -135,15 +311,23 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://plausible.io/privacy',
     group: 'analytics',
     category: 'measurement',
-    purpose: t(
-      'Statistiche aggregate sulle visite, senza cookie e senza identificativi persistenti.',
-      'Aggregate visit statistics, without cookies or persistent identifiers.',
-    ),
+    purpose: {
+      it: 'Statistiche aggregate sulle visite, senza cookie e senza identificativi persistenti.',
+      en: 'Aggregate visit statistics, without cookies or persistent identifiers.',
+      es: 'Estadísticas agregadas de visitas, sin cookies ni identificadores persistentes.',
+      fr: 'Statistiques de visite agrégées, sans cookies ni identifiants persistants.',
+      de: 'Aggregierte Besuchsstatistiken ohne Cookies und ohne dauerhafte Kennungen.',
+      pt: 'Estatísticas agregadas de visitas, sem cookies nem identificadores persistentes.',
+    },
     cookies: [],
-    note: t(
-      'Plausible non imposta cookie: potresti non aver bisogno del consenso. Valuta di spostarlo tra i necessari o di elencarlo solo nella privacy policy.',
-      'Plausible sets no cookies: you may not need consent. Consider moving it to necessary or listing it only in the privacy policy.',
-    ),
+    note: {
+      it: 'Plausible non imposta cookie: potresti non aver bisogno del consenso. Valuta di spostarlo tra i necessari o di elencarlo solo nella privacy policy.',
+      en: 'Plausible sets no cookies: you may not need consent. Consider moving it to necessary or listing it only in the privacy policy.',
+      es: 'Plausible no instala cookies: puede que no necesites consentimiento. Valora moverlo a necesarias o mencionarlo solo en la política de privacidad.',
+      fr: 'Plausible ne dépose aucun cookie : le consentement n’est peut-être pas nécessaire. Envisagez de le déplacer vers les nécessaires ou de le mentionner uniquement dans la politique de confidentialité.',
+      de: 'Plausible setzt keine Cookies: Möglicherweise benötigen Sie keine Einwilligung. Erwägen Sie, es zu den notwendigen zu verschieben oder nur in der Datenschutzerklärung aufzuführen.',
+      pt: 'O Plausible não define cookies: pode não precisar de consentimento. Considere movê-lo para os necessários ou indicá-lo apenas na política de privacidade.',
+    },
     keywords: ['cookieless', 'privacy-friendly'],
   },
   {
@@ -153,13 +337,41 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://www.hotjar.com/legal/policies/privacy/',
     group: 'analytics',
     category: 'measurement',
-    purpose: t(
-      'Mappe di calore, registrazioni delle sessioni e sondaggi sull’uso del sito.',
-      'Heatmaps, session recordings and surveys about site usage.',
-    ),
+    purpose: {
+      it: 'Mappe di calore, registrazioni delle sessioni e sondaggi sull’uso del sito.',
+      en: 'Heatmaps, session recordings and surveys about site usage.',
+      es: 'Mapas de calor, grabaciones de sesiones y encuestas sobre el uso del sitio.',
+      fr: 'Cartes de chaleur, enregistrements de sessions et enquêtes sur l’utilisation du site.',
+      de: 'Heatmaps, Sitzungsaufzeichnungen und Umfragen zur Nutzung der Website.',
+      pt: 'Mapas de calor, gravações de sessões e inquéritos sobre a utilização do site.',
+    },
     cookies: [
-      ck('^_hjSessionUser_', YEAR1, t('Identificativo del visitatore per il sito.', 'Visitor identifier for the site.'), pattern),
-      ck('^_hjSession_', MIN30, t('Dati della sessione in corso.', 'Current session data.'), pattern),
+      ck(
+        '^_hjSessionUser_',
+        YEAR1,
+        {
+          it: 'Identificativo del visitatore per il sito.',
+          en: 'Visitor identifier for the site.',
+          es: 'Identificador del visitante para el sitio.',
+          fr: 'Identifiant du visiteur pour le site.',
+          de: 'Besucherkennung für die Website.',
+          pt: 'Identificador do visitante para o site.',
+        },
+        pattern,
+      ),
+      ck(
+        '^_hjSession_',
+        MIN30,
+        {
+          it: 'Dati della sessione in corso.',
+          en: 'Current session data.',
+          es: 'Datos de la sesión en curso.',
+          fr: 'Données de la session en cours.',
+          de: 'Daten der aktuellen Sitzung.',
+          pt: 'Dados da sessão em curso.',
+        },
+        pattern,
+      ),
     ],
     keywords: ['heatmap', 'session recording', 'contentsquare'],
   },
@@ -170,18 +382,48 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: MICROSOFT_PRIVACY,
     group: 'analytics',
     category: 'measurement',
-    purpose: t('Mappe di calore e registrazioni delle sessioni.', 'Heatmaps and session recordings.'),
+    purpose: HEATMAPS,
     cookies: [
-      ck('_clck', YEAR1, t('Identificativo del visitatore e preferenze di Clarity.', 'Visitor identifier and Clarity preferences.')),
-      ck('_clsk', DAY1, t('Collega le pagine viste in una stessa sessione.', 'Links page views into one session.')),
-      ck('CLID', YEAR1, t('Identifica il primo accesso del browser a Clarity.', 'Identifies the browser’s first visit to Clarity.'), { domain: 'clarity.ms' }),
-      ck('MUID', YEAR1, t('Identificativo del browser usato dai servizi Microsoft.', 'Browser identifier used by Microsoft services.'), { domain: 'clarity.ms' }),
+      ck('_clck', YEAR1, {
+        it: 'Identificativo del visitatore e preferenze di Clarity.',
+        en: 'Visitor identifier and Clarity preferences.',
+        es: 'Identificador del visitante y preferencias de Clarity.',
+        fr: 'Identifiant du visiteur et préférences de Clarity.',
+        de: 'Besucherkennung und Clarity-Einstellungen.',
+        pt: 'Identificador do visitante e preferências do Clarity.',
+      }),
+      ck('_clsk', DAY1, {
+        it: 'Collega le pagine viste in una stessa sessione.',
+        en: 'Links page views into one session.',
+        es: 'Agrupa las páginas vistas en una misma sesión.',
+        fr: 'Relie les pages vues au sein d’une même session.',
+        de: 'Fasst Seitenaufrufe zu einer Sitzung zusammen.',
+        pt: 'Agrupa as páginas vistas numa mesma sessão.',
+      }),
+      ck(
+        'CLID',
+        YEAR1,
+        {
+          it: 'Identifica il primo accesso del browser a Clarity.',
+          en: 'Identifies the browser’s first visit to Clarity.',
+          es: 'Identifica el primer acceso del navegador a Clarity.',
+          fr: 'Identifie la première visite du navigateur sur Clarity.',
+          de: 'Erkennt den ersten Zugriff des Browsers auf Clarity.',
+          pt: 'Identifica o primeiro acesso do navegador ao Clarity.',
+        },
+        { domain: 'clarity.ms' },
+      ),
+      ck('MUID', YEAR1, MS_BROWSER_ID, { domain: 'clarity.ms' }),
     ],
     transfer: us(DPF),
-    note: t(
-      'Dal 2025 Clarity richiede di inviare il segnale di consenso (Consent API) per i visitatori del SEE.',
-      'Since 2025 Clarity requires the consent signal (Consent API) for EEA visitors.',
-    ),
+    note: {
+      it: 'Dal 2025 Clarity richiede di inviare il segnale di consenso (Consent API) per i visitatori del SEE.',
+      en: 'Since 2025 Clarity requires the consent signal (Consent API) for EEA visitors.',
+      es: 'Desde 2025 Clarity exige enviar la señal de consentimiento (Consent API) para los visitantes del EEE.',
+      fr: 'Depuis 2025, Clarity exige l’envoi du signal de consentement (Consent API) pour les visiteurs de l’EEE.',
+      de: 'Seit 2025 verlangt Clarity für Besucher aus dem EWR das Einwilligungssignal (Consent API).',
+      pt: 'Desde 2025 o Clarity exige o envio do sinal de consentimento (Consent API) para os visitantes do EEE.',
+    },
     keywords: ['heatmap', 'session recording'],
   },
   {
@@ -191,13 +433,31 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://mixpanel.com/legal/privacy-policy/',
     group: 'analytics',
     category: 'measurement',
-    purpose: t('Analisi del prodotto basata su eventi.', 'Event-based product analytics.'),
-    cookies: [ck('^mp_.*_mixpanel$', YEAR1, t('Identificativo del visitatore e proprietà dell’evento.', 'Visitor identifier and event properties.'), pattern)],
+    purpose: EVENT_ANALYTICS,
+    cookies: [
+      ck(
+        '^mp_.*_mixpanel$',
+        YEAR1,
+        {
+          it: 'Identificativo del visitatore e proprietà dell’evento.',
+          en: 'Visitor identifier and event properties.',
+          es: 'Identificador del visitante y propiedades del evento.',
+          fr: 'Identifiant du visiteur et propriétés de l’événement.',
+          de: 'Besucherkennung und Ereigniseigenschaften.',
+          pt: 'Identificador do visitante e propriedades do evento.',
+        },
+        pattern,
+      ),
+    ],
     transfer: us(DPF),
-    note: t(
-      'Con la residenza dei dati UE di Mixpanel i dati sono conservati nell’UE: aggiorna la sezione trasferimenti.',
-      'With Mixpanel EU data residency data is stored in the EU: update the transfer section.',
-    ),
+    note: {
+      it: 'Con la residenza dei dati UE di Mixpanel i dati sono conservati nell’UE: aggiorna la sezione trasferimenti.',
+      en: 'With Mixpanel EU data residency data is stored in the EU: update the transfer section.',
+      es: 'Con la residencia de datos en la UE de Mixpanel, los datos se conservan en la UE: actualiza la sección de transferencias.',
+      fr: 'Avec la résidence des données dans l’UE de Mixpanel, les données sont stockées dans l’UE : mettez à jour la section sur les transferts.',
+      de: 'Mit der EU-Datenresidenz von Mixpanel werden die Daten in der EU gespeichert: Passen Sie den Abschnitt zur Datenübermittlung an.',
+      pt: 'Com a residência de dados na UE do Mixpanel, os dados são guardados na UE: atualize a secção de transferências.',
+    },
     keywords: ['product analytics'],
   },
   {
@@ -207,13 +467,31 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://amplitude.com/privacy',
     group: 'analytics',
     category: 'measurement',
-    purpose: t('Analisi del prodotto basata su eventi.', 'Event-based product analytics.'),
-    cookies: [ck('^AMP_', YEAR1, t('Identificativo del visitatore e della sessione.', 'Visitor and session identifier.'), pattern)],
+    purpose: EVENT_ANALYTICS,
+    cookies: [
+      ck(
+        '^AMP_',
+        YEAR1,
+        {
+          it: 'Identificativo del visitatore e della sessione.',
+          en: 'Visitor and session identifier.',
+          es: 'Identificador del visitante y de la sesión.',
+          fr: 'Identifiant du visiteur et de la session.',
+          de: 'Besucher- und Sitzungskennung.',
+          pt: 'Identificador do visitante e da sessão.',
+        },
+        pattern,
+      ),
+    ],
     transfer: us(DPF),
-    note: t(
-      'Con il data center UE di Amplitude i dati sono conservati nell’UE: aggiorna la sezione trasferimenti.',
-      'With Amplitude’s EU data center data is stored in the EU: update the transfer section.',
-    ),
+    note: {
+      it: 'Con il data center UE di Amplitude i dati sono conservati nell’UE: aggiorna la sezione trasferimenti.',
+      en: 'With Amplitude’s EU data center data is stored in the EU: update the transfer section.',
+      es: 'Con el centro de datos de Amplitude en la UE, los datos se conservan en la UE: actualiza la sección de transferencias.',
+      fr: 'Avec le centre de données européen d’Amplitude, les données sont stockées dans l’UE : mettez à jour la section sur les transferts.',
+      de: 'Mit dem EU-Rechenzentrum von Amplitude werden die Daten in der EU gespeichert: Passen Sie den Abschnitt zur Datenübermittlung an.',
+      pt: 'Com o centro de dados da Amplitude na UE, os dados são guardados na UE: atualize a secção de transferências.',
+    },
     keywords: ['product analytics'],
   },
 
@@ -225,14 +503,49 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: GOOGLE_PRIVACY,
     group: 'advertising',
     category: 'marketing',
-    purpose: t(
-      'Misura le conversioni delle campagne e mostra annunci personalizzati (remarketing).',
-      'Measures campaign conversions and shows personalised ads (remarketing).',
-    ),
+    purpose: {
+      it: 'Misura le conversioni delle campagne e mostra annunci personalizzati (remarketing).',
+      en: 'Measures campaign conversions and shows personalised ads (remarketing).',
+      es: 'Mide las conversiones de las campañas y muestra anuncios personalizados (remarketing).',
+      fr: 'Mesure les conversions des campagnes et affiche des annonces personnalisées (remarketing).',
+      de: 'Misst Kampagnen-Conversions und zeigt personalisierte Anzeigen (Remarketing).',
+      pt: 'Mede as conversões das campanhas e mostra anúncios personalizados (remarketing).',
+    },
     cookies: [
-      ck('_gcl_au', MONTHS3, t('Memorizza le informazioni sui clic sugli annunci per misurare le conversioni.', 'Stores ad-click information to measure conversions.')),
-      ck('^_gcl_', MONTHS3, t('Altri cookie di misurazione delle conversioni (es. _gcl_aw).', 'Other conversion-measurement cookies (e.g. _gcl_aw).'), pattern),
-      ck('IDE', MONTHS13, t('Pubblicità personalizzata e misurazione su siti di terze parti.', 'Personalised advertising and measurement across third-party sites.'), { domain: 'doubleclick.net' }),
+      ck('_gcl_au', MONTHS3, {
+        it: 'Memorizza le informazioni sui clic sugli annunci per misurare le conversioni.',
+        en: 'Stores ad-click information to measure conversions.',
+        es: 'Guarda la información de los clics en anuncios para medir las conversiones.',
+        fr: 'Enregistre les informations sur les clics publicitaires pour mesurer les conversions.',
+        de: 'Speichert Informationen zu Anzeigenklicks, um Conversions zu messen.',
+        pt: 'Guarda as informações sobre cliques em anúncios para medir as conversões.',
+      }),
+      ck(
+        '^_gcl_',
+        MONTHS3,
+        {
+          it: 'Altri cookie di misurazione delle conversioni (es. _gcl_aw).',
+          en: 'Other conversion-measurement cookies (e.g. _gcl_aw).',
+          es: 'Otras cookies de medición de conversiones (p. ej. _gcl_aw).',
+          fr: 'Autres cookies de mesure des conversions (p. ex. _gcl_aw).',
+          de: 'Weitere Cookies zur Conversion-Messung (z. B. _gcl_aw).',
+          pt: 'Outros cookies de medição de conversões (p. ex. _gcl_aw).',
+        },
+        pattern,
+      ),
+      ck(
+        'IDE',
+        MONTHS13,
+        {
+          it: 'Pubblicità personalizzata e misurazione su siti di terze parti.',
+          en: 'Personalised advertising and measurement across third-party sites.',
+          es: 'Publicidad personalizada y medición en sitios de terceros.',
+          fr: 'Publicité personnalisée et mesure sur des sites tiers.',
+          de: 'Personalisierte Werbung und Messung auf Websites Dritter.',
+          pt: 'Publicidade personalizada e medição em sites de terceiros.',
+        },
+        { domain: 'doubleclick.net' },
+      ),
     ],
     transfer: us(DPF),
     keywords: ['adwords', 'remarketing', 'conversion', 'doubleclick'],
@@ -244,14 +557,44 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://www.facebook.com/privacy/policy/',
     group: 'advertising',
     category: 'marketing',
-    purpose: t(
-      'Misura le conversioni delle campagne su Facebook e Instagram e crea pubblici per gli annunci.',
-      'Measures Facebook and Instagram campaign conversions and builds ad audiences.',
-    ),
+    purpose: {
+      it: 'Misura le conversioni delle campagne su Facebook e Instagram e crea pubblici per gli annunci.',
+      en: 'Measures Facebook and Instagram campaign conversions and builds ad audiences.',
+      es: 'Mide las conversiones de las campañas en Facebook e Instagram y crea públicos para los anuncios.',
+      fr: 'Mesure les conversions des campagnes sur Facebook et Instagram et crée des audiences publicitaires.',
+      de: 'Misst Conversions von Facebook- und Instagram-Kampagnen und erstellt Zielgruppen für Anzeigen.',
+      pt: 'Mede as conversões das campanhas no Facebook e no Instagram e cria públicos para os anúncios.',
+    },
     cookies: [
-      ck('_fbp', MONTHS3, t('Identifica il browser per la pubblicità di Meta.', 'Identifies the browser for Meta advertising.')),
-      ck('_fbc', MONTHS3, t('Memorizza l’ultimo clic su un annuncio di Meta.', 'Stores the last click on a Meta ad.')),
-      ck('fr', MONTHS3, t('Pubblicità personalizzata e misurazione.', 'Personalised advertising and measurement.'), { domain: 'facebook.com' }),
+      ck('_fbp', MONTHS3, {
+        it: 'Identifica il browser per la pubblicità di Meta.',
+        en: 'Identifies the browser for Meta advertising.',
+        es: 'Identifica el navegador para la publicidad de Meta.',
+        fr: 'Identifie le navigateur pour la publicité de Meta.',
+        de: 'Erkennt den Browser für Werbung von Meta.',
+        pt: 'Identifica o navegador para a publicidade da Meta.',
+      }),
+      ck('_fbc', MONTHS3, {
+        it: 'Memorizza l’ultimo clic su un annuncio di Meta.',
+        en: 'Stores the last click on a Meta ad.',
+        es: 'Guarda el último clic en un anuncio de Meta.',
+        fr: 'Enregistre le dernier clic sur une annonce Meta.',
+        de: 'Speichert den letzten Klick auf eine Meta-Anzeige.',
+        pt: 'Guarda o último clique num anúncio da Meta.',
+      }),
+      ck(
+        'fr',
+        MONTHS3,
+        {
+          it: 'Pubblicità personalizzata e misurazione.',
+          en: 'Personalised advertising and measurement.',
+          es: 'Publicidad personalizada y medición.',
+          fr: 'Publicité personnalisée et mesure.',
+          de: 'Personalisierte Werbung und Messung.',
+          pt: 'Publicidade personalizada e medição.',
+        },
+        { domain: 'facebook.com' },
+      ),
     ],
     transfer: us(DPF),
     keywords: ['facebook', 'instagram', 'pixel'],
@@ -263,16 +606,75 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://www.linkedin.com/legal/privacy-policy',
     group: 'advertising',
     category: 'marketing',
-    purpose: t(
-      'Misura le conversioni delle campagne LinkedIn e crea pubblici di retargeting.',
-      'Measures LinkedIn campaign conversions and builds retargeting audiences.',
-    ),
+    purpose: {
+      it: 'Misura le conversioni delle campagne LinkedIn e crea pubblici di retargeting.',
+      en: 'Measures LinkedIn campaign conversions and builds retargeting audiences.',
+      es: 'Mide las conversiones de las campañas de LinkedIn y crea públicos de retargeting.',
+      fr: 'Mesure les conversions des campagnes LinkedIn et crée des audiences de retargeting.',
+      de: 'Misst Conversions von LinkedIn-Kampagnen und erstellt Retargeting-Zielgruppen.',
+      pt: 'Mede as conversões das campanhas do LinkedIn e cria públicos de retargeting.',
+    },
     cookies: [
-      ck('li_sugr', MONTHS3, t('Identificativo del browser per l’abbinamento degli utenti.', 'Browser identifier for user matching.')),
-      ck('bcookie', YEAR1, t('Identificativo del browser.', 'Browser identifier.'), { domain: 'linkedin.com' }),
-      ck('lidc', DAY1, t('Instradamento verso il data center.', 'Data-center routing.'), { domain: 'linkedin.com' }),
-      ck('UserMatchHistory', DAYS30, t('Sincronizzazione degli identificativi pubblicitari.', 'Ad identifier syncing.'), { domain: 'linkedin.com' }),
-      ck('AnalyticsSyncHistory', DAYS30, t('Data dell’ultima sincronizzazione.', 'Time of the last sync.'), { domain: 'linkedin.com' }),
+      ck('li_sugr', MONTHS3, {
+        it: 'Identificativo del browser per l’abbinamento degli utenti.',
+        en: 'Browser identifier for user matching.',
+        es: 'Identificador del navegador para la correspondencia de usuarios.',
+        fr: 'Identifiant du navigateur pour la mise en correspondance des utilisateurs.',
+        de: 'Browserkennung für den Nutzerabgleich.',
+        pt: 'Identificador do navegador para a correspondência de utilizadores.',
+      }),
+      ck(
+        'bcookie',
+        YEAR1,
+        {
+          it: 'Identificativo del browser.',
+          en: 'Browser identifier.',
+          es: 'Identificador del navegador.',
+          fr: 'Identifiant du navigateur.',
+          de: 'Browserkennung.',
+          pt: 'Identificador do navegador.',
+        },
+        { domain: 'linkedin.com' },
+      ),
+      ck(
+        'lidc',
+        DAY1,
+        {
+          it: 'Instradamento verso il data center.',
+          en: 'Data-center routing.',
+          es: 'Enrutamiento hacia el centro de datos.',
+          fr: 'Routage vers le centre de données.',
+          de: 'Weiterleitung an das Rechenzentrum.',
+          pt: 'Encaminhamento para o centro de dados.',
+        },
+        { domain: 'linkedin.com' },
+      ),
+      ck(
+        'UserMatchHistory',
+        DAYS30,
+        {
+          it: 'Sincronizzazione degli identificativi pubblicitari.',
+          en: 'Ad identifier syncing.',
+          es: 'Sincronización de los identificadores publicitarios.',
+          fr: 'Synchronisation des identifiants publicitaires.',
+          de: 'Synchronisierung von Werbekennungen.',
+          pt: 'Sincronização dos identificadores publicitários.',
+        },
+        { domain: 'linkedin.com' },
+      ),
+      ck(
+        'AnalyticsSyncHistory',
+        DAYS30,
+        {
+          it: 'Data dell’ultima sincronizzazione.',
+          en: 'Time of the last sync.',
+          es: 'Fecha de la última sincronización.',
+          fr: 'Date de la dernière synchronisation.',
+          de: 'Zeitpunkt der letzten Synchronisierung.',
+          pt: 'Data da última sincronização.',
+        },
+        { domain: 'linkedin.com' },
+      ),
     ],
     transfer: us(DPF),
     keywords: ['linkedin', 'retargeting'],
@@ -284,19 +686,41 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://www.tiktok.com/legal/page/eea/privacy-policy/en',
     group: 'advertising',
     category: 'marketing',
-    purpose: t(
-      'Misura le conversioni delle campagne TikTok e ottimizza la pubblicità.',
-      'Measures TikTok campaign conversions and optimises advertising.',
-    ),
+    purpose: {
+      it: 'Misura le conversioni delle campagne TikTok e ottimizza la pubblicità.',
+      en: 'Measures TikTok campaign conversions and optimises advertising.',
+      es: 'Mide las conversiones de las campañas de TikTok y optimiza la publicidad.',
+      fr: 'Mesure les conversions des campagnes TikTok et optimise la publicité.',
+      de: 'Misst Conversions von TikTok-Kampagnen und optimiert die Werbung.',
+      pt: 'Mede as conversões das campanhas do TikTok e otimiza a publicidade.',
+    },
     cookies: [
-      ck('_ttp', MONTHS13, t('Identifica il browser per la pubblicità di TikTok.', 'Identifies the browser for TikTok advertising.')),
-      ck('_tt_enable_cookie', MONTHS13, t('Verifica che il browser accetti i cookie.', 'Checks that the browser accepts cookies.')),
+      ck('_ttp', MONTHS13, {
+        it: 'Identifica il browser per la pubblicità di TikTok.',
+        en: 'Identifies the browser for TikTok advertising.',
+        es: 'Identifica el navegador para la publicidad de TikTok.',
+        fr: 'Identifie le navigateur pour la publicité de TikTok.',
+        de: 'Erkennt den Browser für Werbung von TikTok.',
+        pt: 'Identifica o navegador para a publicidade do TikTok.',
+      }),
+      ck('_tt_enable_cookie', MONTHS13, {
+        it: 'Verifica che il browser accetti i cookie.',
+        en: 'Checks that the browser accepts cookies.',
+        es: 'Comprueba que el navegador acepta cookies.',
+        fr: 'Vérifie que le navigateur accepte les cookies.',
+        de: 'Prüft, ob der Browser Cookies akzeptiert.',
+        pt: 'Verifica se o navegador aceita cookies.',
+      }),
     ],
     transfer: { countries: ['US', 'MY', 'CN'], safeguard: SCC },
-    note: t(
-      'Verifica i paesi di trasferimento nella privacy policy SEE di TikTok in vigore: cambiano nel tempo.',
-      'Check the transfer countries in TikTok’s current EEA privacy policy: they change over time.',
-    ),
+    note: {
+      it: 'Verifica i paesi di trasferimento nella privacy policy SEE di TikTok in vigore: cambiano nel tempo.',
+      en: 'Check the transfer countries in TikTok’s current EEA privacy policy: they change over time.',
+      es: 'Comprueba los países de transferencia en la política de privacidad vigente de TikTok para el EEE: cambian con el tiempo.',
+      fr: 'Vérifiez les pays de transfert dans la politique de confidentialité EEE en vigueur de TikTok : ils évoluent dans le temps.',
+      de: 'Prüfen Sie die Drittländer in der aktuellen EWR-Datenschutzrichtlinie von TikTok: Sie ändern sich im Laufe der Zeit.',
+      pt: 'Verifique os países de transferência na política de privacidade do TikTok para o EEE em vigor: mudam ao longo do tempo.',
+    },
     keywords: ['tiktok', 'pixel'],
   },
   {
@@ -306,11 +730,39 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://policy.pinterest.com/privacy-policy',
     group: 'advertising',
     category: 'marketing',
-    purpose: t('Misura le conversioni delle campagne Pinterest.', 'Measures Pinterest campaign conversions.'),
+    purpose: {
+      it: 'Misura le conversioni delle campagne Pinterest.',
+      en: 'Measures Pinterest campaign conversions.',
+      es: 'Mide las conversiones de las campañas de Pinterest.',
+      fr: 'Mesure les conversions des campagnes Pinterest.',
+      de: 'Misst Conversions von Pinterest-Kampagnen.',
+      pt: 'Mede as conversões das campanhas do Pinterest.',
+    },
     cookies: [
-      ck('_pin_unauth', YEAR1, t('Identifica il browser dei visitatori non registrati.', 'Identifies the browser of signed-out visitors.')),
-      ck('_pinterest_ct_ua', YEAR1, t('Collega le azioni sul sito ai clic sugli annunci.', 'Links on-site actions to ad clicks.')),
-      ck('_epik', YEAR1, t('Memorizza il clic sull’annuncio di provenienza.', 'Stores the click on the originating ad.')),
+      ck('_pin_unauth', YEAR1, {
+        it: 'Identifica il browser dei visitatori non registrati.',
+        en: 'Identifies the browser of signed-out visitors.',
+        es: 'Identifica el navegador de los visitantes que no han iniciado sesión.',
+        fr: 'Identifie le navigateur des visiteurs non connectés.',
+        de: 'Erkennt den Browser nicht angemeldeter Besucher.',
+        pt: 'Identifica o navegador dos visitantes sem sessão iniciada.',
+      }),
+      ck('_pinterest_ct_ua', YEAR1, {
+        it: 'Collega le azioni sul sito ai clic sugli annunci.',
+        en: 'Links on-site actions to ad clicks.',
+        es: 'Vincula las acciones en el sitio con los clics en anuncios.',
+        fr: 'Relie les actions sur le site aux clics publicitaires.',
+        de: 'Verknüpft Aktionen auf der Website mit Anzeigenklicks.',
+        pt: 'Associa as ações no site aos cliques em anúncios.',
+      }),
+      ck('_epik', YEAR1, {
+        it: 'Memorizza il clic sull’annuncio di provenienza.',
+        en: 'Stores the click on the originating ad.',
+        es: 'Guarda el clic en el anuncio de origen.',
+        fr: 'Enregistre le clic sur l’annonce d’origine.',
+        de: 'Speichert den Klick auf die Ursprungsanzeige.',
+        pt: 'Guarda o clique no anúncio de origem.',
+      }),
     ],
     transfer: us(DPF),
     keywords: ['pinterest', 'pixel'],
@@ -322,14 +774,32 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: MICROSOFT_PRIVACY,
     group: 'advertising',
     category: 'marketing',
-    purpose: t(
-      'Misura le conversioni delle campagne Microsoft Advertising (Bing) e crea pubblici di remarketing.',
-      'Measures Microsoft Advertising (Bing) conversions and builds remarketing audiences.',
-    ),
+    purpose: {
+      it: 'Misura le conversioni delle campagne Microsoft Advertising (Bing) e crea pubblici di remarketing.',
+      en: 'Measures Microsoft Advertising (Bing) conversions and builds remarketing audiences.',
+      es: 'Mide las conversiones de Microsoft Advertising (Bing) y crea públicos de remarketing.',
+      fr: 'Mesure les conversions Microsoft Advertising (Bing) et crée des audiences de remarketing.',
+      de: 'Misst Conversions von Microsoft Advertising (Bing) und erstellt Remarketing-Zielgruppen.',
+      pt: 'Mede as conversões do Microsoft Advertising (Bing) e cria públicos de remarketing.',
+    },
     cookies: [
-      ck('_uetsid', DAY1, t('Identificativo della sessione per la misurazione delle conversioni.', 'Session identifier for conversion measurement.')),
-      ck('_uetvid', MONTHS13, t('Identificativo del visitatore tra più sessioni.', 'Visitor identifier across sessions.')),
-      ck('MUID', YEAR1, t('Identificativo del browser usato dai servizi Microsoft.', 'Browser identifier used by Microsoft services.'), { domain: 'bing.com' }),
+      ck('_uetsid', DAY1, {
+        it: 'Identificativo della sessione per la misurazione delle conversioni.',
+        en: 'Session identifier for conversion measurement.',
+        es: 'Identificador de la sesión para la medición de conversiones.',
+        fr: 'Identifiant de session pour la mesure des conversions.',
+        de: 'Sitzungskennung für die Conversion-Messung.',
+        pt: 'Identificador da sessão para a medição de conversões.',
+      }),
+      ck('_uetvid', MONTHS13, {
+        it: 'Identificativo del visitatore tra più sessioni.',
+        en: 'Visitor identifier across sessions.',
+        es: 'Identificador del visitante entre sesiones.',
+        fr: 'Identifiant du visiteur d’une session à l’autre.',
+        de: 'Sitzungsübergreifende Besucherkennung.',
+        pt: 'Identificador do visitante entre sessões.',
+      }),
+      ck('MUID', YEAR1, MS_BROWSER_ID, { domain: 'bing.com' }),
     ],
     transfer: us(DPF),
     keywords: ['bing ads', 'uet'],
@@ -341,17 +811,64 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://x.com/en/privacy',
     group: 'advertising',
     category: 'marketing',
-    purpose: t('Misura le conversioni delle campagne su X e crea pubblici.', 'Measures X campaign conversions and builds audiences.'),
+    purpose: {
+      it: 'Misura le conversioni delle campagne su X e crea pubblici.',
+      en: 'Measures X campaign conversions and builds audiences.',
+      es: 'Mide las conversiones de las campañas en X y crea públicos.',
+      fr: 'Mesure les conversions des campagnes sur X et crée des audiences.',
+      de: 'Misst Conversions von X-Kampagnen und erstellt Zielgruppen.',
+      pt: 'Mede as conversões das campanhas no X e cria públicos.',
+    },
     cookies: [
-      ck('muc_ads', MONTHS13, t('Identificativo pubblicitario del browser.', 'Advertising identifier for the browser.'), { domain: 't.co' }),
-      ck('guest_id', MONTHS13, t('Identificativo dei visitatori non registrati.', 'Identifier of signed-out visitors.'), { domain: 'x.com' }),
-      ck('personalization_id', MONTHS13, t('Pubblicità personalizzata.', 'Personalised advertising.'), { domain: 'x.com' }),
+      ck(
+        'muc_ads',
+        MONTHS13,
+        {
+          it: 'Identificativo pubblicitario del browser.',
+          en: 'Advertising identifier for the browser.',
+          es: 'Identificador publicitario del navegador.',
+          fr: 'Identifiant publicitaire du navigateur.',
+          de: 'Werbekennung des Browsers.',
+          pt: 'Identificador publicitário do navegador.',
+        },
+        { domain: 't.co' },
+      ),
+      ck(
+        'guest_id',
+        MONTHS13,
+        {
+          it: 'Identificativo dei visitatori non registrati.',
+          en: 'Identifier of signed-out visitors.',
+          es: 'Identificador de los visitantes que no han iniciado sesión.',
+          fr: 'Identifiant des visiteurs non connectés.',
+          de: 'Kennung nicht angemeldeter Besucher.',
+          pt: 'Identificador dos visitantes sem sessão iniciada.',
+        },
+        { domain: 'x.com' },
+      ),
+      ck(
+        'personalization_id',
+        MONTHS13,
+        {
+          it: 'Pubblicità personalizzata.',
+          en: 'Personalised advertising.',
+          es: 'Publicidad personalizada.',
+          fr: 'Publicité personnalisée.',
+          de: 'Personalisierte Werbung.',
+          pt: 'Publicidade personalizada.',
+        },
+        { domain: 'x.com' },
+      ),
     ],
     transfer: us(SCC),
-    note: t(
-      'Verifica la denominazione attuale del titolare UE nella privacy policy di X.',
-      'Check the current name of the EU controller in X’s privacy policy.',
-    ),
+    note: {
+      it: 'Verifica la denominazione attuale del titolare UE nella privacy policy di X.',
+      en: 'Check the current name of the EU controller in X’s privacy policy.',
+      es: 'Comprueba la denominación actual del responsable en la UE en la política de privacidad de X.',
+      fr: 'Vérifiez la dénomination actuelle du responsable du traitement dans l’UE dans la politique de confidentialité de X.',
+      de: 'Prüfen Sie in der Datenschutzrichtlinie von X die aktuelle Bezeichnung des Verantwortlichen in der EU.',
+      pt: 'Verifique a denominação atual do responsável pelo tratamento na UE na política de privacidade do X.',
+    },
     keywords: ['twitter', 'pixel'],
   },
 
@@ -363,16 +880,51 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: GOOGLE_PRIVACY,
     group: 'embeds',
     category: 'experience',
-    purpose: t('Mostra video di YouTube incorporati nelle pagine.', 'Shows YouTube videos embedded in pages.'),
+    purpose: {
+      it: 'Mostra video di YouTube incorporati nelle pagine.',
+      en: 'Shows YouTube videos embedded in pages.',
+      es: 'Muestra vídeos de YouTube incorporados en las páginas.',
+      fr: 'Affiche des vidéos YouTube intégrées dans les pages.',
+      de: 'Zeigt in die Seiten eingebettete YouTube-Videos an.',
+      pt: 'Mostra vídeos do YouTube incorporados nas páginas.',
+    },
     cookies: [
-      ck('VISITOR_INFO1_LIVE', MONTHS6, t('Stima la banda e ricorda le impostazioni del lettore.', 'Estimates bandwidth and remembers player settings.'), { domain: 'youtube.com' }),
-      ck('YSC', SESSION, t('Identificativo della sessione di visione.', 'Viewing session identifier.'), { domain: 'youtube.com' }),
+      ck(
+        'VISITOR_INFO1_LIVE',
+        MONTHS6,
+        {
+          it: 'Stima la banda e ricorda le impostazioni del lettore.',
+          en: 'Estimates bandwidth and remembers player settings.',
+          es: 'Estima el ancho de banda y recuerda la configuración del reproductor.',
+          fr: 'Estime la bande passante et mémorise les paramètres du lecteur.',
+          de: 'Schätzt die Bandbreite und speichert die Player-Einstellungen.',
+          pt: 'Estima a largura de banda e memoriza as definições do leitor.',
+        },
+        { domain: 'youtube.com' },
+      ),
+      ck(
+        'YSC',
+        SESSION,
+        {
+          it: 'Identificativo della sessione di visione.',
+          en: 'Viewing session identifier.',
+          es: 'Identificador de la sesión de visualización.',
+          fr: 'Identifiant de la session de visionnage.',
+          de: 'Kennung der Wiedergabesitzung.',
+          pt: 'Identificador da sessão de visualização.',
+        },
+        { domain: 'youtube.com' },
+      ),
     ],
     transfer: us(DPF),
-    note: t(
-      'Usa youtube-nocookie.com: i cookie vengono impostati solo quando il visitatore avvia il video. Il contenuto arriva comunque da Google, quindi blocca l’iframe fino al consenso (data-category="experience").',
-      'Use youtube-nocookie.com: cookies are set only when the visitor plays the video. The content still comes from Google, so block the iframe until consent (data-category="experience").',
-    ),
+    note: {
+      it: 'Usa youtube-nocookie.com: i cookie vengono impostati solo quando il visitatore avvia il video. Il contenuto arriva comunque da Google, quindi blocca l’iframe fino al consenso (data-category="experience").',
+      en: 'Use youtube-nocookie.com: cookies are set only when the visitor plays the video. The content still comes from Google, so block the iframe until consent (data-category="experience").',
+      es: 'Usa youtube-nocookie.com: las cookies solo se instalan cuando el visitante reproduce el vídeo. El contenido sigue procediendo de Google, así que bloquea el iframe hasta obtener el consentimiento (data-category="experience").',
+      fr: 'Utilisez youtube-nocookie.com : les cookies ne sont déposés que lorsque le visiteur lance la vidéo. Le contenu provient malgré tout de Google, bloquez donc l’iframe jusqu’au consentement (data-category="experience").',
+      de: 'Verwenden Sie youtube-nocookie.com: Cookies werden erst gesetzt, wenn der Besucher das Video startet. Der Inhalt kommt trotzdem von Google, blockieren Sie das iframe daher bis zur Einwilligung (data-category="experience").',
+      pt: 'Utilize youtube-nocookie.com: os cookies só são definidos quando o visitante inicia o vídeo. O conteúdo continua a vir da Google, por isso bloqueie o iframe até haver consentimento (data-category="experience").',
+    },
     keywords: ['video', 'youtube-nocookie', 'iframe'],
   },
   {
@@ -382,15 +934,38 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://vimeo.com/privacy',
     group: 'embeds',
     category: 'experience',
-    purpose: t('Mostra video di Vimeo incorporati nelle pagine.', 'Shows Vimeo videos embedded in pages.'),
+    purpose: {
+      it: 'Mostra video di Vimeo incorporati nelle pagine.',
+      en: 'Shows Vimeo videos embedded in pages.',
+      es: 'Muestra vídeos de Vimeo incorporados en las páginas.',
+      fr: 'Affiche des vidéos Vimeo intégrées dans les pages.',
+      de: 'Zeigt in die Seiten eingebettete Vimeo-Videos an.',
+      pt: 'Mostra vídeos do Vimeo incorporados nas páginas.',
+    },
     cookies: [
-      ck('vuid', YEARS2, t('Identificativo del visitatore per le statistiche del video.', 'Visitor identifier for video statistics.'), { domain: 'vimeo.com' }),
+      ck(
+        'vuid',
+        YEARS2,
+        {
+          it: 'Identificativo del visitatore per le statistiche del video.',
+          en: 'Visitor identifier for video statistics.',
+          es: 'Identificador del visitante para las estadísticas del vídeo.',
+          fr: 'Identifiant du visiteur pour les statistiques de la vidéo.',
+          de: 'Besucherkennung für Videostatistiken.',
+          pt: 'Identificador do visitante para as estatísticas do vídeo.',
+        },
+        { domain: 'vimeo.com' },
+      ),
     ],
     transfer: us(SCC),
-    note: t(
-      'Con il parametro dnt=1 nell’URL dell’iframe Vimeo non imposta cookie di tracciamento.',
-      'With dnt=1 in the iframe URL Vimeo sets no tracking cookies.',
-    ),
+    note: {
+      it: 'Con il parametro dnt=1 nell’URL dell’iframe Vimeo non imposta cookie di tracciamento.',
+      en: 'With dnt=1 in the iframe URL Vimeo sets no tracking cookies.',
+      es: 'Con el parámetro dnt=1 en la URL del iframe, Vimeo no instala cookies de seguimiento.',
+      fr: 'Avec le paramètre dnt=1 dans l’URL de l’iframe, Vimeo ne dépose aucun cookie de suivi.',
+      de: 'Mit dem Parameter dnt=1 in der iframe-URL setzt Vimeo keine Tracking-Cookies.',
+      pt: 'Com o parâmetro dnt=1 no URL do iframe, o Vimeo não define cookies de rastreamento.',
+    },
     keywords: ['video', 'iframe'],
   },
   {
@@ -400,9 +975,28 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: GOOGLE_PRIVACY,
     group: 'embeds',
     category: 'experience',
-    purpose: t('Mostra mappe interattive incorporate nelle pagine.', 'Shows interactive maps embedded in pages.'),
+    purpose: {
+      it: 'Mostra mappe interattive incorporate nelle pagine.',
+      en: 'Shows interactive maps embedded in pages.',
+      es: 'Muestra mapas interactivos incorporados en las páginas.',
+      fr: 'Affiche des cartes interactives intégrées dans les pages.',
+      de: 'Zeigt in die Seiten eingebettete interaktive Karten an.',
+      pt: 'Mostra mapas interativos incorporados nas páginas.',
+    },
     cookies: [
-      ck('NID', MONTHS6, t('Ricorda le preferenze e le informazioni del visitatore per i servizi Google.', 'Remembers visitor preferences and information for Google services.'), { domain: 'google.com' }),
+      ck(
+        'NID',
+        MONTHS6,
+        {
+          it: 'Ricorda le preferenze e le informazioni del visitatore per i servizi Google.',
+          en: 'Remembers visitor preferences and information for Google services.',
+          es: 'Recuerda las preferencias y la información del visitante para los servicios de Google.',
+          fr: 'Mémorise les préférences et les informations du visiteur pour les services Google.',
+          de: 'Speichert Einstellungen und Informationen des Besuchers für Google-Dienste.',
+          pt: 'Memoriza as preferências e as informações do visitante para os serviços Google.',
+        },
+        { domain: 'google.com' },
+      ),
     ],
     transfer: us(DPF),
     keywords: ['map', 'iframe'],
@@ -414,10 +1008,41 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://www.spotify.com/legal/privacy-policy/',
     group: 'embeds',
     category: 'experience',
-    purpose: t('Mostra brani, playlist e podcast di Spotify incorporati nelle pagine.', 'Shows embedded Spotify tracks, playlists and podcasts.'),
+    purpose: {
+      it: 'Mostra brani, playlist e podcast di Spotify incorporati nelle pagine.',
+      en: 'Shows embedded Spotify tracks, playlists and podcasts.',
+      es: 'Muestra canciones, listas de reproducción y pódcast de Spotify incorporados en las páginas.',
+      fr: 'Affiche des titres, playlists et podcasts Spotify intégrés dans les pages.',
+      de: 'Zeigt in die Seiten eingebettete Spotify-Titel, -Playlists und -Podcasts an.',
+      pt: 'Mostra faixas, playlists e podcasts do Spotify incorporados nas páginas.',
+    },
     cookies: [
-      ck('sp_t', YEAR1, t('Identificativo del browser per Spotify.', 'Browser identifier for Spotify.'), { domain: 'spotify.com' }),
-      ck('sp_landing', DAY1, t('Registra la pagina di arrivo della visita.', 'Records the landing page of the visit.'), { domain: 'spotify.com' }),
+      ck(
+        'sp_t',
+        YEAR1,
+        {
+          it: 'Identificativo del browser per Spotify.',
+          en: 'Browser identifier for Spotify.',
+          es: 'Identificador del navegador para Spotify.',
+          fr: 'Identifiant du navigateur pour Spotify.',
+          de: 'Browserkennung für Spotify.',
+          pt: 'Identificador do navegador para o Spotify.',
+        },
+        { domain: 'spotify.com' },
+      ),
+      ck(
+        'sp_landing',
+        DAY1,
+        {
+          it: 'Registra la pagina di arrivo della visita.',
+          en: 'Records the landing page of the visit.',
+          es: 'Registra la página de entrada de la visita.',
+          fr: 'Enregistre la page d’arrivée de la visite.',
+          de: 'Speichert die Einstiegsseite des Besuchs.',
+          pt: 'Regista a página de entrada da visita.',
+        },
+        { domain: 'spotify.com' },
+      ),
     ],
     transfer: us(SCC),
     keywords: ['music', 'podcast', 'iframe'],
@@ -429,15 +1054,38 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://calendly.com/privacy',
     group: 'embeds',
     category: 'experience',
-    purpose: t('Calendario incorporato per prenotare appuntamenti.', 'Embedded calendar to book appointments.'),
+    purpose: {
+      it: 'Calendario incorporato per prenotare appuntamenti.',
+      en: 'Embedded calendar to book appointments.',
+      es: 'Calendario incorporado para reservar citas.',
+      fr: 'Calendrier intégré pour prendre rendez-vous.',
+      de: 'Eingebetteter Kalender zur Terminbuchung.',
+      pt: 'Calendário incorporado para marcar reuniões.',
+    },
     cookies: [
-      ck('__cf_bm', MIN30, t('Protezione dai bot (Cloudflare) sul dominio di Calendly.', 'Bot protection (Cloudflare) on Calendly’s domain.'), { domain: 'calendly.com' }),
+      ck(
+        '__cf_bm',
+        MIN30,
+        {
+          it: 'Protezione dai bot (Cloudflare) sul dominio di Calendly.',
+          en: 'Bot protection (Cloudflare) on Calendly’s domain.',
+          es: 'Protección contra bots (Cloudflare) en el dominio de Calendly.',
+          fr: 'Protection contre les bots (Cloudflare) sur le domaine de Calendly.',
+          de: 'Bot-Schutz (Cloudflare) auf der Domain von Calendly.',
+          pt: 'Proteção contra bots (Cloudflare) no domínio do Calendly.',
+        },
+        { domain: 'calendly.com' },
+      ),
     ],
     transfer: us(DPF),
-    note: t(
-      'Calendly imposta altri cookie propri (sessione, analisi): verifica l’elenco nella sua cookie policy.',
-      'Calendly sets other cookies of its own (session, analytics): check the list in its cookie policy.',
-    ),
+    note: {
+      it: 'Calendly imposta altri cookie propri (sessione, analisi): verifica l’elenco nella sua cookie policy.',
+      en: 'Calendly sets other cookies of its own (session, analytics): check the list in its cookie policy.',
+      es: 'Calendly instala otras cookies propias (sesión, análisis): comprueba la lista en su política de cookies.',
+      fr: 'Calendly dépose d’autres cookies qui lui sont propres (session, analyse) : vérifiez la liste dans sa politique de cookies.',
+      de: 'Calendly setzt weitere eigene Cookies (Sitzung, Analyse): Prüfen Sie die Liste in der Cookie-Richtlinie von Calendly.',
+      pt: 'O Calendly define outros cookies próprios (sessão, análise): verifique a lista na respetiva política de cookies.',
+    },
     keywords: ['booking', 'scheduling', 'iframe'],
   },
 
@@ -449,17 +1097,64 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://www.intercom.com/legal/privacy',
     group: 'support',
     category: 'functionality',
-    purpose: t('Chat di assistenza e messaggi ai visitatori.', 'Support chat and messages to visitors.'),
+    purpose: {
+      it: 'Chat di assistenza e messaggi ai visitatori.',
+      en: 'Support chat and messages to visitors.',
+      es: 'Chat de asistencia y mensajes a los visitantes.',
+      fr: 'Chat d’assistance et messages aux visiteurs.',
+      de: 'Support-Chat und Nachrichten an Besucher.',
+      pt: 'Chat de apoio e mensagens aos visitantes.',
+    },
     cookies: [
-      ck('^intercom-id-', MONTHS9, t('Identificativo anonimo del visitatore per la chat.', 'Anonymous visitor identifier for the chat.'), pattern),
-      ck('^intercom-session-', DAYS7, t('Mantiene la conversazione tra le pagine.', 'Keeps the conversation across pages.'), pattern),
-      ck('^intercom-device-id-', MONTHS9, t('Identificativo del dispositivo.', 'Device identifier.'), pattern),
+      ck(
+        '^intercom-id-',
+        MONTHS9,
+        {
+          it: 'Identificativo anonimo del visitatore per la chat.',
+          en: 'Anonymous visitor identifier for the chat.',
+          es: 'Identificador anónimo del visitante para el chat.',
+          fr: 'Identifiant anonyme du visiteur pour le chat.',
+          de: 'Anonyme Besucherkennung für den Chat.',
+          pt: 'Identificador anónimo do visitante para o chat.',
+        },
+        pattern,
+      ),
+      ck(
+        '^intercom-session-',
+        DAYS7,
+        {
+          it: 'Mantiene la conversazione tra le pagine.',
+          en: 'Keeps the conversation across pages.',
+          es: 'Mantiene la conversación entre páginas.',
+          fr: 'Conserve la conversation d’une page à l’autre.',
+          de: 'Erhält die Unterhaltung über mehrere Seiten hinweg.',
+          pt: 'Mantém a conversa entre páginas.',
+        },
+        pattern,
+      ),
+      ck(
+        '^intercom-device-id-',
+        MONTHS9,
+        {
+          it: 'Identificativo del dispositivo.',
+          en: 'Device identifier.',
+          es: 'Identificador del dispositivo.',
+          fr: 'Identifiant de l’appareil.',
+          de: 'Gerätekennung.',
+          pt: 'Identificador do dispositivo.',
+        },
+        pattern,
+      ),
     ],
     transfer: us(DPF),
-    note: t(
-      'Con l’hosting UE di Intercom i dati sono conservati nell’UE: aggiorna la sezione trasferimenti.',
-      'With Intercom EU hosting data is stored in the EU: update the transfer section.',
-    ),
+    note: {
+      it: 'Con l’hosting UE di Intercom i dati sono conservati nell’UE: aggiorna la sezione trasferimenti.',
+      en: 'With Intercom EU hosting data is stored in the EU: update the transfer section.',
+      es: 'Con el alojamiento de Intercom en la UE, los datos se conservan en la UE: actualiza la sección de transferencias.',
+      fr: 'Avec l’hébergement européen d’Intercom, les données sont stockées dans l’UE : mettez à jour la section sur les transferts.',
+      de: 'Mit dem EU-Hosting von Intercom werden die Daten in der EU gespeichert: Passen Sie den Abschnitt zur Datenübermittlung an.',
+      pt: 'Com o alojamento do Intercom na UE, os dados são guardados na UE: atualize a secção de transferências.',
+    },
     keywords: ['chat', 'helpdesk'],
   },
   {
@@ -469,9 +1164,28 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://crisp.chat/en/privacy/',
     group: 'support',
     category: 'functionality',
-    purpose: t('Chat di assistenza.', 'Support chat.'),
+    purpose: {
+      it: 'Chat di assistenza.',
+      en: 'Support chat.',
+      es: 'Chat de asistencia.',
+      fr: 'Chat d’assistance.',
+      de: 'Support-Chat.',
+      pt: 'Chat de apoio.',
+    },
     cookies: [
-      ck('^crisp-client', MONTHS6, t('Mantiene la sessione della chat.', 'Keeps the chat session.'), pattern),
+      ck(
+        '^crisp-client',
+        MONTHS6,
+        {
+          it: 'Mantiene la sessione della chat.',
+          en: 'Keeps the chat session.',
+          es: 'Mantiene la sesión del chat.',
+          fr: 'Conserve la session du chat.',
+          de: 'Erhält die Chat-Sitzung.',
+          pt: 'Mantém a sessão do chat.',
+        },
+        pattern,
+      ),
     ],
     keywords: ['chat', 'helpdesk'],
   },
@@ -482,15 +1196,33 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://legal.hubspot.com/privacy-policy',
     group: 'support',
     category: 'functionality',
-    purpose: t('Chat di assistenza e moduli di contatto.', 'Support chat and contact forms.'),
+    purpose: {
+      it: 'Chat di assistenza e moduli di contatto.',
+      en: 'Support chat and contact forms.',
+      es: 'Chat de asistencia y formularios de contacto.',
+      fr: 'Chat d’assistance et formulaires de contact.',
+      de: 'Support-Chat und Kontaktformulare.',
+      pt: 'Chat de apoio e formulários de contacto.',
+    },
     cookies: [
-      ck('messagesUtk', MONTHS6, t('Riconosce i visitatori della chat.', 'Recognises chat visitors.')),
+      ck('messagesUtk', MONTHS6, {
+        it: 'Riconosce i visitatori della chat.',
+        en: 'Recognises chat visitors.',
+        es: 'Reconoce a los visitantes del chat.',
+        fr: 'Reconnaît les visiteurs du chat.',
+        de: 'Erkennt Chat-Besucher wieder.',
+        pt: 'Reconhece os visitantes do chat.',
+      }),
     ],
     transfer: us(DPF),
-    note: t(
-      'Il codice di tracciamento HubSpot (__hstc, hubspotutk, __hssc) serve ad analisi e marketing: se lo usi, dichiaralo come servizio separato in misurazione o marketing.',
-      'The HubSpot tracking code (__hstc, hubspotutk, __hssc) is analytics and marketing: if you use it, declare it as a separate service under measurement or marketing.',
-    ),
+    note: {
+      it: 'Il codice di tracciamento HubSpot (__hstc, hubspotutk, __hssc) serve ad analisi e marketing: se lo usi, dichiaralo come servizio separato in misurazione o marketing.',
+      en: 'The HubSpot tracking code (__hstc, hubspotutk, __hssc) is analytics and marketing: if you use it, declare it as a separate service under measurement or marketing.',
+      es: 'El código de seguimiento de HubSpot (__hstc, hubspotutk, __hssc) sirve para análisis y marketing: si lo usas, decláralo como un servicio independiente en medición o marketing.',
+      fr: 'Le code de suivi HubSpot (__hstc, hubspotutk, __hssc) sert à l’analyse et au marketing : si vous l’utilisez, déclarez-le comme un service distinct dans mesure ou marketing.',
+      de: 'Der HubSpot-Tracking-Code (__hstc, hubspotutk, __hssc) dient Analyse und Marketing: Wenn Sie ihn verwenden, geben Sie ihn als eigenen Dienst unter Messung oder Marketing an.',
+      pt: 'O código de rastreamento do HubSpot (__hstc, hubspotutk, __hssc) serve para análise e marketing: se o utilizar, declare-o como um serviço separado em medição ou marketing.',
+    },
     keywords: ['chat', 'crm', 'forms'],
   },
   {
@@ -500,8 +1232,15 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://www.zendesk.com/company/agreements-and-terms/privacy-notice/',
     group: 'support',
     category: 'functionality',
-    purpose: t('Widget di assistenza e chat.', 'Support widget and chat.'),
-    cookies: [ck('__zlcmid', YEAR1, t('Identificativo del visitatore per la chat.', 'Visitor identifier for the chat.'))],
+    purpose: {
+      it: 'Widget di assistenza e chat.',
+      en: 'Support widget and chat.',
+      es: 'Widget de asistencia y chat.',
+      fr: 'Widget d’assistance et chat.',
+      de: 'Support-Widget und Chat.',
+      pt: 'Widget de apoio e chat.',
+    },
+    cookies: [ck('__zlcmid', YEAR1, CHAT_VISITOR_ID)],
     transfer: us(DPF),
     keywords: ['chat', 'helpdesk'],
   },
@@ -514,11 +1253,18 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://stripe.com/privacy',
     group: 'payments',
     category: 'necessary',
-    purpose: t('Elabora i pagamenti e previene le frodi.', 'Processes payments and prevents fraud.'),
+    purpose: PAYMENTS_PURPOSE,
     cookies: [
-      ck('__stripe_mid', YEAR1, t('Prevenzione delle frodi.', 'Fraud prevention.')),
-      ck('__stripe_sid', MIN30, t('Prevenzione delle frodi nella sessione.', 'Fraud prevention within the session.')),
-      ck('m', YEARS2, t('Prevenzione delle frodi.', 'Fraud prevention.'), { domain: 'm.stripe.com' }),
+      ck('__stripe_mid', YEAR1, FRAUD_PREVENTION),
+      ck('__stripe_sid', MIN30, {
+        it: 'Prevenzione delle frodi nella sessione.',
+        en: 'Fraud prevention within the session.',
+        es: 'Prevención del fraude durante la sesión.',
+        fr: 'Prévention de la fraude pendant la session.',
+        de: 'Betrugsprävention innerhalb der Sitzung.',
+        pt: 'Prevenção da fraude durante a sessão.',
+      }),
+      ck('m', YEARS2, FRAUD_PREVENTION, { domain: 'm.stripe.com' }),
     ],
     transfer: us(DPF),
     keywords: ['payment', 'checkout'],
@@ -530,11 +1276,11 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://www.paypal.com/myaccount/privacy/privacyhub',
     group: 'payments',
     category: 'necessary',
-    purpose: t('Elabora i pagamenti e previene le frodi.', 'Processes payments and prevents fraud.'),
+    purpose: PAYMENTS_PURPOSE,
     cookies: [
-      ck('ts', undefined, t('Prevenzione delle frodi.', 'Fraud prevention.'), { domain: 'paypal.com' }),
-      ck('x-pp-s', SESSION, t('Sessione del pagamento.', 'Payment session.'), { domain: 'paypal.com' }),
-      ck('nsid', SESSION, t('Sessione del pagamento.', 'Payment session.'), { domain: 'paypal.com' }),
+      ck('ts', undefined, FRAUD_PREVENTION, { domain: 'paypal.com' }),
+      ck('x-pp-s', SESSION, PAYMENT_SESSION, { domain: 'paypal.com' }),
+      ck('nsid', SESSION, PAYMENT_SESSION, { domain: 'paypal.com' }),
     ],
     transfer: us(BCR),
     keywords: ['payment', 'checkout'],
@@ -548,15 +1294,31 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: GOOGLE_PRIVACY,
     group: 'security',
     category: 'necessary',
-    purpose: t('Protegge i moduli da spam e abusi automatizzati.', 'Protects forms from spam and automated abuse.'),
+    purpose: CAPTCHA_PURPOSE,
     cookies: [
-      ck('_GRECAPTCHA', MONTHS6, t('Analisi del rischio per distinguere persone e bot.', 'Risk analysis to tell humans from bots.'), { domain: 'google.com' }),
+      ck(
+        '_GRECAPTCHA',
+        MONTHS6,
+        {
+          it: 'Analisi del rischio per distinguere persone e bot.',
+          en: 'Risk analysis to tell humans from bots.',
+          es: 'Análisis de riesgo para distinguir a las personas de los bots.',
+          fr: 'Analyse des risques pour distinguer les humains des bots.',
+          de: 'Risikoanalyse, um Menschen von Bots zu unterscheiden.',
+          pt: 'Análise de risco para distinguir pessoas de bots.',
+        },
+        { domain: 'google.com' },
+      ),
     ],
     transfer: us(DPF),
-    note: t(
-      'Classificato come necessario (sicurezza), ma invia dati a Google: indicalo nella privacy policy e valuta di caricarlo solo nelle pagine con moduli.',
-      'Classed as necessary (security), but it sends data to Google: mention it in the privacy policy and consider loading it only on pages with forms.',
-    ),
+    note: {
+      it: 'Classificato come necessario (sicurezza), ma invia dati a Google: indicalo nella privacy policy e valuta di caricarlo solo nelle pagine con moduli.',
+      en: 'Classed as necessary (security), but it sends data to Google: mention it in the privacy policy and consider loading it only on pages with forms.',
+      es: 'Se clasifica como necesario (seguridad), pero envía datos a Google: menciónalo en la política de privacidad y valora cargarlo solo en las páginas con formularios.',
+      fr: 'Classé comme nécessaire (sécurité), mais il envoie des données à Google : mentionnez-le dans la politique de confidentialité et envisagez de ne le charger que sur les pages comportant des formulaires.',
+      de: 'Als notwendig eingestuft (Sicherheit), sendet aber Daten an Google: Erwähnen Sie es in der Datenschutzerklärung und laden Sie es nach Möglichkeit nur auf Seiten mit Formularen.',
+      pt: 'Classificado como necessário (segurança), mas envia dados à Google: mencione-o na política de privacidade e considere carregá-lo apenas nas páginas com formulários.',
+    },
     keywords: ['captcha', 'spam'],
   },
   {
@@ -566,9 +1328,21 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://www.hcaptcha.com/privacy',
     group: 'security',
     category: 'necessary',
-    purpose: t('Protegge i moduli da spam e abusi automatizzati.', 'Protects forms from spam and automated abuse.'),
+    purpose: CAPTCHA_PURPOSE,
     cookies: [
-      ck('hc_accessibility', undefined, t('Impostato solo per chi usa l’accesso facilitato di hCaptcha.', 'Set only for visitors who use hCaptcha’s accessibility access.'), { domain: 'hcaptcha.com' }),
+      ck(
+        'hc_accessibility',
+        undefined,
+        {
+          it: 'Impostato solo per chi usa l’accesso facilitato di hCaptcha.',
+          en: 'Set only for visitors who use hCaptcha’s accessibility access.',
+          es: 'Solo se instala para los visitantes que usan el acceso de accesibilidad de hCaptcha.',
+          fr: 'Déposé uniquement pour les visiteurs qui utilisent l’accès d’accessibilité de hCaptcha.',
+          de: 'Wird nur für Besucher gesetzt, die den barrierefreien Zugang von hCaptcha nutzen.',
+          pt: 'Definido apenas para os visitantes que utilizam o acesso de acessibilidade do hCaptcha.',
+        },
+        { domain: 'hcaptcha.com' },
+      ),
     ],
     transfer: us(SCC),
     keywords: ['captcha', 'spam'],
@@ -580,14 +1354,50 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://www.cloudflare.com/privacypolicy/',
     group: 'infrastructure',
     category: 'necessary',
-    purpose: t(
-      'Distribuzione dei contenuti (CDN) e protezione da bot e attacchi.',
-      'Content delivery (CDN) and protection from bots and attacks.',
-    ),
+    purpose: {
+      it: 'Distribuzione dei contenuti (CDN) e protezione da bot e attacchi.',
+      en: 'Content delivery (CDN) and protection from bots and attacks.',
+      es: 'Distribución de contenidos (CDN) y protección contra bots y ataques.',
+      fr: 'Diffusion de contenu (CDN) et protection contre les bots et les attaques.',
+      de: 'Auslieferung von Inhalten (CDN) und Schutz vor Bots und Angriffen.',
+      pt: 'Distribuição de conteúdos (CDN) e proteção contra bots e ataques.',
+    },
     cookies: [
-      ck('__cf_bm', MIN30, t('Distingue il traffico umano dai bot.', 'Tells human traffic from bots.')),
-      ck('cf_clearance', t('da 30 minuti a 1 anno (configurabile)', '30 minutes to 1 year (configurable)'), t('Ricorda che il visitatore ha superato una verifica.', 'Remembers that the visitor passed a challenge.')),
-      ck('_cfuvid', SESSION, t('Limitazione delle richieste (rate limiting).', 'Rate limiting.')),
+      ck('__cf_bm', MIN30, {
+        it: 'Distingue il traffico umano dai bot.',
+        en: 'Tells human traffic from bots.',
+        es: 'Distingue el tráfico humano del de los bots.',
+        fr: 'Distingue le trafic humain de celui des bots.',
+        de: 'Unterscheidet menschlichen Traffic von Bots.',
+        pt: 'Distingue o tráfego humano do tráfego de bots.',
+      }),
+      ck(
+        'cf_clearance',
+        {
+          it: 'da 30 minuti a 1 anno (configurabile)',
+          en: '30 minutes to 1 year (configurable)',
+          es: 'de 30 minutos a 1 año (configurable)',
+          fr: 'de 30 minutes à 1 an (configurable)',
+          de: '30 Minuten bis 1 Jahr (konfigurierbar)',
+          pt: 'de 30 minutos a 1 ano (configurável)',
+        },
+        {
+          it: 'Ricorda che il visitatore ha superato una verifica.',
+          en: 'Remembers that the visitor passed a challenge.',
+          es: 'Recuerda que el visitante ha superado una verificación.',
+          fr: 'Mémorise que le visiteur a réussi une vérification.',
+          de: 'Speichert, dass der Besucher eine Prüfung bestanden hat.',
+          pt: 'Memoriza que o visitante passou uma verificação.',
+        },
+      ),
+      ck('_cfuvid', SESSION, {
+        it: 'Limitazione delle richieste (rate limiting).',
+        en: 'Rate limiting.',
+        es: 'Limitación de solicitudes (rate limiting).',
+        fr: 'Limitation du nombre de requêtes (rate limiting).',
+        de: 'Begrenzung der Anfragen (Rate Limiting).',
+        pt: 'Limitação de pedidos (rate limiting).',
+      }),
     ],
     transfer: us(DPF),
     keywords: ['cdn', 'waf', 'turnstile', 'bot'],
@@ -599,16 +1409,24 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: 'https://sentry.io/privacy/',
     group: 'infrastructure',
     category: 'necessary',
-    purpose: t(
-      'Segnala gli errori tecnici del sito per poterli correggere.',
-      'Reports technical errors on the site so they can be fixed.',
-    ),
+    purpose: {
+      it: 'Segnala gli errori tecnici del sito per poterli correggere.',
+      en: 'Reports technical errors on the site so they can be fixed.',
+      es: 'Notifica los errores técnicos del sitio para poder corregirlos.',
+      fr: 'Signale les erreurs techniques du site afin de pouvoir les corriger.',
+      de: 'Meldet technische Fehler der Website, damit sie behoben werden können.',
+      pt: 'Comunica os erros técnicos do site para que possam ser corrigidos.',
+    },
     cookies: [],
     transfer: us(DPF),
-    note: t(
-      'L’SDK di Sentry non imposta cookie. Se attivi Session Replay, che registra le interazioni, valuta di spostarlo in misurazione. Con la regione dati UE di Sentry aggiorna la sezione trasferimenti.',
-      'The Sentry SDK sets no cookies. If you enable Session Replay, which records interactions, consider moving it to measurement. With Sentry’s EU data region update the transfer section.',
-    ),
+    note: {
+      it: 'L’SDK di Sentry non imposta cookie. Se attivi Session Replay, che registra le interazioni, valuta di spostarlo in misurazione. Con la regione dati UE di Sentry aggiorna la sezione trasferimenti.',
+      en: 'The Sentry SDK sets no cookies. If you enable Session Replay, which records interactions, consider moving it to measurement. With Sentry’s EU data region update the transfer section.',
+      es: 'El SDK de Sentry no instala cookies. Si activas Session Replay, que graba las interacciones, valora moverlo a medición. Con la región de datos de Sentry en la UE, actualiza la sección de transferencias.',
+      fr: 'Le SDK de Sentry ne dépose aucun cookie. Si vous activez Session Replay, qui enregistre les interactions, envisagez de le déplacer vers mesure. Avec la région de données européenne de Sentry, mettez à jour la section sur les transferts.',
+      de: 'Das Sentry-SDK setzt keine Cookies. Wenn Sie Session Replay aktivieren, das Interaktionen aufzeichnet, erwägen Sie, es zu Messung zu verschieben. Mit der EU-Datenregion von Sentry passen Sie den Abschnitt zur Datenübermittlung an.',
+      pt: 'O SDK do Sentry não define cookies. Se ativar o Session Replay, que grava as interações, considere movê-lo para medição. Com a região de dados do Sentry na UE, atualize a secção de transferências.',
+    },
     keywords: ['errors', 'monitoring'],
   },
   {
@@ -618,17 +1436,32 @@ export const ENTRIES: CatalogEntry[] = [
     privacyUrl: '',
     group: 'infrastructure',
     category: 'necessary',
-    purpose: t(
-      'Ricorda le scelte del visitatore sui cookie e ne conserva la prova.',
-      'Remembers the visitor’s cookie choices and keeps proof of them.',
-    ),
+    purpose: {
+      it: 'Ricorda le scelte del visitatore sui cookie e ne conserva la prova.',
+      en: 'Remembers the visitor’s cookie choices and keeps proof of them.',
+      es: 'Recuerda las elecciones del visitante sobre las cookies y conserva la prueba de ellas.',
+      fr: 'Mémorise les choix du visiteur en matière de cookies et en conserve la preuve.',
+      de: 'Speichert die Cookie-Entscheidungen des Besuchers und bewahrt einen Nachweis darüber auf.',
+      pt: 'Memoriza as escolhas do visitante sobre os cookies e guarda a respetiva prova.',
+    },
     cookies: [
-      ck('ec_consent', MONTHS6, t('Memorizza le categorie accettate e la revisione della policy.', 'Stores the accepted categories and the policy revision.')),
+      ck('ec_consent', MONTHS6, {
+        it: 'Memorizza le categorie accettate e la revisione della policy.',
+        en: 'Stores the accepted categories and the policy revision.',
+        es: 'Guarda las categorías aceptadas y la revisión de la política.',
+        fr: 'Enregistre les catégories acceptées et la révision de la politique.',
+        de: 'Speichert die akzeptierten Kategorien und die Version der Richtlinie.',
+        pt: 'Guarda as categorias aceites e a revisão da política.',
+      }),
     ],
-    note: t(
-      'Cookie di prima parte. La durata segue expiryDays (predefinito 182 giorni): aggiornala se la cambi.',
-      'First-party cookie. The duration follows expiryDays (default 182 days): update it if you change that.',
-    ),
+    note: {
+      it: 'Cookie di prima parte. La durata segue expiryDays (predefinito 182 giorni): aggiornala se la cambi.',
+      en: 'First-party cookie. The duration follows expiryDays (default 182 days): update it if you change that.',
+      es: 'Cookie propia. La duración sigue expiryDays (182 días por defecto): actualízala si cambias ese valor.',
+      fr: 'Cookie interne. La durée suit expiryDays (182 jours par défaut) : mettez-la à jour si vous modifiez cette valeur.',
+      de: 'First-Party-Cookie. Die Speicherdauer richtet sich nach expiryDays (Standard: 182 Tage): Passen Sie sie an, wenn Sie den Wert ändern.',
+      pt: 'Cookie próprio. A duração segue expiryDays (182 dias por predefinição): atualize-a se alterar esse valor.',
+    },
     keywords: ['consent', 'cookie banner'],
   },
 ];

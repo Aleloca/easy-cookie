@@ -4,6 +4,7 @@ export {
   buildPolicyModel,
   formatPolicyDate,
   matchesRule,
+  policyLabelsFor,
   prettyCookiePattern,
   type AutoClearRule,
   type BuildPolicyOptions,

@@ -7,7 +7,7 @@ It also renders full **legal documents** (cookie policy, privacy policy, terms) 
 - DOM-free. It runs at build time, on the server, in a React Server Component or in a CLI.
 - Output formats: an HTML string, Markdown, or React (`@easy-cookie/policy/react`).
 - The HTML has class names only (`ec-policy*`) and no inline styles.
-- Table headers ship in Italian and English. Other languages fall back to English, and every label can be overridden.
+- Table headers and the legal-document labels ship in Italian, English, Spanish, French, German and Portuguese. Other languages fall back to English (a regional code such as `fr-CA` uses its base language), and every label can be overridden.
 
 ## Install
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CATALOG, CATALOG_GROUPS, catalogToService, findCatalogEntry } from '../src/catalog';
 import { validateConfig } from '../src/shared/config';
+import { BUILTIN_LANGUAGES } from '../src/shared/defaults';
 import type { EasyCookieConfig, Localized } from '../src/shared/types';
 
 const minimal = (): EasyCookieConfig => ({
@@ -9,8 +10,8 @@ const minimal = (): EasyCookieConfig => ({
   services: {},
 });
 
-const bilingual = (v: Localized | undefined) =>
-  typeof v === 'object' && typeof v.it === 'string' && v.it.trim() !== '' && typeof v.en === 'string' && v.en.trim() !== '';
+const complete = (v: Localized | undefined) =>
+  typeof v === 'object' && BUILTIN_LANGUAGES.every((l) => typeof v[l] === 'string' && v[l].trim() !== '');
 
 describe('service catalog', () => {
   it('has about 30 entries with unique ids', () => {
@@ -53,16 +54,34 @@ describe('service catalog', () => {
     expect(validateConfig(all)).toEqual([]);
   });
 
-  it('every localized field has both it and en', () => {
+  it('every localized field has all the built-in languages', () => {
+    expect([...BUILTIN_LANGUAGES]).toEqual(['it', 'en', 'es', 'fr', 'de', 'pt']);
     for (const e of CATALOG) {
-      expect(bilingual(e.purpose), `${e.id}.purpose`).toBe(true);
-      if (e.note !== undefined) expect(bilingual(e.note), `${e.id}.note`).toBe(true);
-      if (e.transfer?.safeguard !== undefined) expect(bilingual(e.transfer.safeguard), `${e.id}.transfer`).toBe(true);
+      expect(complete(e.purpose), `${e.id}.purpose`).toBe(true);
+      if (e.note !== undefined) expect(complete(e.note), `${e.id}.note`).toBe(true);
+      if (e.transfer?.safeguard !== undefined) expect(complete(e.transfer.safeguard), `${e.id}.transfer`).toBe(true);
       for (const c of e.cookies) {
-        expect(bilingual(c.description), `${e.id}.${c.name}.description`).toBe(true);
-        if (c.duration !== undefined) expect(bilingual(c.duration), `${e.id}.${c.name}.duration`).toBe(true);
+        expect(complete(c.description), `${e.id}.${c.name}.description`).toBe(true);
+        if (c.duration !== undefined) expect(complete(c.duration), `${e.id}.${c.name}.duration`).toBe(true);
       }
     }
+  });
+
+  it('localizes durations in every language', () => {
+    expect(findCatalogEntry('ga4')!.cookies[0].duration).toEqual({
+      it: '2 anni',
+      en: '2 years',
+      es: '2 años',
+      fr: '2 ans',
+      de: '2 Jahre',
+      pt: '2 anos',
+    });
+    expect(findCatalogEntry('youtube')!.cookies.find((c) => c.name === 'YSC')!.duration).toMatchObject({
+      es: 'sesión',
+      fr: 'session',
+      de: 'Sitzung',
+      pt: 'sessão',
+    });
   });
 
   it('pattern names compile as regular expressions and plain names are not anchored', () => {

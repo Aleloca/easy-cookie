@@ -1,4 +1,5 @@
 import {
+  builtinLanguage,
   DEFAULT_COOKIE_NAME,
   DEFAULT_EXPIRY_DAYS,
   DEFAULT_GCM_EVENT,
@@ -189,9 +190,13 @@ export function resolveConfig(config: EasyCookieConfig): ResolvedConfig {
   };
 }
 
-/** Merge default texts for `lang` with the config overrides. */
+/**
+ * Merge default texts for `lang` with the config overrides. Built-in texts
+ * exist for it, en, es, fr, de and pt (a regional code like `de-AT` uses its
+ * base language); any other language starts from English.
+ */
 export function resolveTexts(config: EasyCookieConfig, lang: string): Texts {
-  const base = (DEFAULT_TEXTS as Record<string, Texts>)[lang] ?? DEFAULT_TEXTS.en;
+  const base = DEFAULT_TEXTS[builtinLanguage(lang) ?? 'en'];
   const over = config.texts?.[lang] ?? {};
   const out = JSON.parse(JSON.stringify(base)) as Texts;
   for (const [section, values] of Object.entries(over)) {

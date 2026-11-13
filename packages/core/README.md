@@ -81,6 +81,8 @@ const inline = renderHeadScript(config); // <script>{inline}</script> in <head>
 
 React and Next.js are covered by `@easy-cookie/react` and `@easy-cookie/next`.
 
+Built-in visitor-facing texts and category names exist in Italian (`it`), English (`en`), Spanish (`es`), French (`fr`), German (`de`, "Sie" form) and European Portuguese (`pt`). A regional code such as `de-AT` uses its base language. Any other language falls back to English. Override any string per language with `texts`.
+
 ## Categories follow the services
 
 As in Iubenda, the banner only asks about what the site actually uses. Once `services` declares at least one service, an optional category with no services is left out of the banner, the preferences, the cookie policy and Consent Mode, and its signals stay `denied`. Read-only categories (`necessary`) are always shown. A config without any `services` keeps every category, for setups that only use blocked script tags.
@@ -148,6 +150,12 @@ No-JS footer links: any element with the `data-ec-open-preferences` attribute op
 <a href="#" data-ec-open-preferences>Preferenze cookie</a>
 ```
 
+Iubenda's `iubenda-cs-preferences-link` class works the same way. It is the class Iubenda documents for "allow users to update their cookie preferences" ([advanced guide, 5.3 Classes](https://www.iubenda.com/en/help/1205-how-to-configure-your-cookie-solution-advanced-guide)). Sites migrating from Iubenda can keep these links unchanged:
+
+```html
+<a href="#" class="iubenda-cs-preferences-link">Cookie preferences</a>
+```
+
 Server side (middleware, RSC, route handlers):
 
 ```ts
@@ -158,7 +166,7 @@ if (consent?.categories.includes('measurement')) sendServerSideAnalytics();
 
 ## Service catalog
 
-`@easy-cookie/core/catalog` ships about 30 ready-made service declarations (GA4, GTM, PostHog, Matomo, Plausible, Hotjar, Clarity, Mixpanel, Amplitude, Google Ads, Meta Pixel, LinkedIn, TikTok, Pinterest, Microsoft UET, X, YouTube, Vimeo, Google Maps, Spotify, Calendly, Intercom, Crisp, HubSpot, Zendesk, Stripe, PayPal, reCAPTCHA, hCaptcha, Cloudflare, Sentry, easy-cookie itself). Each entry has the EU-facing provider, the privacy link, the default consent category, cookies with IT/EN durations and descriptions, data transfers and a note for the owner. It is plain data: the console, the CLI and npm users share it, and nothing reads it at runtime.
+`@easy-cookie/core/catalog` ships about 30 ready-made service declarations (GA4, GTM, PostHog, Matomo, Plausible, Hotjar, Clarity, Mixpanel, Amplitude, Google Ads, Meta Pixel, LinkedIn, TikTok, Pinterest, Microsoft UET, X, YouTube, Vimeo, Google Maps, Spotify, Calendly, Intercom, Crisp, HubSpot, Zendesk, Stripe, PayPal, reCAPTCHA, hCaptcha, Cloudflare, Sentry, easy-cookie itself). Each entry has the EU-facing provider, the privacy link, the default consent category, cookies with durations and descriptions in IT, EN, ES, FR, DE and PT, data transfers and a note for the owner. It is plain data: the console, the CLI and npm users share it, and nothing reads it at runtime.
 
 ```ts
 import { CATALOG, findCatalogEntry, catalogToService } from '@easy-cookie/core/catalog';

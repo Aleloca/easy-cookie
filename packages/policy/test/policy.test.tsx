@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { EasyCookieConfig } from '@easy-cookie/core/shared';
 import {
+  POLICY_LABELS,
   autoClearRules,
   buildPolicyModel,
+  formatPolicyDate,
   matchesRule,
+  policyLabelsFor,
   prettyCookiePattern,
   renderPolicyHtml,
   renderPolicyMarkdown,
@@ -69,9 +72,40 @@ describe('buildPolicyModel', () => {
     const m = buildPolicyModel(config, 'it');
     expect(m.labels).toMatchObject({ service: 'Servizio', provider: 'Fornitore', duration: 'Durata', purpose: 'Finalità' });
     expect(m.categories[1].title).toBe('Misurazione');
+    const nl = buildPolicyModel(config, 'nl');
+    expect(nl.labels.service).toBe('Service');
+    expect(nl.labels.purpose).toBe('Purpose');
+    expect(nl.categories[0].services[0].label).toBe('Sessione');
+  });
+
+  it('uses French labels for fr, and the built-in category names', () => {
     const fr = buildPolicyModel(config, 'fr');
-    expect(fr.labels.service).toBe('Service');
-    expect(fr.categories[0].services[0].label).toBe('Sessione');
+    expect(fr.labels).toMatchObject({
+      provider: 'Fournisseur',
+      duration: 'Durée',
+      purpose: 'Finalité',
+      updated: 'Dernière mise à jour',
+      privacyPolicy: 'Politique de confidentialité',
+    });
+    expect(fr.categories.map((c) => c.title)).toEqual(['Nécessaires', 'Mesure', 'Marketing']);
+    // Regional codes use the base language.
+    expect(buildPolicyModel(config, 'fr-CA').labels.purpose).toBe('Finalité');
+  });
+
+  it('has labels in es, de and pt, and policyLabelsFor falls back to English', () => {
+    expect(POLICY_LABELS.es.duration).toBe('Duración');
+    expect(POLICY_LABELS.de.provider).toBe('Anbieter');
+    expect(POLICY_LABELS.pt.purpose).toBe('Finalidade');
+    expect(policyLabelsFor('de-CH')).toBe(POLICY_LABELS.de);
+    expect(policyLabelsFor('xx')).toBe(POLICY_LABELS.en);
+  });
+
+  it('formats the date for every built-in language', () => {
+    const date = '2026-11-13';
+    expect(formatPolicyDate({ date, lang: 'es' })).toBe('13 de noviembre de 2026');
+    expect(formatPolicyDate({ date, lang: 'fr' })).toBe('13 novembre 2026');
+    expect(formatPolicyDate({ date, lang: 'de' })).toBe('13. November 2026');
+    expect(formatPolicyDate({ date, lang: 'pt' })).toBe('13 de novembro de 2026');
   });
 
   it('accepts an explicit date and label overrides', () => {

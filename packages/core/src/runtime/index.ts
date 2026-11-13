@@ -21,6 +21,9 @@ type RunInput = EasyCookieConfig | { remote: { endpoint: string; siteKey: string
 
 const w = typeof window !== 'undefined' ? (window as any) : undefined;
 
+/** Elements that open the preferences on click: ours, plus Iubenda's documented class. */
+const OPEN_PREFERENCES_SELECTOR = '[data-ec-open-preferences], .iubenda-cs-preferences-link';
+
 function detectLanguage(c: ResolvedConfig): string {
   const avail = c.language.available;
   let cand: string | undefined;
@@ -231,8 +234,10 @@ export function createEasyCookie(): EasyCookieApi {
 
       // Any `[data-ec-open-preferences]` element opens the preferences, including
       // elements added later (e.g. the `{{preferences-link}}` of a legal document).
+      // Iubenda's `.iubenda-cs-preferences-link` class works too, so links kept
+      // from an Iubenda setup need no change.
       document.addEventListener('click', (e) => {
-        const el = (e.target as Element | null)?.closest?.('[data-ec-open-preferences]');
+        const el = (e.target as Element | null)?.closest?.(OPEN_PREFERENCES_SELECTOR);
         if (!el) return;
         e.preventDefault();
         api.openPreferences();

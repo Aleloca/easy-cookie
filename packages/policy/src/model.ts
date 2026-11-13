@@ -1,4 +1,4 @@
-import { localize, resolveConfig, type EasyCookieConfig } from '@easy-cookie/core/shared';
+import { builtinLanguage, localize, resolveConfig, type BuiltinLanguage, type EasyCookieConfig } from '@easy-cookie/core/shared';
 
 export interface PolicyLabels {
   cookie: string;
@@ -20,7 +20,7 @@ export interface PolicyLabels {
 }
 
 /** Built-in table headers and labels. Unknown languages fall back to English. */
-export const POLICY_LABELS: Record<'it' | 'en', PolicyLabels> = {
+export const POLICY_LABELS: Record<BuiltinLanguage, PolicyLabels> = {
   it: {
     cookie: 'Cookie',
     service: 'Servizio',
@@ -49,7 +49,68 @@ export const POLICY_LABELS: Record<'it' | 'en', PolicyLabels> = {
     noCookie: '—',
     caption: 'Cookies in the “{category}” category',
   },
+  es: {
+    cookie: 'Cookie',
+    service: 'Servicio',
+    provider: 'Proveedor',
+    duration: 'Duración',
+    purpose: 'Finalidad',
+    updated: 'Última actualización',
+    revision: 'Revisión',
+    alwaysOn: 'Siempre activas',
+    privacyPolicy: 'Política de privacidad',
+    noCookies: 'No se han declarado cookies en esta categoría.',
+    noCookie: '—',
+    caption: 'Cookies de la categoría «{category}»',
+  },
+  fr: {
+    cookie: 'Cookie',
+    service: 'Service',
+    provider: 'Fournisseur',
+    duration: 'Durée',
+    purpose: 'Finalité',
+    updated: 'Dernière mise à jour',
+    revision: 'Révision',
+    alwaysOn: 'Toujours actifs',
+    privacyPolicy: 'Politique de confidentialité',
+    noCookies: 'Aucun cookie déclaré dans cette catégorie.',
+    noCookie: '—',
+    caption: 'Cookies de la catégorie « {category} »',
+  },
+  de: {
+    cookie: 'Cookie',
+    service: 'Dienst',
+    provider: 'Anbieter',
+    duration: 'Speicherdauer',
+    purpose: 'Zweck',
+    updated: 'Zuletzt aktualisiert',
+    revision: 'Version',
+    alwaysOn: 'Immer aktiv',
+    privacyPolicy: 'Datenschutzerklärung',
+    noCookies: 'In dieser Kategorie sind keine Cookies angegeben.',
+    noCookie: '—',
+    caption: 'Cookies der Kategorie „{category}“',
+  },
+  pt: {
+    cookie: 'Cookie',
+    service: 'Serviço',
+    provider: 'Fornecedor',
+    duration: 'Duração',
+    purpose: 'Finalidade',
+    updated: 'Última atualização',
+    revision: 'Revisão',
+    alwaysOn: 'Sempre ativos',
+    privacyPolicy: 'Política de privacidade',
+    noCookies: 'Nenhum cookie declarado nesta categoria.',
+    noCookie: '—',
+    caption: 'Cookies da categoria «{category}»',
+  },
 };
+
+/** Labels for `lang`: exact code, then base language (`fr-CA` → `fr`), then English. */
+export function policyLabelsFor(lang: string): PolicyLabels {
+  return POLICY_LABELS[builtinLanguage(lang) ?? 'en'];
+}
 
 export interface PolicyCookie {
   /** Name as declared (a regular expression source when `pattern` is true). */
@@ -122,7 +183,7 @@ export function buildPolicyModel(config: EasyCookieConfig, lang: string, opts: B
   const resolved = resolveConfig(config);
   const fallback = resolved.language.default;
   const l = (v: Parameters<typeof localize>[0]) => localize(v, lang, fallback);
-  const labels = { ...((POLICY_LABELS as Record<string, PolicyLabels>)[lang] ?? POLICY_LABELS.en), ...opts.labels };
+  const labels = { ...policyLabelsFor(lang), ...opts.labels };
   const services = config.services ?? {};
 
   return {

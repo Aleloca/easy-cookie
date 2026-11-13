@@ -1,5 +1,5 @@
 import { findCatalogEntry } from '@easy-cookie/core/catalog';
-import { localize, resolveConfig, type EasyCookieConfig } from '@easy-cookie/core/shared';
+import { builtinLanguage, localize, resolveConfig, type BuiltinLanguage, type EasyCookieConfig } from '@easy-cookie/core/shared';
 import MarkdownIt from 'markdown-it';
 import { buildPolicyModel } from './model';
 import { escapeHtml, renderPolicyHtml } from './render';
@@ -48,7 +48,7 @@ export interface LegalLabels {
 }
 
 /** Visitor-facing strings used by the directives. Unknown languages fall back to English. */
-export const LEGAL_LABELS: Record<'it' | 'en', LegalLabels> = {
+export const LEGAL_LABELS: Record<BuiltinLanguage, LegalLabels> = {
   it: {
     updated: 'Ultimo aggiornamento',
     preferences: 'Modifica le preferenze sui cookie',
@@ -67,9 +67,46 @@ export const LEGAL_LABELS: Record<'it' | 'en', LegalLabels> = {
     noServices: 'No third-party services declared.',
     noConfig: 'The list of cookies will be available once the banner is published.',
   },
+  es: {
+    updated: 'Última actualización',
+    preferences: 'Modificar las preferencias de cookies',
+    privacyPolicy: 'Política de privacidad',
+    category: 'Categoría',
+    transfer: 'Transferencia de datos',
+    noServices: 'No se han declarado servicios de terceros.',
+    noConfig: 'La lista de cookies estará disponible cuando se publique el banner.',
+  },
+  fr: {
+    updated: 'Dernière mise à jour',
+    preferences: 'Modifier vos préférences cookies',
+    privacyPolicy: 'Politique de confidentialité',
+    category: 'Catégorie',
+    transfer: 'Transfert de données',
+    noServices: 'Aucun service tiers déclaré.',
+    noConfig: 'La liste des cookies sera disponible une fois le bandeau publié.',
+  },
+  de: {
+    updated: 'Zuletzt aktualisiert',
+    preferences: 'Cookie-Einstellungen ändern',
+    privacyPolicy: 'Datenschutzerklärung',
+    category: 'Kategorie',
+    transfer: 'Datenübermittlung',
+    noServices: 'Keine Dienste von Drittanbietern angegeben.',
+    noConfig: 'Die Liste der Cookies ist verfügbar, sobald das Cookie-Banner veröffentlicht ist.',
+  },
+  pt: {
+    updated: 'Última atualização',
+    preferences: 'Alterar as preferências de cookies',
+    privacyPolicy: 'Política de privacidade',
+    category: 'Categoria',
+    transfer: 'Transferência de dados',
+    noServices: 'Nenhum serviço de terceiros declarado.',
+    noConfig: 'A lista de cookies estará disponível após a publicação do banner.',
+  },
 };
 
-const labelsFor = (lang: string): LegalLabels => (LEGAL_LABELS as Record<string, LegalLabels>)[lang] ?? LEGAL_LABELS.en;
+/** Labels for `lang`: exact code, then base language (`pt-PT` → `pt`), then English. */
+const labelsFor = (lang: string): LegalLabels => LEGAL_LABELS[builtinLanguage(lang) ?? 'en'];
 
 /** `[[Something to fill in]]`: a placeholder the owner must replace. */
 export const PLACEHOLDER_RE = /\[\[([^[\]\n]+?)\]\]/g;
