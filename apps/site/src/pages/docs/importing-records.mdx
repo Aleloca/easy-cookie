@@ -1,0 +1,67 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Importing records
+description: Load historical proofs of consent, for example from a home-made consent log, into a site's register. JSON Lines format, original timestamps, all-or-nothing and safe to re-run.
+---
+
+When you switch to easy-cookie, the consents you collected before still count as proof. The `import` command loads them into a site's register, next to the new records, so the console and the API show one history.
+
+```sh
+easy-cookie-server import <siteId> <file.jsonl> [--dry-run]
+```
+
+`siteId` is the site's id in the console (not its public key).
+
+## The file
+
+The file is [JSON Lines](https://jsonlines.org/): one JSON object per line, one record per object. Empty lines are ignored.
+
+| Field | Required | Notes |
+|---|---|---|
+| `consentId` | yes | The id of the browser or visitor in your old system. Records with the same id form one history. |
+| `revision` | yes | 1–64 characters from `A–Z a–z 0–9 . _ -`. Use an id that marks the records as imported, e.g. `legacy-1.0.0`. |
+| `method` | yes | `accept_all`, `reject_all`, `custom`, `close` or `withdraw`. |
+| `categories` | yes | An object of booleans, e.g. `{ "necessary": true, "measurement": false }`. |
+| `clientTimestamp` | yes | When the visitor chose, as an ISO date. |
+| `receivedAt` | no | When your old system stored it, as an ISO date. Defaults to `clientTimestamp`. |
+| `subjectId` | no | Your user id, if the old log linked consents to users. |
+| `services` | no | Services per category, e.g. `{ "measurement": ["ga4"] }`. |
+| `language`, `pageUrl` | no | |
+| `ipHash` | no | Stored as-is. |
+| `userAgent` | no | Truncated to 512 characters. |
+
+An example line:
+
+```json
+{"consentId":"6f1c2a9e-4b7d-4e0a-9c55-1d2e3f4a5b6c","revision":"legacy-1.0.0","method":"custom","categories":{"necessary":true,"measurement":true,"marketing":false},"clientTimestamp":"2025-03-02T10:14:00.000Z","subjectId":"user_4821","language":"en","pageUrl":"https://shop.example.com/"}
+```
+
+Map your old categories to the ids of your current config where you can. If an old category has no equivalent, keep its name: the record stays a faithful copy of what was stored.
+
+## How it behaves
+
+- **Original timestamps.** `clientTimestamp` and `receivedAt` come from the file, not from the time of the import, so the register stays in chronological order.
+- **All or nothing.** Every line is validated first. If any line is invalid, nothing is imported and every invalid line is reported with its number and the reason.
+- **Safe to re-run.** A record with the same `consentId`, `clientTimestamp` and `method` already in the site's register is skipped. You can fix a file and run it again.
+- **`--dry-run`** validates the file and reports how many records would be imported, without writing anything.
+- **IP hashes are not comparable.** `ipHash` is stored as it is. Hashes made by another system, with another salt, cannot be matched with the hashes this server computes.
+
+The output has this shape (`<n>` stands for the counts of your file):
+
+```text
+Imported <n> of <n> records into <site name> (<n> already present)
+```
+
+## Running it
+
+| Setup | Command |
+|---|---|
+| Docker Compose | Copy the file into the container, then `docker compose exec server node dist/cli.js import <siteId> /tmp/legacy.jsonl --dry-run` |
+| From the repository | `pnpm --filter @easy-cookie/server cli import <siteId> ./legacy.jsonl --dry-run` |
+| pm2 release | `node dist/cli.js import <siteId> /path/to/legacy.jsonl --dry-run` in `<app-dir>/current/apps/server` |
+
+The command needs `DATABASE_URL`, read from the environment or from `.env` in the working directory. Run it once with `--dry-run`, read the report, then run it again without the flag.
+
+## Keep the original
+
+The imported records are a copy. Keep the original export, and the policy text that was in force at the time, as the primary evidence for consents collected before the switch. The config snapshots in the register only cover revisions published on easy-cookie: an imported `legacy-…` revision has no snapshot.

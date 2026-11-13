@@ -1,0 +1,123 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Consent register
+description: Proof of consent on your own server. Public and secret keys, what each record contains, the endpoints, and how the register itself handles personal data (IPs only as hashes, append-only, GDPR art. 7.1, 15 and 17).
+---
+
+The GDPR requires the controller to **be able to demonstrate** that the visitor consented (art. 7.1) and, more generally, to be accountable for its choices (art. 5.2). The banner alone is not enough: the consent cookie lives in the visitor's browser and can disappear. The consent server keeps a proof of every choice, on your server, together with the revision of the config the visitor saw.
+
+It is one service for all your sites (multi-site, with keys per site), written in Node with Hono and Prisma, on Postgres. It also hosts the published config, the legal documents and the [admin console](/docs/console/). Installation is covered in [Self-hosting](/docs/self-hosting/).
+
+## Keys
+
+| Key | Format | Where it lives | What it can do |
+|---|---|---|---|
+| Public | `pk_` + 24 characters | In your site's HTML | Write only: record a consent, link a user id, read the published config. Writes are checked against the site's `origins` list. |
+| Secret | `sk_` + 32 characters | Only on your back end, as `Authorization: Bearer sk_…` | Read and export records, answer access and erasure requests, publish configs from CI. |
+
+The server keeps only the sha256 hash of the secret key, and shows the key once. If you lose it, rotate it in the console (**API keys → Rotate secret key**); the old key stops working immediately.
+
+The origin `*` is accepted, but the console flags it: anyone could write records on behalf of your site.
+
+## What is recorded
+
+On every choice the browser sends `POST /v1/consents` with `keepalive` (or `sendBeacon`), so the record leaves even if the visitor navigates away:
+
+```json
+{
+  "consentId": "8f14e45f-ceea-4e7a-9b1d-2c6a1f0e3b91",
+  "revision": "2026-11-13",
+  "categories": { "necessary": true, "measurement": true, "marketing": false },
+  "services": { "measurement": ["ga4"] },
+  "method": "custom",
+  "language": "en",
+  "pageUrl": "https://magazine.example/guides/backpack",
+  "clientTimestamp": "2026-11-13T09:41:07.220Z"
+}
+```
+
+The server adds:
+
+- `ipHash`: `sha256(site salt ‖ IP)`, never the raw IP;
+- the `User-Agent`, truncated to 512 characters;
+- `receivedAt`, the server's own clock, next to the client's time;
+- `subjectId`, when the site linked the consent to a user with `identify()`.
+
+`method` says how the choice was made:
+
+| `method` | Meaning |
+|---|---|
+| `accept_all` | Accept all |
+| `reject_all` | Reject all |
+| `custom` | A choice made in the preferences panel |
+| `close` | Closed with the X, which counts as a rejection |
+| `withdraw` | Withdrawal through `reset()` |
+
+Next to the records, the config published under each `revision` is kept as an immutable snapshot. To prove a consent you can therefore show what the visitor chose **and** what they were shown: categories, services, texts.
+
+If the server does not answer, the record is queued in the browser and retried on the next page load. With `log.requireLog: true`, the banner stays open instead, with an error message, until the server confirms.
+
+## Endpoints
+
+### Public (public key, CORS for the site's origins)
+
+| Method | Path | Use |
+|---|---|---|
+| `POST` | `/v1/consents` | Record a choice. Key in the `X-Site-Key` header or the `?key=` parameter. Accepts `text/plain` bodies (sendBeacon). Answers `201 { id, receivedAt }`. |
+| `POST` | `/v1/consents/:consentId/subject` | Link every record with that `consentId` to a user id: `{ subjectId }`. Answers `204`. |
+| `GET` | `/v1/sites/:publicKey/config.json` | The published config, with `log` filled in. Readable from any origin. |
+| `GET` | `/v1/sites/:publicKey/head.js` | The Consent Mode head snippet. |
+| `GET` | `/v1/sites/:publicKey/embed.js` | Snippet, config and loader in one tag. |
+| `GET` | `/static/*` | `easy-cookie.iife.js`, `easy-cookie.css` and `easy-cookie-legal.css`. |
+| `GET` | `/health` | Server and database status. |
+
+The legal document endpoints are listed in [Legal documents](/docs/legal-documents/).
+
+### Server to server (secret key)
+
+| Method | Path | Use |
+|---|---|---|
+| `GET` | `/v1/consents?consentId=&subjectId=&from=&to=` | Proof and audit queries, paginated, newest first. |
+| `GET` | `/v1/subjects/:subjectId/consents` | Every consent of a user: the answer to an access request (art. 15). |
+| `DELETE` | `/v1/subjects/:subjectId` | Erase a user's records (art. 17). Answers `{ deleted: n }`. |
+| `PUT` | `/v1/config` | `{ config, publish?, note? }`: CI pushes the config written in code, which is validated and, when asked, published. |
+
+An access request:
+
+```sh
+curl -H "Authorization: Bearer $EASY_COOKIE_SECRET_KEY" \
+  https://consent.example.com/v1/subjects/user_4821/consents
+```
+
+Errors use the shape `{ "error": { "code", "message" } }`: `401 unauthorized`, `403 origin_not_allowed`, `400 invalid_record`, `413 payload_too_large`, `429 rate_limited` (with `Retry-After`). Each site accepts 60 records per minute per IP hash by default.
+
+### Linking a consent to a user
+
+The `consentId` is anonymous: a random id in the visitor's cookie. After login you can link it to the user, so access and erasure requests work per user:
+
+```ts
+const linked = await EasyCookie.identify(user.id); // Promise<boolean>
+```
+
+`identify()` resolves `true` once the server has confirmed the link. Called before the visitor's first choice, it resolves `false` and the link is made right after that choice.
+
+Use an internal id, not an email address: the register does not need contact details.
+
+## Privacy of the register
+
+The register is itself a processing of personal data. It is designed to keep as little as possible:
+
+- **IPs only as hashes**, with a different salt for each site. They help recognise abuse and repeated requests, not identify people.
+- **No cookies** set by the server on visitors.
+- **Append-only**: a record is never edited. A new choice is a new record; a withdrawal is a `withdraw` record. The only update is linking a `subjectId`. The console shows the history of a `consentId`, newest first.
+- **Deletion only for art. 17** (`DELETE /v1/subjects/:id`) or by deleting the site.
+- **Access for art. 15** with `GET /v1/subjects/:id/consents`, or with the CSV export from the console.
+
+<div class="note note--legal">
+<p class="note__title">Yours to decide</p>
+<p>The retention period of the records, the legal basis of the register (usually the obligation to demonstrate consent, art. 7.1), a mention of the register in your privacy policy and, if a provider runs the server for you, a data processing agreement. easy-cookie provides the tools, not these decisions.</p>
+</div>
+
+## Existing records
+
+If you already have a consent log, for example from a home-made implementation, you can load it into the register with the `import` command: records keep their original timestamps, and re-running the file is safe. See [Importing records](/docs/importing-records/).

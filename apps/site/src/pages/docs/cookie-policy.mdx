@@ -1,18 +1,20 @@
 ---
 layout: ../../layouts/DocsLayout.astro
-title: Cookie policy generata
-description: Il pacchetto @easy-cookie/policy genera la sezione cookie della policy dalla stessa configurazione del banner, in React, HTML o Markdown. Cosa genera, come si usa, cosa devi scrivere tu.
+title: Cookie policy tables
+description: The @easy-cookie/policy package generates the cookie tables of your cookie policy from the same config as the banner, as React, HTML or Markdown. What it generates, how to use it, and what is left for you to write.
 ---
 
-La cookie policy deve elencare, per ogni cookie, nome, fornitore, finalità e durata, ed essere raggiungibile dal banner e da ogni pagina. Se la tabella è scritta a mano, prima o poi diverge dal banner. `@easy-cookie/policy` la genera dalla stessa configurazione: categorie, servizi e cookie sono quelli che il banner mostra e che il runtime cancella alla revoca.
+A cookie policy must list, for each cookie, its name, provider, purpose and duration, and it must be reachable from the banner and from every page. When the table is written by hand, sooner or later it drifts from the banner. `@easy-cookie/policy` generates it from the same config: the categories, services and cookies are exactly the ones the banner shows and the runtime deletes on withdrawal.
 
 ```sh
 pnpm add @easy-cookie/policy
 ```
 
-Non usa il DOM: gira in fase di build, sul server, in un React Server Component o in uno script.
+It does not use the DOM: it runs at build time, on the server, in a React Server Component or in a script.
 
-## React e Next.js
+This page covers the **tables** you place in a page of your own. If you would rather write and publish the whole cookie policy (and the privacy policy and terms) in the console, see [Legal documents](/docs/legal-documents/): the `{{cookie-table}}` directive renders these same tables inside the document.
+
+## React and Next.js
 
 ```tsx
 // app/cookie-policy/page.tsx
@@ -23,47 +25,53 @@ export default function Page() {
   return (
     <article>
       <h1>Cookie policy</h1>
-      <p>…la tua introduzione: titolare, basi giuridiche, diritti…</p>
-      <CookiePolicy config={config} lang="it" />
+      <p>…your own introduction: data controller, legal bases, rights…</p>
+      <CookiePolicy config={config} lang="en" />
     </article>
   );
 }
 ```
 
-## HTML o Markdown
+## HTML or Markdown
 
 ```ts
 import { buildPolicyModel, renderPolicyHtml, renderPolicyMarkdown } from '@easy-cookie/policy';
 
-const model = buildPolicyModel(config, 'it');            // categorie → servizi → cookie, già tradotti
+const model = buildPolicyModel(config, 'en');            // categories → services → cookies, localized
 const html = renderPolicyHtml(model, { headingLevel: 3 });
 const md = renderPolicyMarkdown(model);
 ```
 
 `buildPolicyModel(config, lang, { date?, labels? })`:
 
-- la data predefinita è quella della revisione, quando `revision` inizia con `AAAA-MM-GG`;
-- i cookie dichiarati come espressione regolare vengono mostrati in forma leggibile (`^_ga_.*$` diventa `_ga_*`), con il pattern completo nell'attributo `title`;
-- le etichette delle tabelle sono in italiano e inglese; le altre lingue usano l'inglese, e ogni etichetta si può sovrascrivere con `labels`.
+- the date defaults to the revision, when `revision` starts with `YYYY-MM-DD`;
+- cookies declared as regular expressions (`pattern: true`) are shown in a readable form (`^_ga_.*$` becomes `_ga_*`), with the full pattern in the `title` attribute;
+- table labels ship in Italian and English; other languages fall back to English, and every label can be overridden with `labels`.
 
-Opzioni di `renderPolicyHtml`:
+`renderPolicyHtml` options:
 
-| Opzione | Predefinito | |
+| Option | Default | |
 |---|---|---|
-| `headingLevel` | `2` | Livello dei titoli delle categorie. |
-| `idPrefix` | `'ec-policy-'` | Prefisso degli id delle sezioni, per esempio `#ec-policy-measurement`. |
-| `meta` | `true` | Mostra la riga "Ultimo aggiornamento · Revisione". |
-| `hideEmpty` | `false` | Salta le categorie senza servizi. |
+| `headingLevel` | `2` | Heading level of the category titles. |
+| `idPrefix` | `'ec-policy-'` | Prefix of the section ids, for example `#ec-policy-measurement`. |
+| `meta` | `true` | Shows the "Last updated · Revision" line. |
+| `hideEmpty` | `false` | Skips categories without services. |
 
-## Cosa viene generato
+## Which categories appear
 
-Per ogni categoria: titolo, descrizione e una tabella con cookie, servizio, fornitore (con il link all'informativa), durata e finalità. Le categorie necessarie hanno l'etichetta "Sempre attivi". Un servizio senza cookie dichiarati compare comunque, con un trattino.
+The policy follows the same rule as the banner: **categories follow the services**. Once the config declares at least one service, an optional category with no services is left out of the policy, just as it is left out of the banner, the preferences panel and Consent Mode (its signals stay denied). Read-only categories such as `necessary` are always listed. A config without any `services` keeps every category.
+
+So if you declare a `marketing` category but no marketing service yet, the policy won't list an empty marketing section.
+
+## What is generated
+
+For each category: the title, the description and a table with the cookie, service, provider (linked to its privacy notice), duration and purpose. Read-only categories get an "Always on" badge. A service with no declared cookies still gets a row, with a dash in the cookie column.
 
 ```html
-<div class="ec-policy" lang="it">
-  <p class="ec-policy__meta">Ultimo aggiornamento: <time datetime="2026-11-13">13 novembre 2026</time> · Revisione: 2026-11-13</p>
+<div class="ec-policy" lang="en">
+  <p class="ec-policy__meta">Last updated: <time datetime="2026-11-13">November 13, 2026</time> · Revision: 2026-11-13</p>
   <section class="ec-policy__category" id="ec-policy-measurement" data-category="measurement">
-    <h2 class="ec-policy__title">Misurazione</h2>
+    <h2 class="ec-policy__title">Measurement</h2>
     <p class="ec-policy__description">…</p>
     <div class="ec-policy__table-wrap">
       <table class="ec-policy__table">…</table>
@@ -72,11 +80,13 @@ Per ogni categoria: titolo, descrizione e una tabella con cookie, servizio, forn
 </div>
 ```
 
-L'HTML ha solo classi `ec-policy*`, nessuno stile inline: lo stili con il CSS del tuo sito. Tutti i testi sono sottoposti a escape, e un `privacyUrl` diventa link solo se è `http(s):`, `mailto:` o relativo.
+The HTML has only `ec-policy*` classes and no inline styles: style it with your site's CSS. All text is HTML-escaped, and a `privacyUrl` becomes a link only when it is `http(s):`, `mailto:` or relative.
 
-## Regole di cancellazione
+The quickest way to fill the services, with providers, privacy links and cookie durations already written, is the [service library](/docs/service-library/). Check each entry against your own setup: providers change their cookies over time.
 
-Lo stesso pacchetto espone le regole di cancellazione dei cookie per categoria, utili se gestisci la revoca in un tuo script:
+## Deletion rules
+
+The same package exposes, per category, the cookies to delete when that category is withdrawn. They are useful if you handle withdrawal in a script of your own:
 
 ```ts
 import { autoClearRules, matchesRule } from '@easy-cookie/policy';
@@ -85,13 +95,15 @@ autoClearRules(config);
 // { measurement: [{ name: '^_ga$', pattern: true, service: 'ga4' }, …], marketing: [...] }
 ```
 
-## Cosa devi scrivere tu
+Read-only categories are not included. `matchesRule(rule, cookieName)` tests one cookie name against a rule.
 
-La tabella dei cookie è solo una parte della cookie policy. Il resto è testo legale che dipende dal tuo trattamento, e easy-cookie non lo genera:
+## What you write yourself
 
-- chi è il titolare e come contattarlo;
-- le basi giuridiche e i destinatari, compresi eventuali trasferimenti fuori dallo Spazio economico europeo;
-- come revocare il consenso (indica il pulsante "Preferenze cookie");
-- i diritti dell'interessato e il reclamo al Garante.
+The cookie table is only one part of a cookie policy. The rest is legal text that depends on your processing:
 
-Fai rivedere il testo a chi segue la privacy del tuo sito.
+- who the data controller is and how to contact them;
+- the legal bases and the recipients, including any transfers outside the European Economic Area;
+- how to withdraw consent (point to the "Cookie preferences" button);
+- the data subject's rights and the right to lodge a complaint with the supervisory authority.
+
+[Legal documents](/docs/legal-documents/) gives you editable IT/EN drafts that cover these points, with placeholders for what only you know. They are drafts, not legal advice: have the text reviewed by whoever handles your site's privacy.

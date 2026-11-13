@@ -1,0 +1,128 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Service library
+description: About thirty ready-made service declarations, from GA4 to Stripe, with provider, privacy link, default category and cookies. Copy them into your config from the console or from npm, then edit them like any other service.
+---
+
+Declaring a service by hand means looking up the provider's legal entity, its privacy notice, the cookies it sets and how long they last. The service library does that work once, for the services most sites use. It lives in `@easy-cookie/core/catalog` and is shared by the console, the server CLI and npm users.
+
+The library is **plain data**. Adding an entry copies it into your config, where it becomes an ordinary service that you can edit freely. Nothing reads the library at runtime, and your config never depends on it afterwards.
+
+## What an entry contains
+
+| Field | Contents |
+|---|---|
+| `id` | Stable id, used as the default service key in the config (for example `ga4`). |
+| `label` | Name shown to visitors. |
+| `provider` | The legal entity that processes the data for EU visitors. Empty for first-party entries. |
+| `privacyUrl` | The provider's privacy notice. |
+| `group` | Browsing group: `analytics`, `advertising`, `tag-management`, `embeds`, `support`, `payments`, `security`, `infrastructure`. It is not the consent category. |
+| `category` | The default consent category: `necessary`, `functionality`, `experience`, `measurement` or `marketing`. |
+| `purpose` | What the service is for, in Italian and English. |
+| `cookies` | Cookies with their Italian and English durations and descriptions. Families of names use `pattern: true`. |
+| `transfer` | Where the service sends data and under which safeguard (for example the EU-US Data Privacy Framework), for the transfer section of the privacy policy. |
+| `note` | A note for the site owner, never shown to visitors. For example: "GTM sets no cookies, but the tags it loads do". |
+
+Durations are left out when the provider does not document them, or makes them configurable without a stable default.
+
+## Default categories
+
+Default categories follow the Italian data protection authority's 2021 cookie guidelines:
+
+| Kind of service | Default category |
+|---|---|
+| Third-party analytics | `measurement` |
+| Advertising and conversion pixels | `marketing` |
+| Embedded content (video, maps, music, booking) | `experience` |
+| Support chats | `functionality` |
+| Payments, security, infrastructure, tag management | `necessary` |
+
+Change the category when your setup differs. Sentry, for example, is `necessary` because its SDK sets no cookies; the entry's note suggests moving it to `measurement` if you turn on Session Replay.
+
+## In the console
+
+In a site's banner configuration, **Add from library** opens the list. Search, filter by group, tick several entries and add them in one go. Entries already in the draft stay listed but cannot be ticked again.
+
+- Each entry is copied into the draft as a normal service, with `from` set to the entry id.
+- If its category does not exist in the config yet, it is created with its standard title, description and Consent Mode signals.
+- From then on the service is yours: edit the label, the purpose or the cookies, or move it to another category. The live preview shows the result before you publish.
+
+Because [categories follow the services](/docs/configuration/#categories-follow-the-services), adding a service is also what makes its category appear in the banner.
+
+## From npm
+
+```ts
+import { defineConfig } from '@easy-cookie/core/shared';
+import { CATALOG, findCatalogEntry, catalogToService } from '@easy-cookie/core/catalog';
+
+export default defineConfig({
+  revision: '2026-11-13',
+  categories: { necessary: { readOnly: true }, experience: {}, measurement: {} },
+  services: {
+    ga4: catalogToService(findCatalogEntry('ga4')!),     // { category: 'measurement', …, from: 'ga4' }
+    youtube: catalogToService(findCatalogEntry('youtube')!),
+  },
+});
+```
+
+| Export | |
+|---|---|
+| `CATALOG` | Every entry, sorted by group (in the order above), then by label. |
+| `CATALOG_GROUPS` | The groups, in display order. |
+| `findCatalogEntry(id)` | The entry with that id, or `undefined`. |
+| `catalogToService(entry)` | A `ServiceDeclaration` built from the entry: label, provider, privacy URL, category, purpose and cookies, plus `from: entry.id`. It is a deep copy, so editing it never changes the library. Empty provider and privacy URL are left out. |
+
+Spread the result to change what you need:
+
+```ts
+youtube: { ...catalogToService(findCatalogEntry('youtube')!), category: 'marketing' },
+```
+
+## The services
+
+| Group | Id | Service | Provider | Default category |
+|---|---|---|---|---|
+| analytics | `amplitude` | Amplitude | Amplitude Inc. | measurement |
+| analytics | `ga4` | Google Analytics 4 | Google Ireland Ltd | measurement |
+| analytics | `hotjar` | Hotjar | Hotjar Ltd | measurement |
+| analytics | `matomo` | Matomo | InnoCraft Ltd (Matomo Cloud) | measurement |
+| analytics | `clarity` | Microsoft Clarity | Microsoft Ireland Operations Ltd | measurement |
+| analytics | `mixpanel` | Mixpanel | Mixpanel Inc. | measurement |
+| analytics | `plausible` | Plausible Analytics | Plausible Insights OÜ | measurement |
+| analytics | `posthog` | PostHog | PostHog Inc. | measurement |
+| advertising | `google-ads` | Google Ads | Google Ireland Ltd | marketing |
+| advertising | `linkedin-insight` | LinkedIn Insight Tag | LinkedIn Ireland Unlimited Company | marketing |
+| advertising | `meta-pixel` | Meta Pixel | Meta Platforms Ireland Ltd | marketing |
+| advertising | `microsoft-uet` | Microsoft Advertising (UET) | Microsoft Ireland Operations Ltd | marketing |
+| advertising | `pinterest-tag` | Pinterest Tag | Pinterest Europe Ltd | marketing |
+| advertising | `tiktok-pixel` | TikTok Pixel | TikTok Technology Limited | marketing |
+| advertising | `x-pixel` | X (Twitter) Pixel | Twitter International Unlimited Company | marketing |
+| tag-management | `gtm` | Google Tag Manager | Google Ireland Ltd | necessary |
+| embeds | `calendly` | Calendly | Calendly LLC | experience |
+| embeds | `google-maps` | Google Maps | Google Ireland Ltd | experience |
+| embeds | `spotify` | Spotify (embed) | Spotify AB | experience |
+| embeds | `vimeo` | Vimeo | Vimeo.com Inc. | experience |
+| embeds | `youtube` | YouTube | Google Ireland Ltd | experience |
+| support | `crisp` | Crisp | Crisp IM SAS | functionality |
+| support | `hubspot` | HubSpot (chat) | HubSpot Ireland Ltd | functionality |
+| support | `intercom` | Intercom | Intercom R&D Unlimited Company | functionality |
+| support | `zendesk` | Zendesk | Zendesk International Ltd | functionality |
+| payments | `paypal` | PayPal | PayPal (Europe) S.à r.l. et Cie, S.C.A. | necessary |
+| payments | `stripe` | Stripe | Stripe Payments Europe Ltd | necessary |
+| security | `recaptcha` | Google reCAPTCHA | Google Ireland Ltd | necessary |
+| security | `hcaptcha` | hCaptcha | Intuition Machines, Inc. | necessary |
+| infrastructure | `cloudflare` | Cloudflare | Cloudflare, Inc. | necessary |
+| infrastructure | `easy-cookie` | easy-cookie | first party | necessary |
+| infrastructure | `sentry` | Sentry | Functional Software, Inc. (Sentry) | necessary |
+
+The `easy-cookie` entry declares the `ec_consent` cookie itself. Its duration is written as 6 months, matching the default `expiryDays`; update it if you change that.
+
+## Check every entry
+
+The entries were checked against each provider's public cookie and privacy documentation in November 2026. They are a starting point, not a guarantee:
+
+- providers change their cookies over time;
+- some cookies depend on how you configure the service (consent mode, cookieless options, regional data storage);
+- the transfer section depends on your own contracts with the provider.
+
+Read each entry's note, compare the cookies with what your browser actually stores, and adjust the copy in your config. That copy is what the banner, the cleanup rules and the [cookie policy tables](/docs/cookie-policy/) are generated from.

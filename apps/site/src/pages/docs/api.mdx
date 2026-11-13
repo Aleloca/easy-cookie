@@ -1,17 +1,17 @@
 ---
 layout: ../../layouts/DocsLayout.astro
-title: API JavaScript
-description: I metodi e gli eventi di EasyCookieApi, l'oggetto esportato da @easy-cookie/core e disponibile come window.EasyCookie nella build per tag script. Gli adattatori React, Next e PostHog usano solo questa interfaccia.
+title: JavaScript API
+description: The methods and events of EasyCookieApi, the object exported by @easy-cookie/core and available as window.EasyCookie in the script-tag build, plus the DOM-free helpers for servers and Next.js. The React, Next and PostHog adapters use only this interface.
 ---
 
 ```ts
-import EasyCookie from '@easy-cookie/core';   // con un bundler
-window.EasyCookie                            // con la build IIFE o embed.js
+import EasyCookie from '@easy-cookie/core';   // with a bundler
+window.EasyCookie                            // with the IIFE build or embed.js
 ```
 
-Il motore è unico per pagina: c'è una sola istanza, e `run()` va chiamato una volta.
+There is one engine per page: a single instance, and `run()` is called once.
 
-## Avvio
+## Starting
 
 ### `run(config)`
 
@@ -19,15 +19,15 @@ Il motore è unico per pagina: c'è una sola istanza, e `run()` va chiamato una 
 run(config: EasyCookieConfig | { remote: { endpoint: string; siteKey: string } }): Promise<void>
 ```
 
-Avvia il runtime: mostra il banner se non c'è una scelta valida, riapplica quella salvata, monta il pulsante di riapertura e i segnaposto degli iframe. Con `remote` scarica la configurazione pubblicata dal server dei consensi.
+Starts the runtime: it shows the banner when there is no valid choice, re-applies the stored one, and mounts the reopen button and the iframe placeholders. With `remote`, it downloads the config published on the consent server.
 
 ```ts
 await EasyCookie.run({ remote: { endpoint: 'https://consent.example.com', siteKey: 'pk_live_xxx' } });
 ```
 
-Una seconda chiamata viene ignorata con un avviso in console.
+A second call is ignored, with a warning in the console.
 
-## Leggere lo stato
+## Reading the state
 
 ### `get()`
 
@@ -35,56 +35,77 @@ Una seconda chiamata viene ignorata con un avviso in console.
 get(): ConsentState | null
 ```
 
-La scelta valida corrente, oppure `null` se il visitatore non ha ancora scelto per questa revisione (o la scelta è scaduta).
+The current valid choice, or `null` when the visitor has not chosen yet for this revision (or the choice has expired).
 
 ```ts
 interface ConsentState {
-  id: string;                         // id casuale, lo stesso del registro
+  id: string;                         // random id, the same one as in the register
   revision: string;
-  categories: string[];               // accettate, necessarie comprese
-  services: Record<string, string[]>; // servizi accettati per categoria
+  categories: string[];               // accepted, necessary included
+  services: Record<string, string[]>; // accepted services per category
   method: 'accept_all' | 'reject_all' | 'custom' | 'close' | 'withdraw';
-  firstAt: string;                    // ISO, prima scelta con questo id
-  updatedAt: string;                  // ISO, ultima scelta
+  firstAt: string;                    // ISO, first choice with this id
+  updatedAt: string;                  // ISO, latest choice
   language?: string;
 }
 ```
 
-### `isGranted(category)` e `isServiceGranted(service)`
+### `isGranted(category)` and `isServiceGranted(service)`
 
 ```ts
 isGranted(category: string): boolean
 isServiceGranted(service: string): boolean
 ```
 
-`false` finché non c'è una scelta.
+Both return `false` until there is a choice.
 
 ### `getConfig()`, `getLanguage()`
 
-La configurazione risolta (con i valori predefiniti) dopo `run()`, e la lingua mostrata.
+The resolved config (with every default filled in) after `run()`, and the language currently shown.
 
-## Agire
+## Acting
 
-| Metodo | Effetto |
+| Method | Effect |
 |---|---|
-| `showBanner()` | Mostra di nuovo il primo livello. |
-| `openPreferences()` | Apre il pannello preferenze. Usalo per il link "Preferenze cookie" nel footer. |
-| `acceptAll()` | Accetta tutte le categorie. Registrato come `accept_all`. |
-| `rejectAll()` | Solo le categorie necessarie. Registrato come `reject_all`. |
-| `accept(categories, services?)` | Aggiunge queste categorie (ed eventualmente servizi) a quelle già accettate. |
-| `reset()` | Dimentica la scelta, registra una revoca (`withdraw`) e cancella il cookie. Per mostrare di nuovo il banner chiama ancora `run()` o ricarica la pagina. |
-| `setLanguage(lang)` | Cambia lingua dei testi, tra quelle in `language.available`. |
-| `identify(subjectId)` | Collega il `consentId` anonimo a un id utente sul server dei consensi. |
+| `showBanner()` | Shows the first layer again. |
+| `openPreferences()` | Opens the preferences panel. Use it for a "Cookie preferences" link in the footer. |
+| `acceptAll()` | Accepts every category. Recorded as `accept_all`. |
+| `rejectAll()` | Necessary categories only. Recorded as `reject_all`. |
+| `accept(categories, services?)` | Adds these categories (and, optionally, services) to the ones already accepted. |
+| `reset()` | Forgets the choice, records a withdrawal (`withdraw`) and deletes the cookie. To show the banner again, call `run()` again or reload the page. |
+| `setLanguage(lang)` | Switches the language of the texts, among those in `language.available`. |
+| `identify(subjectId)` | Links the anonymous `consentId` to a user id on the consent server. See below. |
 
-Chiama `acceptAll()`, `rejectAll()` e `accept()` solo in risposta a un'azione esplicita del visitatore: il consenso non si deduce.
+Call `acceptAll()`, `rejectAll()` and `accept()` only in response to an explicit action of the visitor: consent is never inferred.
 
-Senza JavaScript, qualsiasi elemento con `data-cc="show-preferencesModal"` apre il pannello:
+### `identify(subjectId)`
 
-```html
-<button type="button" data-cc="show-preferencesModal">Preferenze cookie</button>
+```ts
+identify(subjectId: string): Promise<boolean>
 ```
 
-## Eventi
+Call it after login to link the visitor's anonymous consent id to your user id, so you can later answer access and erasure requests per user (see [Consent register](/docs/consent-register/)).
+
+- It resolves `true` once the server has confirmed the link.
+- Called **before the visitor's first choice**, it resolves `false` and remembers the id: the link is made right after the visitor chooses.
+- Without a `log` block in the config there is no server to link to, and it resolves `false`.
+- The runtime waits for the consent record to reach the server before sending the link, so the two never arrive out of order.
+
+```ts
+const linked = await EasyCookie.identify(user.id);
+```
+
+### Opening the preferences without JavaScript
+
+Any element with the `data-ec-open-preferences` attribute opens the preferences panel when clicked (its default action is prevented):
+
+```html
+<a href="#" data-ec-open-preferences>Cookie preferences</a>
+```
+
+The listener is delegated on `document`, so elements added after `run()` work too, for example the `{{preferences-link}}` of a [legal document](/docs/legal-documents/). The engine's own `data-cc="show-preferencesModal"` attribute still works as well.
+
+## Events
 
 ### `on(event, callback)`
 
@@ -92,14 +113,14 @@ Senza JavaScript, qualsiasi elemento con `data-cc="show-preferencesModal"` apre 
 on(event: 'ready' | 'consent' | 'change' | 'replay', cb: (detail: ConsentEventDetail | null) => void): () => void
 ```
 
-Restituisce la funzione per annullare l'iscrizione.
+Returns a function that unsubscribes.
 
-| Evento | Quando | `detail` |
+| Event | When | `detail` |
 |---|---|---|
-| `ready` | Una volta, al termine di `run()`. | `null` |
-| `consent` | Prima scelta del visitatore per questa revisione. | `{ consent, changed: [], first: true }` |
-| `change` | Ogni modifica successiva, compresa una revoca. | `{ consent, changed: ['marketing'], first: false }` |
-| `replay` | A ogni caricamento di pagina con una scelta già salvata. | `{ consent, changed: [], first: false }` |
+| `ready` | Once, when `run()` has finished. | `null` |
+| `consent` | The visitor's first choice for this revision. | `{ consent, changed: [], first: true }` |
+| `change` | Every later change, a withdrawal included. | `{ consent, changed: ['marketing'], first: false }` |
+| `replay` | On every page load with a stored choice. | `{ consent, changed: [], first: false }` |
 
 ```ts
 const off = EasyCookie.on('change', ({ consent, changed }) => {
@@ -107,7 +128,7 @@ const off = EasyCookie.on('change', ({ consent, changed }) => {
 });
 ```
 
-Gli stessi eventi arrivano su `window` come `CustomEvent`: `easycookie:ready`, `easycookie:consent`, `easycookie:change`, `easycookie:replay`.
+The same events are dispatched on `window` as `CustomEvent`s: `easycookie:ready`, `easycookie:consent`, `easycookie:change`, `easycookie:replay`.
 
 ```js
 window.addEventListener('easycookie:consent', (e) => console.log(e.detail.consent));
@@ -119,29 +140,98 @@ window.addEventListener('easycookie:consent', (e) => console.log(e.detail.consen
 onGranted(category: string, cb: () => void): () => void
 ```
 
-Chiama `cb` subito se la categoria è già concessa, altrimenti la prima volta che lo diventa (una volta sola). È il modo più semplice per caricare uno script dal codice.
+Calls `cb` immediately when the category is already granted, otherwise the first time it becomes granted (once only). It is the simplest way to load a script from code.
 
-## Funzioni senza DOM
+## DOM-free functions
 
-Da `@easy-cookie/core/shared`, utilizzabili sul server, in fase di build o in un middleware:
+From `@easy-cookie/core/shared`, usable on the server, at build time or in middleware:
 
-| Funzione | Uso |
+| Function | Use |
 |---|---|
-| `defineConfig(config)` | Controllo dei tipi, nessun effetto a runtime. |
-| `validateConfig(config)` | Elenco dei problemi, `[]` se valida. |
-| `resolveConfig(config)` | Configurazione con tutti i valori predefiniti. |
-| `renderHeadScript(config)` | Lo snippet di Consent Mode da mettere in `<head>`. |
-| `consentFromCookieHeader(header, { revision })` | Legge la scelta da un'intestazione `Cookie`. `null` se assente, scaduta o di un'altra revisione. |
-| `parseConsent(value, { revision, expiryDays })` | Come sopra, dal valore del cookie. |
+| `defineConfig(config)` | Type checking only, no runtime effect. |
+| `validateConfig(config)` | The list of issues, `[]` when the config is valid. |
+| `resolveConfig(config)` | The config with every default filled in. |
+| `renderHeadScript(config)` | The Consent Mode snippet to put in `<head>`. |
+| `consentFromCookieHeader(header, { revision })` | Reads the choice from a `Cookie` header. `null` when missing, expired or from another revision. |
+| `parseConsent(value, { revision, expiryDays })` | The same, from the cookie value. |
 
-Non leggere `ec_consent` a mano: il formato segue quello del motore e può cambiare.
+Don't read `ec_consent` by hand: its format follows the engine's and may change.
+
+```ts
+import { consentFromCookieHeader } from '@easy-cookie/core/shared';
+
+const consent = consentFromCookieHeader(request.headers.get('cookie'), { revision: config.revision });
+if (consent?.categories.includes('measurement')) sendServerSideAnalytics();
+```
+
+## Next.js on the server
+
+`@easy-cookie/next/server` has no React, so it works in Server Components, route handlers, server actions and middleware (Edge included).
+
+| Function | Returns |
+|---|---|
+| `getServerConsent(source, config)` | `ConsentState \| null` |
+| `isGrantedOnServer(source, config, category)` | `boolean`. Read-only categories are always granted. |
+| `isServiceGrantedOnServer(source, config, service)` | `boolean` |
+| `getRemoteConfig({ endpoint, siteKey, revalidate? })` | The config published on the consent server |
+| `getLegalDocument({ endpoint, siteKey, kind, lang?, revalidate? })` | A published legal document, or `null`. See [Legal documents](/docs/legal-documents/). |
+
+`source` can be the awaited `cookies()` store, `await headers()`, `request.headers`, a `Request` / `NextRequest`, or a raw `Cookie` header string. In Next 15 and later `cookies()` is async: pass the awaited value.
+
+```ts
+import { cookies } from 'next/headers';
+import { getServerConsent, isGrantedOnServer } from '@easy-cookie/next/server';
+import config from '@/easy-cookie.config';
+
+const consent = getServerConsent(await cookies(), config);
+const marketing = isGrantedOnServer(await cookies(), config, 'marketing');
+```
+
+### When the config lives in the console
+
+If you manage the config in the [console](/docs/console/) and load it with `<EasyCookieProvider remote>`, there is no config file in your code to pass to these functions. `getRemoteConfig()` fetches the published one, cached by Next for 60 seconds by default (`revalidate`, `false` to cache indefinitely). It throws when nothing is published or the server is unreachable: when you gate tracking, treat a failure as "no consent".
+
+The typical use is gating server-side GA4 events sent through the Measurement Protocol, which never pass through the browser and so ignore the banner unless you check consent yourself:
+
+```ts
+// app/api/checkout/complete/route.ts
+import { cookies } from 'next/headers';
+import { getRemoteConfig, getServerConsent } from '@easy-cookie/next/server';
+
+const endpoint = process.env.CONSENT_ENDPOINT!;
+const siteKey = process.env.CONSENT_SITE_KEY!;
+
+export async function POST(req: Request) {
+  const order = await completeOrder(req);
+
+  let measurement = false;
+  try {
+    const config = await getRemoteConfig({ endpoint, siteKey });
+    measurement = !!getServerConsent(await cookies(), config)?.categories.includes('measurement');
+  } catch {
+    // config unavailable: treat as no consent
+  }
+
+  if (measurement) {
+    await sendGa4MeasurementProtocol({ clientId: readGaClientId(await cookies()), events: [{ name: 'purchase', params: { /* … */ } }] });
+  }
+  // Without consent, send nothing. Don't "anonymise" and send anyway: a Measurement Protocol hit carries a client id.
+  return Response.json({ ok: true });
+}
+```
+
+Rules of thumb:
+
+- Read consent **at request time**, in the handler that has the visitor's cookies.
+- For events fired later from webhooks or queues, store the boolean (and `consent.id`) with the order or other domain object at request time, and check that stored value.
+- The GA client id comes from the `_ga` cookie, which only exists after consent. When it is missing, skip the event.
 
 ## React
 
-`useConsent()` da `@easy-cookie/react` espone le stesse cose e fa ridisegnare il componente su `consent`, `change` e `replay`:
+`useConsent()` from `@easy-cookie/react` exposes the same things and re-renders the component on `consent`, `change` and `replay`:
 
 ```tsx
 const { consent, ready, isGranted, isServiceGranted, openPreferences, acceptAll, rejectAll, accept } = useConsent();
 ```
 
-`useEasyCookie()` dà accesso all'istanza (`api`), alla configurazione e alla lingua. Componenti: `ConsentGate`, `ConsentScript`, `ConsentEmbed`, `PreferencesLink`.
+`useEasyCookie()` gives access to the instance (`api`), the config and the language. Components: `ConsentGate`, `ConsentScript`, `ConsentEmbed`, `PreferencesLink`.

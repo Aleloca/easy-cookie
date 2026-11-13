@@ -1,0 +1,141 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Prior blocking
+description: How to stop third-party scripts, pixels and iframes from running before consent, with type="text/plain" and data-category markup, and how the iframe placeholders work.
+---
+
+Prior blocking is the first obligation: no non-technical cookie or tracker before consent (art. 5(3) of the ePrivacy Directive; art. 122 of the Italian Privacy Code). easy-cookie doesn't guess what to block. You declare it in the markup, tag by tag, and the runtime activates it when the category (or the single service) is accepted.
+
+## Scripts
+
+A `<script>` with `type="text/plain"` is not executed by the browser. Add `data-category` with the category id and, for external scripts, move `src` to `data-src`:
+
+```html
+<!-- External script: runs only after consent to "measurement" -->
+<script type="text/plain" data-category="measurement" data-service="ga4"
+        data-src="https://www.googletagmanager.com/gtag/js?id=G-XXXX"></script>
+
+<!-- Inline script: same mechanism -->
+<script type="text/plain" data-category="measurement" data-service="ga4">
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-XXXX');
+</script>
+```
+
+When the visitor accepts, the runtime creates a new `<script>` with the same attributes, the original type and the real `src`. External scripts load one after the other, in document order, so an inline script that depends on an external library finds the library already loaded.
+
+| Attribute | Use |
+|---|---|
+| `type="text/plain"` | Required. Prevents execution. |
+| `data-category="id"` | The category the script depends on. |
+| `data-service="id"` | Optional. The script runs when that service is accepted, even if the visitor did not accept the whole category. |
+| `data-src="…"` | Address of the external script. |
+| `data-type="module"` | The type to use when the script is revived (for example an ES module). |
+| `data-category="!id"` | The opposite: the script runs when the category is **rejected or withdrawn**. Useful to switch on a cookieless alternative. |
+
+### Scripts that already ran, and withdrawal
+
+A script that has already run cannot be "unloaded". When the visitor withdraws a category:
+
+1. the cookies declared by that category's services are deleted;
+2. Consent Mode receives an `update` with the denied signals;
+3. the page reloads, so the withdrawn scripts are no longer in memory.
+
+You can turn off the reload with `ui.reloadOnWithdraw: false` when the scripts involved can stop on their own (for example PostHog with [the adapter](/docs/posthog/)).
+
+### Cookies to delete
+
+Cleanup uses the cookies declared in `services.*.cookies`. Declare them all, including the ones set by the provider's library, with `pattern: true` for families of names:
+
+```ts
+cookies: [
+  { name: '^_ga', pattern: true, duration: { it: '2 anni', en: '2 years' } },
+  { name: '_gid', duration: { it: '24 ore', en: '24 hours' } },
+],
+```
+
+The declarations in the [service library](/docs/service-library/) already list the known cookies of each service.
+
+Cookies set on third-party domains (for example `.youtube.com`) cannot be deleted from your site: declare them with `domain` so they appear in the policy, knowing that cleanup only works for first-party cookies.
+
+## Iframes and embedded content
+
+Videos, maps and embedded social posts set cookies as soon as the iframe loads. Leave `src` empty and put the address in `data-src`:
+
+```html
+<iframe data-category="experience" data-service="youtube"
+        data-src="https://www.youtube-nocookie.com/embed/VIDEO_ID"
+        width="560" height="315" title="Video: product walkthrough"></iframe>
+```
+
+While the category is off, the iframe stays empty and hidden, and a placeholder with the same proportions (computed from `width` and `height`) takes its place. The placeholder says which service and which category are needed, and offers two choices:
+
+- **Show content** loads this iframe only, now, without storing a consent;
+- **Always enable "Experience"** accepts the whole category and records the choice.
+
+Change the placeholder's text with `texts.<lang>.embed` and its look with the `--ec-*` variables (see [Theming](/docs/theming/)).
+
+React has an equivalent component:
+
+```tsx
+import { ConsentEmbed } from '@easy-cookie/react';
+
+<ConsentEmbed
+  category="experience"
+  service="youtube"
+  src="https://www.youtube-nocookie.com/embed/VIDEO_ID"
+  title="Product walkthrough"
+  width={560}
+  height={315}
+  allowFullScreen
+/>
+```
+
+## Scripts loaded from code
+
+If you load a script from your own JavaScript instead of the markup, wait for consent with `onGranted`:
+
+```ts
+EasyCookie.onGranted('marketing', () => {
+  const s = document.createElement('script');
+  s.src = 'https://connect.facebook.net/en_US/fbevents.js';
+  document.head.appendChild(s);
+});
+```
+
+The callback runs immediately if the category is already granted, and otherwise the first time it becomes granted. In React, `<ConsentScript>` and `<ConsentGate>` do the same job.
+
+## On the server
+
+Blocking in the browser does not cover the calls your server makes to third parties on the visitor's behalf, such as the GA4 Measurement Protocol. Read consent from the request and send nothing without it:
+
+```ts
+import { consentFromCookieHeader } from '@easy-cookie/core/shared';
+
+const consent = consentFromCookieHeader(request.headers.get('cookie'), { revision: config.revision });
+if (consent?.categories.includes('measurement')) await sendServerSideAnalytics();
+```
+
+In Next.js, use `getServerConsent()` from `@easy-cookie/next/server`. When the config is managed in the console rather than in your code, load it on the server with `getRemoteConfig({ endpoint, siteKey })` from the same entry; it throws when the config is unavailable, so treat a failure as "no consent".
+
+```ts
+import { cookies } from 'next/headers';
+import { getRemoteConfig, isGrantedOnServer } from '@easy-cookie/next/server';
+
+const config = await getRemoteConfig({ endpoint, siteKey }).catch(() => null);
+if (config && isGrantedOnServer(await cookies(), config, 'measurement')) {
+  await sendGa4MeasurementProtocol(/* … */);
+}
+```
+
+For events sent later from webhooks or queues, which have no browser cookies, store the decision (and `consent.id`) with the order or the domain object at request time, and check that stored value.
+
+## What is left to you
+
+easy-cookie only blocks what you mark. Before going live:
+
+- search your code and templates for every third-party tag, including the ones added by CMS plugins;
+- check fonts and libraries loaded from third-party CDNs, which can transmit the visitor's IP address;
+- open the site in a private window and check in the Network tab that no requests go to third parties before the choice.

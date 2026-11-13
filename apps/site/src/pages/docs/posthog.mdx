@@ -1,30 +1,30 @@
 ---
 layout: ../../layouts/DocsLayout.astro
 title: PostHog
-description: L'adattatore @easy-cookie/posthog tiene PostHog allineato al consenso senza ricaricare la pagina. Niente prima della scelta, modalità cookieless dopo un rifiuto, cattura completa dopo l'accettazione.
+description: The @easy-cookie/posthog adapter keeps PostHog in sync with consent, with no page reload. Nothing (or cookieless counting) before the choice, cookieless mode after a rejection, full capture after an acceptance.
 ---
 
-PostHog può contare le visite anche senza cookie, con la modalità **cookieless**. L'adattatore la usa così:
+PostHog can count visits without cookies, in **cookieless** mode. The adapter uses it like this:
 
-| Stato del visitatore | PostHog |
+| Visitor state | PostHog |
 |---|---|
-| Nessuna scelta | Non cattura nulla. |
-| Ha rifiutato `measurement` | Solo cookieless: nessun cookie, nessuno storage, nessun profilo persona. Autocapture, eccezioni, web vitals e heatmap vengono scartati. |
-| Ha accettato `measurement` | Cattura normale con cookie, poi `identify()` per gli utenti autenticati. |
+| No choice yet | Captures nothing (default). With `beforeChoice: 'cookieless'`, counts visits without cookies, as after a rejection. |
+| Rejected `measurement` | Cookieless only: no cookies, no storage, no person profiles. Autocapture, exceptions, web vitals and heatmaps are dropped. |
+| Accepted `measurement` | Normal capture with cookies, then `identify()` for logged-in users. |
 
-Il passaggio da uno stato all'altro avviene senza ricaricare la pagina.
+Switching from one state to another happens without reloading the page.
 
-## Requisiti
+## Requirements
 
-- `posthog-js` con il supporto a `cookieless_mode` (1.200 o successiva).
-- Nelle impostazioni del progetto PostHog, **Cookieless server hash mode** attivo. Senza, gli eventi cookieless vengono scartati dal server di PostHog.
-- PostHog inizializzato con `cookieless_mode: 'on_reject'`. `posthogInitOptions()` lo fa per te.
+- `posthog-js` with `cookieless_mode` support (1.200 or later).
+- **Cookieless server hash mode** enabled in the PostHog project settings. Without it, PostHog's server discards cookieless events.
+- PostHog initialised with `cookieless_mode: 'on_reject'`. `posthogInitOptions()` does this for you.
 
 ```sh
 pnpm add @easy-cookie/posthog posthog-js
 ```
 
-## Uso
+## Usage
 
 ```ts
 import posthog from 'posthog-js';
@@ -37,12 +37,12 @@ posthog.init('phc_…', {
 });
 
 const disconnect = connectPostHog(posthog, EasyCookie, {
-  category: 'measurement',            // predefinita
-  identify: () => session?.user?.id,  // facoltativa, chiamata solo dopo l'opt-in
+  category: 'measurement',            // default
+  identify: () => session?.user?.id,  // optional, called after opt-in only
 });
 ```
 
-Con React, collegalo in un effetto dentro il provider:
+With React, connect it in an effect inside the provider:
 
 ```tsx
 'use client';
@@ -58,40 +58,68 @@ export function PostHogConsent({ userId }: { userId?: string }) {
 }
 ```
 
-Nel markup **non** bloccare lo script di PostHog con `type="text/plain"`: deve caricarsi per poter contare in modalità cookieless. È l'adattatore a decidere cosa può fare.
+Do **not** block the PostHog script with `type="text/plain"` in your markup: it has to load to count in cookieless mode. The adapter decides what it may do.
 
 ## API
 
-### `connectPostHog(posthog, api, opzioni)`
+### `connectPostHog(posthog, api, options)`
 
-Ascolta gli eventi `replay`, `consent` e `change` e applica subito lo stato attuale, nel caso la scelta salvata sia stata riapplicata prima del collegamento.
+The adapter listens to the `ready`, `replay`, `consent` and `change` events and applies the current state immediately, in case the stored choice was replayed before you connected. It waits until the runtime has read the stored choice, so a returning visitor who accepted is never opted out by mistake.
 
-- **Concesso:** `posthog.opt_in_capturing()` (se non lo è già), poi `posthog.identify(id)` quando `identify()` restituisce un id diverso dall'attuale.
-- **Non concesso, con una scelta:** `posthog.opt_out_capturing()`. Con `on_reject`, PostHog continua a contare in forma anonima e senza cookie.
-- **Nessuna scelta:** non fa nulla.
+- **Granted:** it calls `posthog.opt_in_capturing()` (skipped when already opted in), then `posthog.identify(id)` when `identify()` returns an id that differs from the current one.
+- **Not granted, with a choice:** it calls `posthog.opt_out_capturing()`. With `on_reject`, PostHog keeps counting anonymously and without cookies.
+- **No choice yet:** with the default `beforeChoice: 'pending'` it captures nothing, and clears an opt-in left in storage by an earlier setup. With `'cookieless'` it opts out, so PostHog counts cookieless.
 
-Restituisce una funzione per scollegarsi. Con `service: 'posthog'` segue l'interruttore del singolo servizio invece della categoria.
+Opt-in does **not** send a `$opt_in` event: easy-cookie already records the consent in its own register.
 
-### `posthogInitOptions(opzioni)`
+It returns a function that disconnects the adapter.
+
+| Option | Default | Effect |
+|---|---|---|
+| `category` | `'measurement'` | Category that allows PostHog cookies and person profiles. |
+| `service` | — | Decide on this service's consent instead of the category, for example `'posthog'`. |
+| `identify` | — | Returns the logged-in user id. Called after opt-in only, so the identified profile exists only with consent. |
+| `beforeChoice` | `'pending'` | `'pending'`: capture nothing until the visitor chooses. `'cookieless'`: count visits without cookies before the choice, as after a rejection. Use it only when your privacy policy covers cookieless measurement without consent. |
+| `sessionReplay` | `false` | Start session recording on opt-in and stop it on opt-out. |
+
+With `sessionReplay`, a visitor who accepts while PostHog is in cookieless mode (before the choice with `beforeChoice: 'cookieless'`, or after an earlier rejection) gets session replay started **on the same page**, without waiting for the next page load. If a different `posthog-js` version does not allow the restart, recording simply starts on the next page.
+
+### `posthogInitOptions(options?)`
+
+Returns the recommended init options. Spread your own options after it:
 
 ```ts
 {
   cookieless_mode: 'on_reject',
-  persistence: 'localStorage+cookie',   // usata solo dopo l'opt-in
+  persistence: 'localStorage+cookie',   // used only after opt-in
   person_profiles: 'identified_only',
-  before_send: consentBeforeSend(opzioni),
+  before_send: consentBeforeSend(options),
 }
 ```
 
 ### `consentBeforeSend({ category?, api?, isGranted?, drop? })`
 
-Un filtro `before_send`. Senza consenso scarta `$autocapture`, `$rageclick`, `$dead_click`, `$exception`, `$web_vitals` e `$$heatmap` (l'elenco `NON_ESSENTIAL_EVENTS`, sostituibile con `drop`). Le pageview e i tuoi eventi restano.
+A `before_send` filter. Without consent it drops `$autocapture`, `$rageclick`, `$dead_click`, `$exception`, `$web_vitals` and heatmap events (`$$heatmap`, `$heatmap`). The list is exported as `NON_ESSENTIAL_EVENTS`, and you can replace it with `drop`. Pageviews and your own events are kept.
 
-Per sapere se c'è consenso usa, nell'ordine: `isGranted` se lo passi; il runtime se passi `api`; altrimenti lo stato pubblicato dallo snippet in `<head>` (`window.__easyCookieHead`), disponibile anche prima che il runtime sia caricato.
+To decide whether there is consent, it uses, in order:
 
-## Nella cookie policy
+1. `isGranted`, when you pass it;
+2. the runtime, when you pass `api`;
+3. otherwise the state published by the head snippet (`window.__easyCookieHead`), which is available before the runtime has loaded.
 
-Dichiara PostHog come servizio della categoria `measurement`, con i suoi cookie, così compare nel banner e nella policy:
+## In the cookie policy
+
+Declare PostHog as a service of the `measurement` category, with its cookies, so it appears in the banner and in the policy. The [service library](/docs/service-library/) has a ready-made `posthog` entry:
+
+```ts
+import { catalogToService, findCatalogEntry } from '@easy-cookie/core/catalog';
+
+services: {
+  posthog: catalogToService(findCatalogEntry('posthog')!),
+},
+```
+
+Or declare it by hand:
 
 ```ts
 posthog: {
@@ -103,4 +131,4 @@ posthog: {
 },
 ```
 
-La modalità cookieless dopo un rifiuto non usa cookie, ma tratta comunque dati di navigazione: descrivila nella tua informativa e verifica con chi segue la privacy del sito che la base giuridica sia adeguata.
+Cookieless mode uses no cookies, but it still processes browsing data. Describe it in your privacy notice, and check with whoever handles your site's privacy that the legal basis is adequate.

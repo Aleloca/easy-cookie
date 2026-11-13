@@ -1,7 +1,6 @@
 ---
-// Adds a "Copia" button to every highlighted code block (progressive enhancement).
-const { lang = 'it' } = Astro.props as { lang?: 'it' | 'en' };
-const labels = lang === 'en' ? { copy: 'Copy', done: 'Copied' } : { copy: 'Copia', done: 'Copiato' };
+// Adds a "Copy" button to every highlighted code block (progressive enhancement).
+const labels = { copy: 'Copy', done: 'Copied' };
 ---
 <script is:inline define:vars={{ labels }}>
   document.querySelectorAll('pre.astro-code').forEach((pre) => {

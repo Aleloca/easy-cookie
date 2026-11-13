@@ -1,0 +1,64 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Introduction
+description: What easy-cookie is, which parts of Iubenda it replaces, and how the banner, prior blocking, Consent Mode, the consent register and the policies fit together.
+---
+
+easy-cookie is an open-source (MIT) and self-hosted cookie consent solution. It replaces the parts of Iubenda that a small or medium site needs: the banner with its preferences panel, prior blocking of scripts, Google Consent Mode v2, the consent register, the cookie policy tables and the legal documents that go with them.
+
+There is no third-party service in the middle. The code runs in your visitors' browsers and, if you want proof of consent, on your own server.
+
+## One config, five outputs
+
+Everything starts from a single configuration object, in plain JSON. You declare categories, services and cookies once, and easy-cookie derives:
+
+| From `config` | Output |
+|---|---|
+| `categories`, `texts` | The **banner** and the preferences panel, in Italian and English |
+| `categories`, `services` | **Prior blocking** of scripts and iframes, and cookie cleanup when consent is withdrawn |
+| `categories[].gcm` | The **Google Consent Mode v2** states: the `default` in `<head>` and every `update` |
+| `revision`, `log` | An entry in the **consent register** for every choice, with the revision that was accepted |
+| `services[].cookies` | The **cookie table** of the cookie policy |
+
+Because there is only one source, what the visitor reads in the banner, what gets blocked and what the policy says cannot drift apart.
+
+You don't have to write the services by hand: the [service library](/docs/service-library/) ships about thirty ready-made declarations (GA4, Meta Pixel, YouTube, Stripe and more) that you copy into the config and edit.
+
+## The packages
+
+Every package is published on npm under the `@easy-cookie` scope, and they all share one version number.
+
+| Package | What it does |
+|---|---|
+| `@easy-cookie/core` | The browser runtime: banner, preferences, blocking, Consent Mode, sending records. ESM and `<script>` (IIFE) builds plus the stylesheet. Also `@easy-cookie/core/shared` (config types, validation, head snippet, server-side cookie reader) and `@easy-cookie/core/catalog` (the service library). |
+| `@easy-cookie/react` | Provider, `useConsent()` hook, and components that load scripts and iframes after consent. |
+| `@easy-cookie/next` | The Consent Mode snippet in `<head>`, consent checks on the server, and published legal documents and config fetched for Server Components, for the Next.js App Router. |
+| `@easy-cookie/policy` | Cookie policy tables (HTML, Markdown or React) from the same config, and the Markdown renderer for legal documents. |
+| `@easy-cookie/posthog` | Keeps PostHog in sync with consent, with cookieless mode after a rejection. |
+
+Next to the packages, the repository contains the **consent server** (Node and Postgres) and its **admin console**. The server hosts the published config, keeps the consent register and serves the legal documents; the console is where you edit the banner, add services from the library, write the policies and search the register. See [Self-hosting](/docs/self-hosting/) and [Admin console](/docs/console/).
+
+## The rules you cannot get wrong
+
+Some rules from the Italian data protection authority's 2021 cookie guidelines and from the EDPB cookie banner taskforce are not options: they are built into the banner and integrators cannot turn them off.
+
+- **Accept** and **Reject** carry the same weight: two equal halves of one row.
+- The **X closes the banner and counts as a rejection**, recorded as `close` in the register.
+- Non-necessary categories start **off**. Scrolling the page never counts as consent.
+- The banner **comes back** when you change `revision`, or after `expiryDays` (182 days, about 6 months).
+- A **button to reopen the preferences** is always available, and withdrawing is as easy as accepting.
+
+The point-by-point checklist is on the [Compliance](/docs/compliance/) page.
+
+## What it doesn't do
+
+- It does not implement IAB TCF, non-EU regimes or geolocation.
+- It does not scan your site for cookies, and it does not block known domains automatically. Blocking is declared in the markup, as with Iubenda's manual tags.
+- It does not generate legal texts for you. The console ships editable Italian and English **drafts** of a cookie policy, a privacy policy and terms, with every owner-specific value left as a placeholder. They are a starting point to be completed and reviewed by a professional, not legal advice. See [Legal documents](/docs/legal-documents/).
+
+## Where to start
+
+- To see it working: [Quick start](/docs/quick-start/).
+- Coming from Iubenda: [Migrating from Iubenda](/docs/migrating-from-iubenda/).
+- Running your own consent server: [Self-hosting](/docs/self-hosting/).
+- Proving consent to an auditor: [Consent register](/docs/consent-register/).

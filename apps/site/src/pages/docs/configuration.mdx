@@ -1,0 +1,256 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Configuration
+description: Complete reference of the configuration object. Every field with its type, default and an example, from the same source the code uses (EasyCookieConfig).
+---
+
+The config is a plain JSON object. The consent server stores it, versions it and delivers it to sites, so it must survive `JSON.stringify` unchanged: no functions and no `RegExp` (cookie regular expressions are written as strings with `pattern: true`).
+
+In TypeScript, `defineConfig()` does nothing at runtime but gives you type checking:
+
+```ts
+import { defineConfig } from '@easy-cookie/core/shared';
+
+export default defineConfig({
+  revision: '2026-11-13',
+  categories: { necessary: { readOnly: true }, measurement: {} },
+});
+```
+
+`validateConfig(config)` returns the list of problems it finds (empty when the config is valid). The runtime runs it on start and writes warnings to the console; the server runs it before publishing a revision and refuses invalid configs.
+
+A recurring type is `Localized`: a string, or a map from language to string, for example `{ it: '2 anni', en: '2 years' }`.
+
+## Top-level fields
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `revision` | `string` | **required** | Policy revision. When it changes, every visitor sees the banner again. A date works well: `'2026-11-13'`. |
+| `expiryDays` | `number` | `182` | Days after which the choice expires and the banner comes back. Between 1 and 395. |
+| `categories` | `Record<string, CategoryDeclaration>` | **required** | At least one category, and at least one with `readOnly: true`. |
+| `services` | `Record<string, ServiceDeclaration>` | `{}` | Third-party services and their cookies. |
+| `policyUrl` | `Localized` | none | Link to the cookie policy on the first layer of the banner. |
+| `language` | object | `{ default: 'it' }` | See [language](#language). |
+| `cookie` | object | see below | The technical cookie that remembers the choice. |
+| `googleConsentMode` | object | disabled | See [googleConsentMode](#googleconsentmode). |
+| `log` | object | none | Consent server. Without it, no record is sent. |
+| `ui` | object | see below | Position, reopen button, colour scheme. |
+| `texts` | `Record<lang, DeepPartial<Texts>>` | IT/EN texts included | Overrides any text, per language. |
+| `respectGpc` | `boolean` | `true` | A Global Privacy Control signal counts as a rejection. |
+| `hideFromBots` | `boolean` | `true` | Does not show the banner to crawlers and automated browsers. |
+
+## categories
+
+Category ids are free strings (letters, digits, `_` and `-`). Five ids come with a title, a description, a colour and Consent Mode signals, and match Iubenda's purposes 1–5:
+
+| Id | Iubenda purpose | Default Consent Mode signals |
+|---|---|---|
+| `necessary` | 1 · Strictly necessary | `security_storage` |
+| `functionality` | 2 · Basic interactions and functionalities | `functionality_storage` |
+| `experience` | 3 · Experience enhancement | `personalization_storage` |
+| `measurement` | 4 · Measurement | `analytics_storage` |
+| `marketing` | 5 · Targeting and advertising | `ad_storage`, `ad_user_data`, `ad_personalization` |
+
+Any other id works the same way once you give it a title and its signals: `analytics: { title: …, gcm: ['analytics_storage'] }` behaves exactly like `measurement`.
+
+Each category is a `CategoryDeclaration`:
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `readOnly` | `boolean` | `false` | Always on, cannot be turned off. Use it only for technical cookies. |
+| `title` | `Localized` | from the known id, otherwise the id | Title in the preferences panel. |
+| `description` | `Localized` | from the known id, otherwise empty | Explanation for the visitor. |
+| `gcm` | `GcmSignal[]` | from the known id, otherwise `[]` | Signals granted when the category is accepted. |
+| `color` | `string` | from the known id | Colour of the category module in the banner. Any CSS colour. |
+
+```ts
+categories: {
+  necessary: { readOnly: true },
+  measurement: {},
+  newsletter: {
+    title: { it: 'Newsletter', en: 'Newsletter' },
+    description: { it: 'Misura le aperture delle email.', en: 'Measures email opens.' },
+    gcm: ['analytics_storage'],
+    color: '#0f7f86',
+  },
+},
+```
+
+The allowed `GcmSignal` values are `ad_storage`, `ad_user_data`, `ad_personalization`, `analytics_storage`, `functionality_storage`, `personalization_storage` and `security_storage`.
+
+### Categories follow the services
+
+As with Iubenda, the banner only asks about what the site actually uses. Once `services` declares at least one service, an optional category with no services is left out of:
+
+- the banner and the preferences panel;
+- the generated cookie policy;
+- Consent Mode: its signals are never granted.
+
+Read-only categories (`necessary`) are always shown. A config without any `services` keeps every category, for setups that only use blocked script tags.
+
+In practice you can keep the standard set of categories in every config and let the declared services decide which ones the visitor is asked about. Adding a marketing pixel later makes the `marketing` category appear; remember to bump `revision` so returning visitors are asked again.
+
+## services
+
+A service links a provider to a category and declares its cookies. From it come the tables in the preferences panel, the cookie cleanup on withdrawal and the [cookie policy tables](/docs/cookie-policy/). The [service library](/docs/service-library/) has ready-made declarations for about thirty common services.
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `category` | `string` | **required** | Id of a declared category. |
+| `label` | `Localized` | the service id | Name shown to the visitor. |
+| `provider` | `string` | none | The provider's legal name. |
+| `purpose` | `Localized` | none | What it is for, in one line. |
+| `privacyUrl` | `string` | none | The provider's privacy notice. |
+| `cookies` | `CookieDeclaration[]` | `[]` | Cookies the service sets. |
+| `from` | `string` | none | Id of the library entry the service was copied from. Informational only: nothing depends on it at runtime. |
+
+Each `CookieDeclaration`:
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `name` | `string` | **required** | Exact name, or the source of a regular expression when `pattern` is `true`. |
+| `pattern` | `boolean` | `false` | Treat `name` as a regular expression, for example `'^_ga'`. |
+| `duration` | `Localized` | none | Human-readable duration: `{ it: '2 anni', en: '2 years' }`. |
+| `description` | `Localized` | none | What the single cookie is for. |
+| `domain` | `string` | the site's domain | The cookie's domain, when it is third-party (`.youtube.com`). |
+
+```ts
+services: {
+  ga4: {
+    category: 'measurement',
+    label: 'Google Analytics 4',
+    provider: 'Google Ireland Ltd',
+    purpose: { it: 'Statistiche sulle visite', en: 'Visit statistics' },
+    privacyUrl: 'https://policies.google.com/privacy',
+    cookies: [{ name: '^_ga', pattern: true, duration: { it: '2 anni', en: '2 years' } }],
+  },
+},
+```
+
+## cookie
+
+The technical cookie in which the browser remembers the choice. It is first-party and holds no personal data beyond a random id.
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `cookie.name` | `string` | `'ec_consent'` | Change it only when two instances share the same domain. |
+| `cookie.domain` | `string` | the current domain | For example `.example.com`, to share the choice across subdomains. |
+| `cookie.path` | `string` | `'/'` | |
+| `cookie.sameSite` | `'Lax' \| 'Strict' \| 'None'` | `'Lax'` | `None` requires `secure: true`. |
+| `cookie.secure` | `boolean` | `true` | Applied on HTTPS only. |
+
+## language
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `language.default` | `string` | `'it'` | Fallback language for the texts. |
+| `language.available` | `string[]` | `[default]` | Languages offered. Italian and English ship with every text. |
+| `language.autoDetect` | `'document' \| 'browser' \| false` | `'document'` | `document` reads `<html lang>`, `browser` reads `navigator.language`. |
+
+## googleConsentMode
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `enabled` | `boolean` | `false` | Turns on the `gtag('consent', …)` commands. |
+| `waitForUpdate` | `number` | `500` | Milliseconds GTM waits for an `update` before firing tags, only when there is no choice yet. |
+| `adsDataRedaction` | `boolean` | `true` | Sets `ads_data_redaction` when `ad_storage` is denied. |
+| `urlPassthrough` | `boolean` | `false` | Sets `url_passthrough`. |
+| `region` | `string[]` | all | ISO 3166-2 codes the defaults apply to (for example the EEA list). |
+| `dataLayerName` | `string` | `'dataLayer'` | Name of the GTM data layer. |
+| `eventName` | `string` | `'easy_cookie_update'` | Event pushed to the data layer on the first choice and on every change. When migrating, set it to the event your GTM triggers already use. |
+
+How to use them with Tag Manager: [Google Consent Mode v2 and GTM](/docs/consent-mode/).
+
+## log
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `log.endpoint` | `string` | **required** | Address of the consent server, for example `https://consent.example.com`. |
+| `log.siteKey` | `string` | **required** | The site's public key, `pk_…`. It is write-only and safe to put in HTML. |
+| `log.requireLog` | `boolean` | `false` | Keeps the banner open, with an error message, until the server confirms the record. |
+
+Without `requireLog`, the cookie is written immediately and the record is sent with `keepalive`. If the server does not answer, the record stays queued in the browser and is retried on the next visit.
+
+## ui
+
+| Field | Type | Default | Notes |
+|---|---|---|---|
+| `ui.position` | `'bottom-left' \| 'bottom-right' \| 'bottom' \| 'center'` | `'bottom-left'` | Banner position. Below 640px it becomes a full-width panel at the bottom. |
+| `ui.reopenButton` | `boolean \| { position?, hideOn? }` | `true` | Fixed button that reopens the preferences. `hideOn` takes path prefixes, for example `['/dashboard']`. |
+| `ui.colorScheme` | `'light' \| 'dark' \| 'auto'` | `'light'` | `auto` follows `prefers-color-scheme`. |
+| `ui.reloadOnWithdraw` | `boolean` | `true` | Reloads the page when a previously granted category is withdrawn, because scripts that already ran cannot be unloaded. |
+| `ui.serviceToggles` | `boolean` | `true` | Per-service toggles inside each category. |
+
+If you hide the button with `hideOn`, still offer a "Cookie preferences" link on those pages (in the footer or in the account settings), with `data-ec-open-preferences` or `EasyCookie.openPreferences()`. Withdrawing must stay as easy as accepting.
+
+## texts
+
+Every visitor-facing text can be overridden, per language. Give only the keys you change:
+
+```ts
+texts: {
+  en: {
+    banner: { title: 'Cookies, only if you want them' },
+    preferences: { save: 'Confirm' },
+  },
+  it: {
+    banner: { title: 'Cookie, solo se vuoi' },
+  },
+},
+```
+
+| Section | Keys |
+|---|---|
+| `banner` | `title`, `description`, `acceptAll`, `rejectAll`, `customize`, `close`, `policyLink`, `legendOn`, `legendOff`, `legendAlways` |
+| `preferences` | `title`, `intro`, `acceptAll`, `rejectAll`, `save`, `close`, `alwaysOn`, `services`, `serviceCounter` (`'singular\|plural'`), `cookieName`, `cookieDuration`, `cookieDescription`, `provider`, `privacyPolicy`, `noCookies` |
+| `reopen` | `label` |
+| `embed` | `blocked` (with the `{service}` and `{category}` placeholders), `enable`, `enableAlways` |
+| `errors` | `logFailed` |
+
+Don't write texts that push visitors to accept ("Continue browsing", "Accept for a better experience"): the guidelines ask for a neutral notice.
+
+## Full example
+
+```ts
+import { defineConfig } from '@easy-cookie/core/shared';
+
+export default defineConfig({
+  revision: '2026-11-13',
+  expiryDays: 182,
+  policyUrl: { it: '/cookie-policy', en: '/en/cookie-policy' },
+  language: { default: 'it', available: ['it', 'en'], autoDetect: 'document' },
+  cookie: { name: 'ec_consent', sameSite: 'Lax', secure: true },
+  googleConsentMode: { enabled: true, waitForUpdate: 500, adsDataRedaction: true },
+  log: { endpoint: 'https://consent.example.com', siteKey: 'pk_live_xxx' },
+  ui: { position: 'bottom-left', reopenButton: { hideOn: ['/dashboard'] }, colorScheme: 'auto' },
+  categories: {
+    necessary: { readOnly: true },
+    experience: {},
+    measurement: {},
+    marketing: {},
+  },
+  services: {
+    youtube: {
+      category: 'experience',
+      label: 'YouTube',
+      provider: 'Google Ireland Ltd',
+      privacyUrl: 'https://policies.google.com/privacy',
+      cookies: [{ name: 'VISITOR_INFO1_LIVE', domain: '.youtube.com', duration: { it: '6 mesi', en: '6 months' } }],
+    },
+    ga4: {
+      category: 'measurement',
+      label: 'Google Analytics 4',
+      provider: 'Google Ireland Ltd',
+      privacyUrl: 'https://policies.google.com/privacy',
+      cookies: [{ name: '^_ga', pattern: true, duration: { it: '2 anni', en: '2 years' } }],
+    },
+    meta: {
+      category: 'marketing',
+      label: 'Meta Pixel',
+      provider: 'Meta Platforms Ireland Ltd',
+      privacyUrl: 'https://www.facebook.com/privacy/policy',
+      cookies: [{ name: '_fbp', duration: { it: '3 mesi', en: '3 months' } }],
+    },
+  },
+});
+```

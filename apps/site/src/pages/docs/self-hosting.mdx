@@ -1,0 +1,141 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Self-hosting
+description: Run the consent server yourself, with Docker Compose or with Node, pm2, nginx and Postgres. Environment variables, the reverse proxy, allowed origins and the command line.
+---
+
+The consent server is one Node service on top of Postgres. It hosts the published banner config, the consent register, the legal documents and the [admin console](/docs/console/) at `/admin`. One instance serves all your sites, each with its own keys.
+
+There are two supported ways to run it:
+
+| Option | When to choose it |
+|---|---|
+| [Docker Compose](#docker-compose) | The quickest start. Postgres and the server in two containers. |
+| [Node + pm2 + nginx](#node-pm2-and-nginx) | A VPS that already runs nginx, pm2 and Postgres, without Docker. A deploy script handles releases. |
+
+Either way, put the server behind a TLS reverse proxy on its own subdomain, for example `consent.example.com`.
+
+## Docker Compose
+
+From the repository root:
+
+```sh
+cp apps/server/.env.example .env
+# set ADMIN_EMAIL, ADMIN_PASSWORD, PUBLIC_URL and POSTGRES_PASSWORD
+docker compose up -d --build
+```
+
+`docker-compose.yml` starts Postgres 17 and the server on port `8787`. The image builds the browser runtime of `@easy-cookie/core` and the legal stylesheet of `@easy-cookie/policy` (both served under `/static`), the console (served under `/admin`) and the server itself. On every start it applies the database migrations. On the first start, when there is no admin yet, it creates one from `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
+
+Then open `http://localhost:8787/admin/` and sign in. Check that the server and the database answer:
+
+```sh
+curl http://localhost:8787/health
+# {"ok":true,"db":true}
+```
+
+## Node, pm2 and nginx
+
+`scripts/deploy-pm2.sh` deploys the server to a host that runs nginx, pm2 and Postgres, over SSH:
+
+```sh
+scripts/deploy-pm2.sh <ssh-host> [app-dir] [pm2-name]
+```
+
+`app-dir` defaults to `/var/www/easy-cookie`.
+
+### One-time setup on the host
+
+- **`<app-dir>/shared/.env`** with `DATABASE_URL`, `HOST=127.0.0.1`, `PORT`, `PUBLIC_URL`, `TRUST_PROXY=true`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `STATIC_DIR`, `POLICY_DIR`, `CONSOLE_DIR` pointing into `<app-dir>/current`.
+- **`<app-dir>/ecosystem.config.cjs`**: a pm2 app with `cwd` set to `<app-dir>/current/apps/server` and `script` set to `dist/index.js`.
+- **An nginx virtual host** that proxies to `127.0.0.1:<PORT>` and overwrites `X-Forwarded-For` with `$remote_addr` (see [Reverse proxy](#reverse-proxy)).
+
+### What each run does
+
+1. Refuses to run with uncommitted changes: only the committed `HEAD` is deployed.
+2. Uploads `HEAD` to `<app-dir>/releases/<timestamp>` and links the shared `.env` into it.
+3. Installs dependencies with `pnpm install --frozen-lockfile` and builds core, the legal stylesheet, the console and the server.
+4. Applies the database migrations.
+5. Starts the new build on a spare port (`8799`) and smoke-tests `/health` and `/admin/`. If the test fails, the current release is left untouched and the log is printed.
+6. Switches the `current` symlink to the new release atomically, then reloads pm2 (or starts it from `ecosystem.config.cjs` the first time).
+7. Keeps the last 5 releases and deletes older ones.
+
+To roll back, point `current` at a previous release and run `pm2 reload <pm2-name>`.
+
+## Environment
+
+The server and the CLI read `.env` from the working directory. Real environment variables take precedence.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `DATABASE_URL` | required | Postgres connection string. Already set by Compose. |
+| `PORT` | `8787` | HTTP port. |
+| `HOST` | all interfaces | Interface to listen on. Set `127.0.0.1` behind a reverse proxy on the same host. |
+| `PUBLIC_URL` | derived from each request | Public base URL, without a trailing `/`. It is written into the `log` block of the delivered config and into the asset URLs of `embed.js`. An `https://` URL also makes the console session cookie `Secure`. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | none | The first admin, created on boot only when no admin exists. The password needs at least 10 characters. |
+| `TRUST_PROXY` | `false` | Read the client IP from `X-Forwarded-For` / `X-Real-IP`. Set `true` **only** when the proxy overwrites that header; otherwise clients can spoof their IP. |
+| `RATE_LIMIT_PER_MINUTE` | `60` | Consent records per minute, per IP hash, per site. |
+| `STATIC_DIR` | `../../packages/core/dist` | Built core assets served under `/static` (`easy-cookie.iife.js`, `easy-cookie.css`). Relative paths resolve from `apps/server`. |
+| `POLICY_DIR` | `../../packages/policy/dist` | Built `@easy-cookie/policy`. Only `easy-cookie-legal.css` is served from it, when it is not in `STATIC_DIR`. |
+| `CONSOLE_DIR` | `../console/dist` | Built console, served under `/admin`. |
+| `POSTGRES_PASSWORD`, `SERVER_PORT` | | Docker Compose only. |
+
+## Reverse proxy
+
+The server speaks plain HTTP. Terminate TLS in front of it with nginx, Caddy or Traefik, and make the proxy **overwrite** `X-Forwarded-For` with the real client address, so `TRUST_PROXY=true` cannot be abused. A minimal nginx server block:
+
+```nginx
+server {
+  listen 443 ssl;
+  server_name consent.example.com;
+  # ssl_certificate / ssl_certificate_key …
+
+  location / {
+    proxy_pass http://127.0.0.1:8787;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}
+```
+
+Then set `PUBLIC_URL=https://consent.example.com` and `TRUST_PROXY=true`.
+
+Run **one** instance. The rate limiter lives in memory, so with several replicas each one limits on its own.
+
+## Origins
+
+Each site has an **origins** list, edited in the console or set with the CLI: `https://www.example.com`, or `https://*.example.com` for any subdomain (not the apex).
+
+- **Reads are open.** `config.json`, `head.js` and `embed.js` are public, read-only and readable from any origin. A page on `http://localhost:3000` can load the banner while you develop, without adding localhost to the list.
+- **Writes are restricted.** Recording a consent and linking a user id are accepted only from the site's origins (the `Origin` header, falling back to `Referer`). Other origins get `403 origin_not_allowed`, so a local test page does not write into the production register.
+
+`*` is accepted, but the console flags it: anyone could write records on behalf of your site.
+
+## Command line
+
+The server package ships a CLI, `easy-cookie-server`, for tasks you may prefer to script:
+
+```sh
+easy-cookie-server create-admin admin@example.com      # prompts for the password (or --password / $ADMIN_PASSWORD)
+easy-cookie-server create-site --name "Shop" --domain shop.example.com --origin https://shop.example.com
+easy-cookie-server export <siteId> --format csv --from 2026-01-01 > consents.csv   # or --format jsonl, --to
+easy-cookie-server import <siteId> legacy.jsonl --dry-run
+```
+
+`create-site` prints the public and the secret key. The secret key is never shown again. `import` is covered in [Importing records](/docs/importing-records/).
+
+How to run it:
+
+| Setup | Command |
+|---|---|
+| Docker Compose | `docker compose exec server node dist/cli.js <command>` |
+| From the repository | `pnpm --filter @easy-cookie/server cli <command>` |
+| pm2 release | `node dist/cli.js <command>` in `<app-dir>/current/apps/server` |
+
+## Updating
+
+- **Docker Compose:** pull the repository and run `docker compose up -d --build` again. Migrations run on start.
+- **pm2:** run `scripts/deploy-pm2.sh` again from the updated checkout.
+
+The register is append-only and lives in Postgres: back up the database like any other production data.

@@ -1,63 +1,84 @@
 ---
 layout: ../../layouts/DocsLayout.astro
-title: Console di amministrazione
-description: La console servita dal server dei consensi su /admin. Siti, configurazione del banner con anteprima dal vivo, revisioni pubblicate, registro dei consensi ed esportazione, chiavi API.
-status: La console è in sviluppo insieme al server; le schermate possono cambiare prima della versione 1.0.
+title: Admin console
+description: The web console served by the consent server at /admin. Sites, banner configuration with a live preview, the service library, policy revisions, legal documents, the consent register with CSV export, and API keys.
 ---
 
-La console è un'applicazione web servita dal server dei consensi all'indirizzo `/admin`. Non serve installarla a parte: con Docker Compose è già inclusa. Accedi con l'amministratore creato al primo avvio (`ADMIN_EMAIL` e `ADMIN_PASSWORD`).
+The console is a web app served by the consent server at `/admin`. There is nothing to install separately: the Docker image and the deploy script both build it (see [Self-hosting](/docs/self-hosting/)). Sign in with the admin created on first boot (`ADMIN_EMAIL` and `ADMIN_PASSWORD`). The interface is available in Italian and English.
 
-Funziona come un libretto per ogni sito: ogni consenso, ogni modifica della configurazione e ogni revisione pubblicata è una voce con data e revisione, e nessuna voce viene cancellata.
+It works like a passbook for each site: every consent, every config change and every published revision is an entry stamped with a date and a revision, and no entry is ever erased.
 
-## Le sezioni
+## Sections
 
-| Sezione | Cosa ci fai |
+The start page lists your **sites**, with the number of consents in the last 30 days and the revision in force. Create a site with **New site**: name, domain and allowed origins. The secret key is shown once, at creation.
+
+Inside a site:
+
+| Section | What you do there |
 |---|---|
-| **Panoramica** | Come hanno scelto i visitatori negli ultimi 30 giorni, per metodo e per categoria, e quanti record sono arrivati dalla revisione corrente. |
-| **Registro consensi** | Cerchi un consenso per `consentId` o id utente, filtri per data, metodo e revisione, apri un record per vedere la prova completa e la storia di quel visitatore, esporti in CSV. |
-| **Configurazione banner** | Modifichi categorie, servizi, cookie e testi con l'anteprima del banner vero accanto. La bozza si salva anche se non è valida, e la console mostra i problemi da correggere. |
-| **Versioni policy** | Pubblichi la bozza come nuova revisione, con una nota. Ogni revisione è un'istantanea immutabile della configurazione. |
-| **Chiavi API** | Vedi la chiave pubblica e lo snippet `embed.js` da copiare, ruoti la chiave segreta. |
-| **Impostazioni** | Nome, dominio e origini ammesse del sito. |
+| **Overview** | How visitors chose in the last 30 days, per method and per category, and how many records arrived since the current revision was published. |
+| **Consent register** | Find a consent by `consentId` or user id, filter by period, method and revision, open a record to see the full proof and that visitor's history, and **Export CSV**. |
+| **Banner configuration** | Edit categories, services, cookies and texts next to a live preview of the real banner, with a **Desktop / Mobile** switch and a language switch. The draft saves even when it is invalid; the console lists the issues to fix. |
+| **Policy revisions** | Publish the draft as a new revision, with a note. Each revision is an immutable snapshot of the config. Compare any revision with the current draft. |
+| **Legal documents** | Write the cookie policy, the privacy policy and the terms in Markdown, preview them and publish versions. See [Legal documents](/docs/legal-documents/). |
+| **API keys** | The public key and the snippets to copy, the allowed origins, and rotation of the secret key. |
+| **Settings** | The site's name and domain, and deleting the site. |
 
-## Pubblicare una revisione
+The **Service library** is also a page of its own in the console, to browse every ready-made service with its cookies, purpose and notes before you add it.
 
-1. Modifica la bozza in **Configurazione banner** e controlla l'anteprima.
-2. In **Versioni policy**, scegli **Pubblica**. Il nome della revisione è la data (`2026-11-13`); se pubblichi due volte nello stesso giorno diventa `2026-11-13-2`.
-3. Da quel momento `embed.js` e `config.json` consegnano la nuova configurazione (con una cache di 60 secondi) e i visitatori vedono di nuovo il banner, perché la revisione è cambiata.
+## Adding services from the library
 
-Pubblica una nuova revisione quando cambiano le finalità o le terze parti. Per correggere un refuso nei testi non è necessario far ripetere la scelta a tutti, ma la revisione è l'unico modo per legare una prova al testo esatto mostrato: valuta caso per caso.
+In **Banner configuration → Services**, choose **Add from library**. Search by name, provider or keyword, filter by group (analytics, advertising, embeds, support…), select one or more services and add them.
 
-## Leggere una prova
+- Each service is **copied** into the draft, with provider, privacy link, default category, purpose in Italian and English, and its cookies with durations. Every field stays editable.
+- If a service needs a category the draft does not have yet, the category is added too, with its default title, description and Consent Mode signals.
+- For a tool that is not in the library, create an empty service and fill it in.
 
-Ogni riga del registro inizia con il timbro di data e revisione. Aprendo un record vedi:
+Check purposes and cookies against your own setup before publishing. The library is described in [Service library](/docs/service-library/).
 
-- le categorie concesse e negate, e i servizi;
-- il metodo (`accept_all`, `reject_all`, `custom`, `close`, `withdraw`);
-- l'ora del client e quella del server;
-- la pagina, la lingua, lo User-Agent e l'hash dell'IP;
-- la storia completa dello stesso `consentId`, dal più recente;
-- la revisione della configurazione che il visitatore ha visto.
+## Publishing a revision
 
-Questo è il materiale da consegnare in caso di verifica: la scelta, il momento e il testo a cui si riferiva.
+1. Edit the draft in **Banner configuration** and check the preview.
+2. Choose **Publish revision**. The revision id defaults to the date (`2026-11-13`); publishing twice on the same day gives `2026-11-13-2`.
+3. From then on `embed.js` and `config.json` deliver the new config (cached for 60 seconds), and visitors see the banner again, because the revision changed.
 
-## Accesso e sicurezza
+Until a site has a published revision, `embed.js` and `config.json` answer 404 and the banner is not shown.
 
-- Le password degli amministratori sono salvate con scrypt.
-- La sessione è un cookie `ec_admin` httpOnly e `SameSite=Strict`, valido 7 giorni.
-- Ogni richiesta che modifica dati verifica anche un token CSRF.
+Publish a new revision when purposes or third parties change. Fixing a typo in a text does not have to make every visitor choose again, but a revision is the only way to tie a proof to the exact text shown: decide case by case.
 
-Esponi `/admin` solo su HTTPS. Se puoi, limita l'accesso per IP o mettilo dietro l'autenticazione del tuo reverse proxy.
+Publishing a **legal document** version is separate: it does not change the banner revision and does not re-prompt visitors.
 
-## Configurazione nel codice
+## Reading a proof
 
-Se preferisci tenere la configurazione nel repository, la console resta utile per il registro. Spingi la configurazione dalla CI a ogni deploy:
+Every register row starts with the date-and-revision stamp. Opening a record shows:
+
+- the categories granted and denied, and the services;
+- the method (`accept_all`, `reject_all`, `custom`, `close`, `withdraw`);
+- the client time and the server time;
+- the page, the language, the User-Agent and the IP hash;
+- the full history of the same `consentId`, newest first;
+- the revision of the config the visitor saw.
+
+This is what you hand over in an audit: the choice, the moment, and the text it referred to. The CSV export carries the same fields, with the current filters applied.
+
+## Access and security
+
+- Admin passwords are stored with scrypt.
+- The session is an `ec_admin` cookie, httpOnly and `SameSite=Strict`, valid for 7 days, scoped to `/admin`.
+- Every request that changes data also checks a CSRF token.
+- Login is rate-limited to 10 attempts per minute per IP.
+
+Expose `/admin` over HTTPS only. If you can, restrict access by IP or put it behind your reverse proxy's authentication.
+
+## Config in code
+
+If you keep the config in your repository, the console is still useful for the register. Push the config from CI on every deploy:
 
 ```sh
-curl -X PUT https://consent.example.com/v1/config \
-  -H "Authorization: Bearer $EASY_COOKIE_SECRET" \
+curl -fsS -X PUT https://consent.example.com/v1/config \
+  -H "Authorization: Bearer $EASY_COOKIE_SECRET_KEY" \
   -H "Content-Type: application/json" \
   -d "{\"config\": $(cat easy-cookie.config.json), \"publish\": true, \"note\": \"deploy $GIT_SHA\"}"
 ```
 
-Il server valida la configurazione prima di pubblicarla e risponde con l'elenco dei problemi se non è valida, così un deploy con una configurazione rotta non arriva ai visitatori.
+The server validates the config before publishing it and returns the list of issues when it is invalid, so a deploy with a broken config never reaches visitors. With `publish: true` the revision id is the config's own `revision`; re-running the call with the same content is a no-op, and changed content under an existing revision returns `409`.
