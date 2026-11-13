@@ -22,6 +22,12 @@ export interface RenderLegalOptions {
   site?: { name?: string; domain?: string };
   /** Put the title in an `<h1 class="ec-legal__title">` at the top of the HTML. Default true. */
   heading?: boolean;
+  /**
+   * Where `{{preferences-link}}` points when the banner is not on the page
+   * (e.g. the consent server's hosted page links back to the site). By default
+   * it is `href="#" data-ec-open-preferences`, bound by the core runtime.
+   */
+  preferencesHref?: string;
 }
 
 export interface RenderedLegalDocument {
@@ -313,7 +319,10 @@ export function renderLegalDocument(content: LegalDocContent, lang: string, opts
         if (!config) return `<p class="ec-legal__notice">${e(L.noConfig)}</p>`;
         return servicesList(config, shown, L);
       case 'preferences-link': {
-        const a = `<a href="#" class="ec-legal__preferences" data-ec-open-preferences>${e(L.preferences)}</a>`;
+        const href = opts.preferencesHref && isSafeLegalUrl(opts.preferencesHref) ? opts.preferencesHref : undefined;
+        const a = href
+          ? `<a href="${e(href)}" class="ec-legal__preferences">${e(L.preferences)}</a>`
+          : `<a href="#" class="ec-legal__preferences" data-ec-open-preferences>${e(L.preferences)}</a>`;
         return block ? `<p>${a}</p>` : a;
       }
       case 'last-updated': {

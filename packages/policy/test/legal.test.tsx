@@ -118,6 +118,11 @@ describe('renderLegalDocument', () => {
     expect(r.html).toContain('<p class="ec-legal__updated">Ultimo aggiornamento: <time datetime="2026-03-05">5 marzo 2026</time></p>');
     expect(r.html).toContain('Puoi <a href="#" class="ec-legal__preferences" data-ec-open-preferences>');
     expect(r.html).toContain('il <time datetime="2026-03-05">5 marzo 2026</time>.');
+    // Without the banner on the page (hosted page): a plain link back to the site.
+    const hosted = renderLegalDocument(doc('{{preferences-link}}'), 'it', { preferencesHref: 'https://acme.it/' });
+    expect(hosted.html).toContain('<p><a href="https://acme.it/" class="ec-legal__preferences">');
+    expect(hosted.html).not.toContain('data-ec-open-preferences');
+    expect(renderLegalDocument(doc('{{preferences-link}}'), 'it', { preferencesHref: 'javascript:x' }).html).toContain('href="#"');
   });
 
   it('leaves unknown directives and block directives used inline as text, and keeps code untouched', () => {
