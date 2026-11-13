@@ -197,3 +197,45 @@ export interface ConsentRecordInput {
   /** Client clock, ISO. The server also stores its own receive time. */
   clientTimestamp: string;
 }
+
+export type EasyCookieEvent = 'ready' | 'consent' | 'change' | 'replay';
+
+export interface ConsentEventDetail {
+  consent: ConsentState;
+  /** Categories whose state changed (empty on `replay` and first `consent`). */
+  changed: string[];
+  /** True on the visitor's first choice for this revision. */
+  first: boolean;
+}
+
+/**
+ * Browser runtime API (`@easy-cookie/core`, also `window.EasyCookie` in the IIFE build).
+ * Adapters (React, Next, PostHog) depend only on this interface.
+ */
+export interface EasyCookieApi {
+  /** Initialise with a config object, or `{ remote: { endpoint, siteKey } }` to fetch the published one. */
+  run(config: EasyCookieConfig | { remote: { endpoint: string; siteKey: string } }): Promise<void>;
+  /** Current valid choice, or null when the visitor has not chosen (for this revision). */
+  get(): ConsentState | null;
+  isGranted(category: string): boolean;
+  isServiceGranted(service: string): boolean;
+  /** Subscribe; returns an unsubscribe function. `ready` fires once after run(). */
+  on(event: EasyCookieEvent, cb: (detail: ConsentEventDetail | null) => void): () => void;
+  /** Call `cb` now if `category` is granted, and again whenever it becomes granted. */
+  onGranted(category: string, cb: () => void): () => void;
+  showBanner(): void;
+  openPreferences(): void;
+  acceptAll(): void;
+  rejectAll(): void;
+  /** Accept exactly these categories (necessary ones are always included). */
+  accept(categories: string[], services?: Record<string, string[]>): void;
+  /** Link the anonymous consent id to a user id on the consent server (after login). */
+  identify(subjectId: string): Promise<void>;
+  /** Forget the stored choice and show the banner again. */
+  reset(): void;
+  /** Resolved config (after run). */
+  getConfig(): EasyCookieConfig | null;
+  /** Language currently shown. */
+  getLanguage(): string;
+  setLanguage(lang: string): Promise<void>;
+}
