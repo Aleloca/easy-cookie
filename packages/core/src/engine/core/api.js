@@ -1,0 +1,757 @@
+import {
+    getCurrentCategoriesState,
+    isGpcOptOutActive,
+    resolveEnabledCategories,
+    resolveEnabledServices,
+    getCurrentServicesState,
+    setAcceptedCategories,
+    syncModalToggles,
+    updateModalToggles
+} from '../utils/categories';
+import { deepCopy, elContains, getKeys } from '../utils/collections';
+import { debug } from '../utils/debug';
+import {
+    addClass,
+    appendChild,
+    createNode,
+    focus,
+    getActiveElement,
+    getAttribute,
+    getStateClassElements,
+    removeAttribute,
+    removeClass,
+    setAttribute,
+    toggleDisableInteraction,
+    toggleStateClass
+} from '../utils/dom';
+import { fireEvent } from '../utils/events';
+import { isArray, isObject, isString } from '../utils/type-guards';
+
+import { manageExistingScripts, retrieveEnabledCategoriesAndServices } from '../utils/scripts';
+
+import {
+    globalObj,
+    GlobalState
+} from './global';
+
+//{{START: GUI}}
+
+import {
+    createConsentModal,
+    createPreferencesModal,
+    generateHtml,
+    createMainContainer
+} from './modals/index';
+
+import {
+    getCurrentLanguageCode,
+    handleRtlLanguage,
+    loadTranslationData,
+    getAvailableLanguage
+} from '../utils/language';
+
+//{{END: GUI}}
+
+import {
+    setCookie,
+    eraseCookiesHelper,
+    saveCookiePreferences,
+    getSingleCookie,
+    getPluginCookie,
+    getAllCookies
+} from '../utils/cookies';
+
+import { setConfig } from './config-init';
+
+import {
+    TOGGLE_CONSENT_MODAL_CLASS,
+    TOGGLE_DISABLE_INTERACTION_CLASS,
+    TOGGLE_PREFERENCES_MODAL_CLASS,
+    OPT_OUT_MODE,
+    CONSENT_MODAL_NAME,
+    ARIA_HIDDEN,
+    PREFERENCES_MODAL_NAME
+} from '../utils/constants';
+import { localStorageManager } from '../utils/localstorage';
+
+/**
+ * @param {string[]|string} categories
+ * @param {string[]} excludedCategories
+ * @param {boolean} [afterNextPaint] run scripts and callbacks after the next paint
+ */
+const acceptAndSave = (categories, excludedCategories, afterNextPaint) => {
+    resolveEnabledCategories(categories, excludedCategories);
+    resolveEnabledServices();
+    saveCookiePreferences(afterNextPaint);
+};
+
+/**
+ * Accept API
+ * @param {string[]|string} categories - Categories to accept
+ * @param {string[]} [excludedCategories]
+ */
+export const acceptCategory = (categories, excludedCategories = []) => acceptAndSave(categories, excludedCategories);
+
+/**
+ * True if the accepted categories/services apply:
+ * the consent is valid, or the defaults are enabled (opt-out)
+ */
+const acceptedStateApplies = () => !globalObj._state._invalidConsent || globalObj._config.mode === OPT_OUT_MODE;
+
+/**
+ * Returns true if cookie category is accepted
+ * @param {string} category
+ */
+export const acceptedCategory = (category) => {
+
+    const acceptedCategories = acceptedStateApplies()
+        ? globalObj._state._acceptedCategories
+        : [];
+
+    return elContains(acceptedCategories, category);
+};
+
+/**
+ * Accept one or multiple services under a specific category
+ * @param {string|string[]} service
+ * @param {string} category
+ */
+export const acceptService = (service, category) => {
+    const { _allCategoryNames, _allDefinedServices,  } = globalObj._state;
+
+    if (
+        !service
+        || !category
+        || !isString(category)
+        || !elContains(_allCategoryNames, category)
+        || getKeys(_allDefinedServices[category]).length === 0
+    ) {
+        return false;
+    }
+
+    updateModalToggles(service, category);
+    acceptCategory();
+};
+
+/**
+ * Returns true if the service in the specified
+ * category is accepted/enabled
+ * @param {string} service
+ * @param {string} category
+ */
+export const acceptedService = (service, category) => {
+    const acceptedServices = acceptedStateApplies()
+        ? (globalObj._state._acceptedServices[category] || [])
+        : [];
+
+    return elContains(acceptedServices, service);
+};
+
+/**
+ * Returns true if cookie was found and has valid value (not an empty string)
+ * @param {string} cookieName
+ */
+export const validCookie = (cookieName) => getSingleCookie(cookieName, true) !== '';
+
+/**
+ * Erase cookies API
+ * @param {(string|RegExp|(string|RegExp)[])} cookies
+ * @param {string} [path]
+ * @param {string} [domain]
+ */
+export const eraseCookies = (cookies, path, domain) => {
+    let allCookies = [];
+
+    /**
+     * Add cookie to allCookies array if it exists
+     * @param {string | RegExp} cookieName
+     */
+    const addCookieIfExists = (cookieName) => {
+        if (isString(cookieName)) {
+            let name = getSingleCookie(cookieName);
+            name !== '' && allCookies.push(name);
+        } else {
+            allCookies.push(...getAllCookies(cookieName));
+        }
+    };
+
+    if (isArray(cookies)) {
+        for (let cookie of cookies) {
+            addCookieIfExists(cookie);
+        }
+    } else {
+        addCookieIfExists(cookies);
+    }
+
+    eraseCookiesHelper(allCookies, path, domain);
+};
+
+//{{START: GUI}}
+
+/**
+ * Show cookie consent modal
+ * @param {boolean} [createModal] create modal if it doesn't exist
+ */
+export const show = (createModal) => {
+    const { _dom, _state } = globalObj;
+
+    if (_state._consentModalVisible)
+        return;
+
+    if (!_state._consentModalExists && (createModal || _state._invalidConsent))
+        createConsentModal(miniAPI, createMainContainer);
+
+    if (!_state._consentModalExists)
+        return;
+
+    _state._consentModalVisible = true;
+    _state._lastFocusedElemBeforeModal = getActiveElement();
+
+    if (_state._disablePageInteraction)
+        toggleDisableInteraction(true);
+
+    toggleStateClass(TOGGLE_CONSENT_MODAL_CLASS, true);
+    removeAttribute(_dom._cm, ARIA_HIDDEN);
+    /**
+     * Set focus to consentModal and enable transition
+     */
+    setTimeout(() => {
+        addClass(_dom._cmContainer, 'cc--anim');
+    }, 100);
+    setTimeout(() => {
+        focus(_dom._cmDivTabindex, false, true);
+    }, 200);
+
+    debug('CookieConsent [TOGGLE]: show consentModal');
+
+    fireEvent(globalObj._customEvents._onModalShow, CONSENT_MODAL_NAME);
+};
+
+/**
+ * Hide consent modal
+ */
+export const hide = () => {
+    const { _dom, _state, _customEvents } = globalObj;
+
+    if (!_state._consentModalVisible)
+        return;
+
+    _state._consentModalVisible = false;
+
+    if (_state._disablePageInteraction)
+        toggleDisableInteraction();
+
+    /**
+     * Fix focus restoration to body with Chrome
+     */
+    focus(_dom._focusSpan, true, true);
+
+    toggleStateClass(TOGGLE_CONSENT_MODAL_CLASS);
+    setAttribute(_dom._cm, ARIA_HIDDEN, 'true');
+
+    /**
+     * Restore focus to last focused element
+     */
+    focus(_state._lastFocusedElemBeforeModal);
+    _state._lastFocusedElemBeforeModal = null;
+
+    /**
+     * Remove transition class after it executed
+     */
+    setTimeout(() => removeClass(_dom._cmContainer, 'cc--anim'), 100);
+
+    debug('CookieConsent [TOGGLE]: hide consentModal');
+
+    fireEvent(_customEvents._onModalHide, CONSENT_MODAL_NAME);
+};
+
+/**
+ * Show preferences modal
+ */
+export const showPreferences = () => {
+    const { _dom, _state: state } = globalObj;
+
+    if (state._preferencesModalVisible)
+        return;
+
+    if (!state._preferencesModalExists)
+        createPreferencesModal(miniAPI, createMainContainer);
+
+    if (!state._preferencesModalExists)
+        return;
+
+    state._preferencesModalVisible = true;
+
+    // If there is no consent-modal, keep track of the last focused elem.
+    if (!state._consentModalVisible) {
+        state._lastFocusedElemBeforeModal = getActiveElement();
+    } else {
+        state._lastFocusedModalElement = getActiveElement();
+    }
+
+    toggleStateClass(TOGGLE_PREFERENCES_MODAL_CLASS, true);
+    removeAttribute(_dom._pm, ARIA_HIDDEN);
+
+    /**
+     * Set focus to preferencesModal
+     */
+    setTimeout(() => {
+        focus(_dom._pmDivTabindex, false, true);
+    }, 200);
+
+    debug('CookieConsent [TOGGLE]: show preferencesModal');
+
+    fireEvent(globalObj._customEvents._onModalShow, PREFERENCES_MODAL_NAME);
+};
+
+/**
+ * https://github.com/orestbida/cookieconsent/issues/481
+ */
+const discardUnsavedPreferences = () => syncModalToggles(validConsent());
+
+/**
+ * Hide preferences modal
+ */
+export const hidePreferences = () => {
+    const state = globalObj._state;
+
+    if (!state._preferencesModalVisible)
+        return;
+
+    state._preferencesModalVisible = false;
+
+    discardUnsavedPreferences();
+
+    /**
+     * Fix focus restoration to body with Chrome
+     */
+    focus(globalObj._dom._pmFocusSpan, true, true);
+
+    toggleStateClass(TOGGLE_PREFERENCES_MODAL_CLASS);
+    setAttribute(globalObj._dom._pm, ARIA_HIDDEN, 'true');
+
+    /**
+     * If consent modal is visible, focus him (instead of page document)
+     */
+    if (state._consentModalVisible) {
+        focus(state._lastFocusedModalElement, false, true);
+        state._lastFocusedModalElement = null;
+    } else {
+        /**
+         * Restore focus to last page element which had focus before modal opening
+         */
+        focus(state._lastFocusedElemBeforeModal);
+        state._lastFocusedElemBeforeModal = null;
+    }
+
+    debug('CookieConsent [TOGGLE]: hide preferencesModal');
+
+    fireEvent(globalObj._customEvents._onModalHide, PREFERENCES_MODAL_NAME);
+};
+
+const miniAPI = {
+    show,
+    hide,
+    showPreferences,
+    hidePreferences,
+    /**
+     * Used by the modal buttons, so that scripts and
+     * callbacks don't delay the click's response (INP)
+     * @param {string[]|string} [categories]
+     */
+    acceptCategory: (categories) => acceptAndSave(categories, [], true)
+};
+
+/**
+ * Update/change modal's language
+ * @param {string} lang new language
+ * @param {boolean} [forceUpdate] update language fields forcefully
+ * @returns {Promise<boolean>}
+ */
+export const setLanguage = async (newLanguageCode, forceUpdate) => {
+    if (!getAvailableLanguage(newLanguageCode))
+        return false;
+
+    const state = globalObj._state;
+
+    /**
+     * Set language only if it differs from current
+     */
+    if (newLanguageCode !== getCurrentLanguageCode() || forceUpdate === true) {
+
+        const loaded = await loadTranslationData(newLanguageCode);
+
+        if (!loaded)
+            return false;
+
+        if (state._consentModalExists)
+            createConsentModal(miniAPI, createMainContainer);
+
+        if (state._preferencesModalExists) {
+            // The new toggles show the saved state
+            discardUnsavedPreferences();
+            createPreferencesModal(miniAPI, createMainContainer);
+        }
+
+        handleRtlLanguage();
+
+        return true;
+    }
+
+    return false;
+};
+
+//{{END: GUI}}
+
+/**
+ * Retrieve current user preferences (summary)
+ * @returns {import("./global").UserPreferences}
+ */
+export const getUserPreferences = () => {
+    const { accepted, rejected } = getCurrentCategoriesState();
+    const services = getCurrentServicesState();
+
+    return deepCopy({
+        acceptType: globalObj._state._acceptType,
+        acceptedCategories: accepted,
+        rejectedCategories: rejected,
+        acceptedServices: services.accepted,
+        rejectedServices: services.rejected
+    });
+};
+
+/**
+ * Dynamically load script (append to head)
+ * @param {string} src
+ * @param {{[key: string]: string}} [attrs] Custom attributes
+ * @returns {Promise<boolean>} promise
+ */
+export const loadScript = (src, attrs) => {
+    /**
+     * @type {HTMLScriptElement}
+     */
+    let script = [...document.scripts].find(el => getAttribute(el, 'src') === src);
+
+    return new Promise((resolve) => {
+        if (script)
+            return resolve(true);
+
+        script = createNode('script');
+
+        /**
+         * Add custom attributes
+         */
+        if (isObject(attrs)) {
+            for (const key in attrs) {
+                setAttribute(script, key, attrs[key]);
+            }
+        }
+
+        script.onload = () => resolve(true);
+        script.onerror = () => {
+            /**
+             * Remove script from dom if error is thrown
+             */
+            script.remove();
+            resolve(false);
+        };
+
+        script.src = src;
+
+        appendChild(document.head, script);
+    });
+};
+
+/**
+ * Save custom data inside cookie
+ * @param {{
+ *  value: any,
+ *  mode: string
+ * }} props
+ * @returns {boolean}
+ */
+export const setCookieData = (props) => {
+    let newData = props.value,
+        mode = props.mode,
+        set = false,
+        cookieData;
+
+    const state = globalObj._state;
+
+    /**
+     * If mode is 'update':
+     * add/update only the specified props.
+     */
+    if (mode === 'update') {
+        state._cookieData = cookieData = getCookie('data');
+        const sameType = typeof cookieData === typeof newData;
+
+        if (sameType && typeof cookieData === 'object') {
+            !cookieData && (cookieData = {});
+
+            for (let prop in newData) {
+                if (cookieData[prop] !== newData[prop]) {
+                    cookieData[prop] = newData[prop];
+                    set = true;
+                }
+            }
+        } else if ((sameType || !cookieData) && cookieData !== newData) {
+            cookieData = newData;
+            set = true;
+        }
+    } else {
+        cookieData = newData;
+        set = true;
+    }
+
+    if (set) {
+        state._cookieData = cookieData;
+        state._savedCookieContent.data = cookieData;
+        setCookie(true);
+    }
+
+    return set;
+};
+
+/**
+ * Retrieve data from existing cookie
+ * @param {string} field
+ * @param {string} [cookieName]
+ * @returns {any}
+ */
+export const getCookie = (field, cookieName) => {
+    const cookie = getPluginCookie(cookieName);
+
+    return field
+        ? cookie[field]
+        : cookie;
+};
+
+/**
+ * Return configuration object or just one of its fields.
+ * @param {string} field
+ * @returns {any}
+ */
+export const getConfig = (field) => {
+    const config = globalObj._config;
+    const userConfig = globalObj._state._userConfig;
+
+    return field
+        ? config[field] || userConfig[field]
+        : {...config, ...userConfig, cookie:{...config.cookie}};
+};
+
+/**
+ * Returns true if consent is valid
+ * @returns {boolean}
+ */
+export const validConsent = () => !globalObj._state._invalidConsent;
+
+/**
+ * Date from a value saved in the cookie, undefined if missing or invalid
+ * @param {string} [value]
+ * @returns {Date|undefined}
+ */
+const parseDate = (value) => {
+    const date = value && new Date(value);
+    return date && !isNaN(date) ? date : undefined;
+};
+
+const retrieveState = () => {
+    const state = globalObj._state;
+    const config = globalObj._config;
+
+    let cookieValue = getPluginCookie();
+
+    /**
+     * An expired localStorage item counts as no consent, like an expired cookie
+     */
+    if (config.cookie.useLocalStorage && new Date().getTime() > (cookieValue.expirationTime || 0)) {
+        localStorageManager._removeItem(config.cookie.name);
+        cookieValue = {};
+    }
+
+    const {
+        categories,
+        services,
+        consentId,
+        consentTimestamp,
+        lastConsentTimestamp,
+        data,
+        revision
+    } = cookieValue;
+
+    const validCategories = isArray(categories);
+
+    state._savedCookieContent = cookieValue;
+    state._consentId = consentId;
+
+    // If "_consentId" is present => assume that consent was previously given
+    const validConsentId = !!consentId && isString(consentId);
+
+    state._consentTimestamp = parseDate(consentTimestamp);
+    state._lastConsentTimestamp = parseDate(lastConsentTimestamp);
+
+    // Retrieve "data"
+    state._cookieData = typeof data !== 'undefined'
+        ? data
+        : null;
+
+    // If revision is enabled and current value !== saved value inside the cookie => revision is not valid
+    if (state._revisionEnabled && validConsentId && revision !== config.revision)
+        state._validRevision = false;
+
+    state._invalidConsent = !validConsentId
+        || !state._validRevision
+        || !state._consentTimestamp
+        || !state._lastConsentTimestamp
+        || !validCategories;
+
+    debug('CookieConsent [STATUS] valid consent:', !state._invalidConsent);
+    retrieveEnabledCategoriesAndServices();
+
+    /**
+     * Retrieve last accepted categories from cookie
+     * and calculate acceptType
+     */
+    if (!state._invalidConsent) {
+        /**
+         * Ignore categories and services that are no longer in the config;
+         * readOnly categories always have all their services accepted
+         */
+        for (const categoryName of state._allCategoryNames) {
+            const savedServices = services && services[categoryName];
+            const definedServices = getKeys(state._allDefinedServices[categoryName]);
+
+            if (elContains(state._readOnlyCategories, categoryName))
+                state._acceptedServices[categoryName] = definedServices;
+            else if (isArray(savedServices))
+                state._acceptedServices[categoryName] = savedServices.filter(service => elContains(definedServices, service));
+            else if (!elContains(categories, categoryName))
+                state._acceptedServices[categoryName] = [];
+        }
+
+        state._enabledServices = {...state._acceptedServices};
+
+        setAcceptedCategories([
+            ...state._readOnlyCategories,
+            ...categories.filter(category => elContains(state._allCategoryNames, category))
+        ]);
+    } else {
+        if (config.mode === OPT_OUT_MODE) {
+            state._acceptedCategories = [
+                ...state._defaultEnabledCategories
+            ];
+        }
+    }
+};
+
+/**
+ * Will run once and only if modals do not exist.
+ * @param {import("./global").UserConfig} userConfig
+ */
+export const run = async (userConfig) => {
+    const {
+        _state,
+        _config,
+        _customEvents
+    } = globalObj;
+
+    const win = window;
+
+    if (!win._ccRun) {
+        win._ccRun = true;
+
+        setConfig(userConfig);
+
+        if (_state._botAgentDetected)
+            return;
+
+        retrieveState();
+
+        const consentIsValid = validConsent();
+
+        //{{START: GUI}}
+        let translationError;
+
+        // The scripts must run even if the translation can't be loaded
+        const translationLoaded = await loadTranslationData().catch((error) => {
+            translationError = error;
+        });
+
+        if (translationLoaded) {
+            generateHtml(miniAPI);
+
+            // The consent may have been given while the translation was loading
+            if (_config.autoShow && !validConsent() && !isGpcOptOutActive())
+                show(true);
+        }
+        //{{END: GUI}}
+
+        if (consentIsValid) {
+            manageExistingScripts();
+            fireEvent(_customEvents._onConsent);
+        } else if (_config.mode === OPT_OUT_MODE) {
+            manageExistingScripts();
+        }
+
+        //{{START: GUI}}
+        if (translationError)
+            throw translationError;
+        //{{END: GUI}}
+    }
+};
+
+/**
+ * Reset cookieconsent.
+ * @param {boolean} [deleteCookie] Delete plugin's cookie
+ */
+export const reset = (deleteCookie) => {
+    //{{START: GUI}}
+    const { _ccMain } = globalObj._dom;
+    //{{END: GUI}}
+
+    const { name, path, domain, useLocalStorage } = globalObj._config.cookie;
+
+    if (deleteCookie) {
+        useLocalStorage
+            ? localStorageManager._removeItem(name)
+            : eraseCookies(name, path, domain);
+    }
+
+    /**
+     * Remove data-cc event listeners
+     */
+    for (const {_element, _event, _listener} of globalObj._state._dataEventListeners) {
+        _element.removeEventListener(_event, _listener);
+    }
+
+    //{{START: GUI}}
+    /**
+     * Remove main container from DOM
+     */
+    _ccMain && _ccMain.remove();
+
+    /**
+     * Remove any remaining classes
+     */
+    for (const el of getStateClassElements()) {
+        el.classList.remove(
+            TOGGLE_DISABLE_INTERACTION_CLASS,
+            TOGGLE_PREFERENCES_MODAL_CLASS,
+            TOGGLE_CONSENT_MODAL_CLASS
+        );
+    }
+    //{{END: GUI}}
+
+    const newGlobal = new GlobalState();
+
+    /**
+     * Reset all global state props.
+     */
+    for (const key in globalObj) {
+        globalObj[key] = newGlobal[key];
+    }
+
+    window._ccRun = false;
+};

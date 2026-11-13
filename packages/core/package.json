@@ -1,0 +1,59 @@
+{
+  "name": "@easy-cookie/core",
+  "version": "0.1.0",
+  "description": "Self-hosted, GDPR/ePrivacy-compliant cookie consent: banner, prior blocking, Google Consent Mode v2, proof of consent.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./head": {
+      "types": "./dist/head.d.ts",
+      "import": "./dist/head.js",
+      "require": "./dist/head.cjs"
+    },
+    "./style.css": "./dist/easy-cookie.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE.upstream",
+    "UPSTREAM.md"
+  ],
+  "scripts": {
+    "build": "tsup && sass --no-source-map --style=compressed src/ui/theme.scss dist/easy-cookie.css",
+    "test": "vitest run && jest --runInBand --silent test/engine",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "sass": "^1.93.2",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
+    "babel-jest": "^30.2.0",
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "roots": [
+      "<rootDir>/test/engine"
+    ],
+    "transform": {
+      "\\.[jt]sx?$": [
+        "babel-jest",
+        {
+          "configFile": "./babel.config.cjs"
+        }
+      ]
+    }
+  }
+}

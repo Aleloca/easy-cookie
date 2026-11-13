@@ -1,0 +1,615 @@
+import { globalObj } from '../global';
+import { isToggleChecked } from '../../utils/categories';
+import { getKeys } from '../../utils/collections';
+import { debug } from '../../utils/debug';
+import {
+    addClass,
+    addClassPm,
+    addEvent,
+    appendChild,
+    createNode,
+    hasClass,
+    removeAttribute,
+    removeClass,
+    setAttribute
+} from '../../utils/dom';
+import { fireEvent } from '../../utils/events';
+import { getModalFocusableData, handleFocusTrap } from '../../utils/focus-trap';
+import { getSvgIcon } from '../../utils/svg-icons';
+import { isObject, isString } from '../../utils/type-guards';
+
+import { guiManager } from '../../utils/gui-manager';
+import {
+    PREFERENCES_MODAL_NAME,
+    SCRIPT_TAG_SELECTOR,
+    DIV_TAG,
+    ARIA_HIDDEN,
+    BUTTON_TAG,
+    BTN_GROUP_CLASS,
+    CLICK_EVENT,
+    DATA_ROLE
+} from '../../utils/constants';
+
+/**
+ * @callback CreateMainContainer
+ */
+
+/**
+ * Generates preferences modal and appends it to "cc-main" el.
+ * @param {import("../global").Api} api
+ * @param {CreateMainContainer} createMainContainer
+ */
+export const createPreferencesModal = (api, createMainContainer) => {
+    const state = globalObj._state;
+    const dom = globalObj._dom;
+    const {hide, hidePreferences, acceptCategory} = api;
+
+    /**
+     * @param {string|string[]} [categories]
+     */
+    const acceptHelper = (categories) => {
+        acceptCategory(categories);
+        hidePreferences();
+        hide();
+    };
+
+    /**
+     * @type {import("../global").PreferencesModalOptions}
+     */
+    const modalData = state._currentTranslation && state._currentTranslation.preferencesModal;
+
+    if (!modalData)
+        return;
+
+    const
+        titleData = modalData.title,
+        closeIconLabelData = modalData.closeIconLabel,
+        acceptAllBtnData = modalData.acceptAllBtn,
+        acceptNecessaryBtnData = modalData.acceptNecessaryBtn,
+        savePreferencesBtnData = modalData.savePreferencesBtn,
+        sectionsData = modalData.sections || [],
+        createFooter = acceptAllBtnData
+            || acceptNecessaryBtnData
+            || savePreferencesBtnData;
+
+    if (!dom._pmContainer) {
+        dom._pmContainer = createNode(DIV_TAG, 'pm-wrapper');
+
+        const pmOverlay = createNode('div', 'pm-overlay');
+        appendChild(dom._pmContainer, pmOverlay);
+
+        /**
+         * Hide modal when overlay is clicked
+         */
+        addEvent(pmOverlay, CLICK_EVENT, hidePreferences);
+
+        // Preferences modal
+        dom._pm = createNode(DIV_TAG, 'pm');
+        setAttribute(dom._pm, 'role', 'dialog');
+        setAttribute(dom._pm, ARIA_HIDDEN, true);
+        setAttribute(dom._pm, 'aria-modal', true);
+        setAttribute(dom._pm, 'aria-labelledby', 'pm__title');
+
+        // Hide preferences on 'esc' key press
+        addEvent(dom._htmlDom, 'keydown', (event) => {
+            if (event.key === 'Escape')
+                hidePreferences();
+        }, true);
+
+        dom._pmHeader = createNode(DIV_TAG, 'pm__header');
+
+        dom._pmTitle = createNode('h2', 'pm__title');
+        dom._pmTitle.id = 'pm__title';
+
+        dom._pmCloseBtn = createNode(BUTTON_TAG, 'pm__close-btn');
+        setAttribute(dom._pmCloseBtn, 'aria-label', modalData.closeIconLabel || '');
+        addEvent(dom._pmCloseBtn, CLICK_EVENT, hidePreferences);
+
+        dom._pmFocusSpan = createNode('span');
+        dom._pmFocusSpan.innerHTML = getSvgIcon();
+        appendChild(dom._pmCloseBtn, dom._pmFocusSpan);
+
+        dom._pmBody = createNode(DIV_TAG, 'pm__body');
+
+        dom._pmFooter = createNode(DIV_TAG, 'pm__footer');
+
+        dom._pmBtnGroup1 = createNode(DIV_TAG);
+        dom._pmBtnGroup2 = createNode(DIV_TAG);
+        addClassPm(dom._pmBtnGroup1, BTN_GROUP_CLASS);
+        addClassPm(dom._pmBtnGroup2, BTN_GROUP_CLASS);
+
+        appendChild(dom._pmFooter, dom._pmBtnGroup1);
+        appendChild(dom._pmFooter, dom._pmBtnGroup2);
+
+        appendChild(dom._pmHeader, dom._pmTitle);
+        appendChild(dom._pmHeader, dom._pmCloseBtn);
+
+        dom._pmDivTabindex = dom._pmTitle;
+        setAttribute(dom._pmDivTabindex, 'tabIndex', -1);
+
+        appendChild(dom._pm, dom._pmHeader);
+        appendChild(dom._pm, dom._pmBody);
+        appendChild(dom._pmContainer, dom._pm);
+    } else {
+        dom._pmNewBody = createNode(DIV_TAG, 'pm__body');
+    }
+
+    if (titleData) {
+        dom._pmTitle.innerHTML = titleData;
+        closeIconLabelData && setAttribute(dom._pmCloseBtn, 'aria-label', closeIconLabelData);
+    }
+
+    let sectionToggleContainer;
+
+    sectionsData.forEach((section, sectionIndex) => {
+        const
+            sTitleData = section.title,
+            sDescriptionData = section.description,
+            sLinkedCategory = section.linkedCategory,
+            sCurrentCategoryObject = sLinkedCategory && state._allDefinedCategories[sLinkedCategory],
+            sCookieTableData = section.cookieTable,
+            sCookieTableBody = sCookieTableData && sCookieTableData.body,
+            sCreateCookieTable = sCookieTableBody && sCookieTableBody.length > 0,
+            hasToggle = !!sCurrentCategoryObject,
+
+            /**
+             * @type {Object.<string, import('../global').Service>}
+             */
+            sServices = hasToggle && state._allDefinedServices[sLinkedCategory],
+            sServiceNames = isObject(sServices) && getKeys(sServices) || [],
+            sIsExpandableToggle = hasToggle && !!sTitleData && (!!sDescriptionData || !!sCreateCookieTable || getKeys(sServices).length>0),
+            nServices = sServiceNames.length,
+            expandableDivId = sLinkedCategory + '-desc';
+
+        // section
+        const s = createNode(DIV_TAG, 'pm__section');
+
+        let sDescContainer, sTitle;
+
+        if (sIsExpandableToggle || sDescriptionData) {
+            sDescContainer = createNode(DIV_TAG, 'pm__section-desc-wrapper');
+        }
+
+        if (sIsExpandableToggle && nServices > 0)
+            appendChild(sDescContainer, createServices(sServices, sServiceNames, sCurrentCategoryObject, sLinkedCategory));
+
+        if (sTitleData) {
+            const sTitleContainer = createNode(DIV_TAG);
+            sTitle = createNode(hasToggle ? BUTTON_TAG : DIV_TAG);
+
+            addClassPm(sTitleContainer, 'section-title-wrapper');
+            addClassPm(sTitle, 'section-title');
+
+            sTitle.innerHTML = sTitleData;
+            appendChild(sTitleContainer, sTitle);
+
+            if (hasToggle) {
+
+                s.className += '--toggle';
+
+                const toggleLabel = createToggleLabel(sTitleData, sLinkedCategory, sCurrentCategoryObject);
+                const serviceCounterLabel = modalData.serviceCounterLabel;
+
+                if (nServices > 0 && isString(serviceCounterLabel))
+                    appendChild(sTitle, createServiceCounter(nServices, serviceCounterLabel));
+
+                if (sIsExpandableToggle) {
+                    /**
+                     * Arrow icon span
+                     */
+                    const sTitleIcon = createNode('span');
+                    sTitleIcon.innerHTML = getSvgIcon(2, 3.5);
+                    addClassPm(sTitleIcon, 'section-arrow');
+                    appendChild(sTitleContainer, sTitleIcon);
+
+                    addClassPm(s, 'section--expandable');
+                    setAttribute(sTitle, 'aria-expanded', false);
+                    setAttribute(sTitle, 'aria-controls', expandableDivId);
+                }
+
+                appendChild(sTitleContainer, toggleLabel);
+
+            } else {
+                setAttribute(sTitle, 'role', 'heading');
+                setAttribute(sTitle, 'aria-level', '3');
+            }
+
+            appendChild(s, sTitleContainer);
+        }
+
+        if (sDescriptionData) {
+            const sDesc = createNode('p', 'pm__section-desc');
+            sDesc.innerHTML = sDescriptionData;
+            appendChild(sDescContainer, sDesc);
+        }
+
+        if (sIsExpandableToggle) {
+            setAttribute(sDescContainer, ARIA_HIDDEN, 'true');
+            sDescContainer.id = expandableDivId;
+
+            addExpandListener(sTitle, s, sDescContainer);
+
+            if (sCreateCookieTable)
+                appendChild(sDescContainer, createCookieTable(sCookieTableData, sectionIndex));
+        }
+
+        if (sIsExpandableToggle || sDescriptionData)
+            appendChild(s, sDescContainer);
+
+        const currentBody = dom._pmNewBody || dom._pmBody;
+
+        if (hasToggle) {
+            if (!sectionToggleContainer) {
+                sectionToggleContainer = createNode(DIV_TAG, 'pm__section-toggles');
+            }
+            sectionToggleContainer.appendChild(s);
+        } else {
+            sectionToggleContainer = null;
+        }
+
+        appendChild(currentBody, sectionToggleContainer || s);
+
+    });
+
+    if (acceptAllBtnData) {
+        if (!dom._pmAcceptAllBtn) {
+            dom._pmAcceptAllBtn = createNode(BUTTON_TAG, 'pm__btn');
+            setAttribute(dom._pmAcceptAllBtn, DATA_ROLE, 'all');
+            appendChild(dom._pmBtnGroup1, dom._pmAcceptAllBtn);
+            addEvent(dom._pmAcceptAllBtn, CLICK_EVENT, () =>
+                acceptHelper('all')
+            );
+        }
+
+        dom._pmAcceptAllBtn.innerHTML = acceptAllBtnData;
+    }
+
+    if (acceptNecessaryBtnData) {
+        if (!dom._pmAcceptNecessaryBtn) {
+            dom._pmAcceptNecessaryBtn = createNode(BUTTON_TAG, 'pm__btn');
+            setAttribute(dom._pmAcceptNecessaryBtn, DATA_ROLE, 'necessary');
+            appendChild(dom._pmBtnGroup1, dom._pmAcceptNecessaryBtn);
+            addEvent(dom._pmAcceptNecessaryBtn, CLICK_EVENT, () =>
+                acceptHelper([])
+            );
+        }
+
+        dom._pmAcceptNecessaryBtn.innerHTML = acceptNecessaryBtnData;
+    }
+
+    if (savePreferencesBtnData) {
+        if (!dom._pmSavePreferencesBtn) {
+            dom._pmSavePreferencesBtn = createNode(BUTTON_TAG, 'pm__btn');
+            addClassPm(dom._pmSavePreferencesBtn, 'btn--secondary');
+            setAttribute(dom._pmSavePreferencesBtn, DATA_ROLE, 'save');
+            appendChild(dom._pmBtnGroup2, dom._pmSavePreferencesBtn);
+
+            addEvent(dom._pmSavePreferencesBtn, CLICK_EVENT, () =>
+                acceptHelper()
+            );
+        }
+
+        dom._pmSavePreferencesBtn.innerHTML = savePreferencesBtnData;
+    }
+
+    if (dom._pmNewBody) {
+        dom._pm.replaceChild(dom._pmNewBody, dom._pmBody);
+        dom._pmBody = dom._pmNewBody;
+    }
+
+    createFooter && appendChild(dom._pm, dom._pmFooter);
+
+    guiManager(1);
+
+    if (!state._preferencesModalExists) {
+        state._preferencesModalExists = true;
+
+        debug('CookieConsent [HTML] created', PREFERENCES_MODAL_NAME);
+
+        fireEvent(globalObj._customEvents._onModalReady, PREFERENCES_MODAL_NAME, dom._pm);
+        createMainContainer();
+        appendChild(dom._ccMain, dom._pmContainer);
+        handleFocusTrap(dom._pm);
+
+        /**
+         * Enable transition
+         */
+        setTimeout(() => addClass(dom._pmContainer, 'cc--anim'), 100);
+    }
+
+    getModalFocusableData(2);
+};
+
+/**
+ * Generate the list of services (each with its own toggle) of a category
+ * @param {Object.<string, import('../global').Service>} services
+ * @param {string[]} serviceNames
+ * @param {import('../global').Category} categoryObject
+ * @param {string} categoryName
+ */
+const createServices = (services, serviceNames, categoryObject, categoryName) => {
+    const servicesContainer = createNode(DIV_TAG, 'pm__section-services');
+
+    for (const serviceName of serviceNames) {
+        const service = services[serviceName];
+        const serviceLabel = service && service.label || serviceName;
+        const serviceDiv = createNode(DIV_TAG);
+        const serviceHeader = createNode(DIV_TAG);
+        const serviceIconContainer = createNode(DIV_TAG);
+        const serviceTitle = createNode(DIV_TAG);
+
+        addClassPm(serviceDiv, 'service');
+        addClassPm(serviceTitle, 'service-title');
+        addClassPm(serviceHeader, 'service-header');
+        addClassPm(serviceIconContainer, 'service-icon');
+
+        const toggleLabel = createToggleLabel(serviceLabel, serviceName, categoryObject, true, categoryName);
+
+        serviceTitle.innerHTML = serviceLabel;
+
+        appendChild(serviceHeader, serviceIconContainer);
+        appendChild(serviceHeader, serviceTitle);
+        appendChild(serviceDiv, serviceHeader);
+        appendChild(serviceDiv, toggleLabel);
+        appendChild(servicesContainer, serviceDiv);
+    }
+
+    return servicesContainer;
+};
+
+/**
+ * Generate the "N services" badge
+ * @param {number} nServices
+ * @param {string} counterLabel singular and plural form, separated by "|"
+ */
+const createServiceCounter = (nServices, counterLabel) => {
+    const serviceCounter = createNode('span', 'pm__badge');
+    addClassPm(serviceCounter, 'service-counter');
+    setAttribute(serviceCounter, ARIA_HIDDEN, true);
+    setAttribute(serviceCounter, 'data-servicecounter', nServices);
+
+    if (counterLabel) {
+        const labels = counterLabel.split('|');
+
+        counterLabel = labels.length > 1 && nServices > 1
+            ? labels[1]
+            : labels[0];
+
+        setAttribute(serviceCounter, 'data-counterlabel', counterLabel);
+    }
+
+    serviceCounter.innerHTML = nServices + (counterLabel
+        ? ' ' + counterLabel
+        : '');
+
+    return serviceCounter;
+};
+
+/**
+ * Expand/collapse the section when its title is clicked
+ * @param {HTMLElement} btn
+ * @param {HTMLElement} section
+ * @param {HTMLElement} accordion
+ */
+const addExpandListener = (btn, section, accordion) => {
+    addEvent(btn, CLICK_EVENT, () => {
+        if (!hasClass(section, 'is-expanded')) {
+            addClass(section, 'is-expanded');
+            setAttribute(btn, 'aria-expanded', 'true');
+            removeAttribute(accordion, ARIA_HIDDEN);
+        } else {
+            removeClass(section, 'is-expanded');
+            setAttribute(btn, 'aria-expanded', 'false');
+            setAttribute(accordion, ARIA_HIDDEN, 'true');
+        }
+    });
+};
+
+/**
+ * Generate the section's cookie table
+ * @param {import('../global').CookieTable} cookieTableData
+ * @param {number} sectionIndex
+ */
+const createCookieTable = (cookieTableData, sectionIndex) => {
+    const table = createNode('table');
+    const thead = createNode('thead');
+    const tbody = createNode('tbody');
+    const caption = cookieTableData.caption;
+
+    if (caption) {
+        const captionEl = createNode('caption', 'pm__table-caption');
+        captionEl.innerHTML = caption;
+        table.appendChild(captionEl);
+    }
+
+    addClassPm(table, 'section-table');
+    addClassPm(thead, 'table-head');
+    addClassPm(tbody, 'table-body');
+
+    const headerData = cookieTableData.headers;
+    const tableHeadersKeys = getKeys(headerData);
+
+    /**
+     * Create table headers
+     */
+    const trHeadFragment = globalObj._dom._document.createDocumentFragment();
+    const trHead = createNode('tr');
+
+    for (const headerKey of tableHeadersKeys) {
+        const headerValue = headerData[headerKey];
+        const th = createNode('th');
+
+        th.id = 'cc__row-' + headerKey + sectionIndex;
+        setAttribute(th, 'scope', 'col');
+        addClassPm(th, 'table-th');
+
+        th.innerHTML = headerValue;
+        appendChild(trHeadFragment, th);
+    }
+
+    appendChild(trHead, trHeadFragment);
+    appendChild(thead, trHead);
+
+    /**
+     * Create table body
+     */
+    const bodyFragment = globalObj._dom._document.createDocumentFragment();
+
+    for (const bodyItem of cookieTableData.body) {
+        const tr = createNode('tr', 'pm__table-tr');
+
+        for (const tdKey of tableHeadersKeys) {
+            const tdHeader = headerData[tdKey];
+            const tdValue = bodyItem[tdKey];
+
+            const td = createNode('td');
+            const tdInner = createNode(DIV_TAG);
+
+            addClassPm(td, 'table-td');
+            setAttribute(td, 'data-column', tdHeader);
+            setAttribute(td, 'headers', 'cc__row-' + tdKey + sectionIndex);
+
+            tdInner.insertAdjacentHTML('beforeend', tdValue);
+
+            appendChild(td, tdInner);
+            appendChild(tr, td);
+        }
+
+        appendChild(bodyFragment, tr);
+    }
+
+    appendChild(tbody, bodyFragment);
+    appendChild(table, thead);
+    appendChild(table, tbody);
+
+    return table;
+};
+
+/**
+ * Strip html elements (and their content) and return the remaining text
+ * @param {string} html
+ * @returns {string}
+ */
+const getTextWithoutElements = (html) => {
+    const template = createNode('template');
+    template.innerHTML = html;
+
+    let text = '';
+
+    for (const node of template.content.childNodes)
+        node.nodeType === Node.TEXT_NODE && (text += node.textContent);
+
+    return text;
+};
+
+/**
+ * Generate toggle
+ * @param {string} label block title
+ * @param {string} value category/service
+ * @param {import('../global').Category} sCurrentCategoryObject
+ * @param {boolean} [isService]
+ * @param {string} categoryName
+ */
+function createToggleLabel(label, value, sCurrentCategoryObject, isService, categoryName) {
+    const state = globalObj._state;
+    const dom = globalObj._dom;
+
+    /** @type {HTMLLabelElement} */ const toggleLabel = createNode('label');
+    /** @type {HTMLInputElement} */ const toggle = createNode('input');
+    /** @type {HTMLSpanElement} */  const toggleIcon = createNode('span');
+    /** @type {HTMLSpanElement} */  const toggleIconCircle = createNode('span');
+    /** @type {HTMLSpanElement} */  const toggleLabelSpan = createNode('span');
+
+    // each will contain 2 pseudo-elements to generate 'tick' and 'x' icons
+    /** @type {HTMLSpanElement} */  const toggleOnIcon = createNode('span');
+    /** @type {HTMLSpanElement} */  const toggleOffIcon = createNode('span');
+
+    toggleOnIcon.innerHTML = getSvgIcon(1, 3);
+    toggleOffIcon.innerHTML = getSvgIcon(0, 3);
+
+    toggle.type = 'checkbox';
+
+    addClass(toggleLabel, 'section__toggle-wrapper');
+    addClass(toggle, 'section__toggle');
+    addClass(toggleOnIcon, 'toggle__icon-on');
+    addClass(toggleOffIcon, 'toggle__icon-off');
+    addClass(toggleIcon, 'toggle__icon');
+    addClass(toggleIconCircle, 'toggle__icon-circle');
+    addClass(toggleLabelSpan, 'toggle__label');
+
+    setAttribute(toggleIcon, ARIA_HIDDEN, 'true');
+
+    if (isService) {
+        addClass(toggleLabel, 'toggle-service');
+        setAttribute(toggle, SCRIPT_TAG_SELECTOR, categoryName);
+        toggle.name = 'cc-' + categoryName + '-' + value;
+
+        // Save reference to toggles to avoid using document.querySelector later on
+        dom._serviceCheckboxInputs[categoryName][value] = toggle;
+    } else {
+        toggle.name = 'cc-' + value;
+        dom._categoryCheckboxInputs[value] = toggle;
+    }
+
+    if (!isService) {
+        ((value)=> {
+            addEvent(toggle, CLICK_EVENT, () => {
+                const categoryServicesToggles = dom._serviceCheckboxInputs[value];
+                const checked = toggle.checked;
+                state._enabledServices[value] = [];
+
+                /**
+                 * Enable/disable all services
+                 */
+                for (let serviceName in categoryServicesToggles) {
+                    categoryServicesToggles[serviceName].checked = checked;
+                    checked && state._enabledServices[value].push(serviceName);
+                }
+            });
+        })(value);
+    } else {
+        ((categoryName) => {
+            addEvent(toggle, 'change', () => {
+                const categoryServicesToggles = dom._serviceCheckboxInputs[categoryName];
+                const categoryToggle = dom._categoryCheckboxInputs[categoryName];
+
+                state._enabledServices[categoryName] = [];
+
+                for (let serviceName in categoryServicesToggles) {
+                    const serviceInput = categoryServicesToggles[serviceName];
+
+                    if (serviceInput.checked) {
+                        state._enabledServices[categoryName].push(serviceInput.value);
+                    }
+                }
+
+                categoryToggle.checked = state._enabledServices[categoryName].length > 0;
+            });
+        })(categoryName);
+
+    }
+
+    toggle.value = value;
+    toggleLabelSpan.textContent = getTextWithoutElements(label);
+
+    appendChild(toggleIconCircle, toggleOffIcon);
+    appendChild(toggleIconCircle, toggleOnIcon);
+    appendChild(toggleIcon, toggleIconCircle);
+
+    toggle.checked = isService
+        ? isToggleChecked(categoryName, value, !state._invalidConsent)
+        : isToggleChecked(value, '', !state._invalidConsent);
+
+    /**
+     * Set toggle as readonly if true (disable checkbox)
+     */
+    if (sCurrentCategoryObject.readOnly) {
+        toggle.disabled = true;
+    }
+
+    appendChild(toggleLabel, toggle);
+    appendChild(toggleLabel, toggleIcon);
+    appendChild(toggleLabel, toggleLabelSpan);
+
+    return toggleLabel;
+}
