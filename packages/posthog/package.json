@@ -1,6 +1,6 @@
 {
   "name": "@easy-cookie/posthog",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "PostHog adapter for easy-cookie: cookieless on_reject mode and opt-in/out synced with consent.",
   "license": "MIT",
   "repository": {
