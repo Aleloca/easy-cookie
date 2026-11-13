@@ -14,6 +14,11 @@ export interface PostHogLike {
   get_explicit_consent_status?(): string;
   startSessionRecording?(...args: unknown[]): void;
   stopSessionRecording?(): void;
+  // posthog-js internals, used only to restart session replay after a cookieless → opt-in switch.
+  _onRemoteConfig?(config: Record<string, unknown>): void;
+  sessionRecording?: { onRemoteConfig?(config: Record<string, unknown>): void } | null;
+  config?: { token?: string };
+  requestRouter?: { endpointFor?(target: string, path: string): string };
   identify?(distinctId?: string, ...rest: unknown[]): void;
   get_distinct_id?(): string;
 }
@@ -64,6 +69,41 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
   const granted = () => (options.service ? api.isServiceGranted(options.service) : api.isGranted(category));
   let last: 'in' | 'out' | null = null;
 
+  // Session replay after a cookieless → opt-in switch. posthog-js resets the instance
+  // and creates a new recorder that waits for the remote config, which it only
+  // fetches once per page load (and which the cookieless instance never stored).
+  // Keep the config posthog-js receives, or fetch it again, and hand it to the new
+  // recorder. Every call is guarded: with a different posthog-js the replay simply
+  // starts on the next page load, as before.
+  let remoteConfig: Record<string, unknown> | undefined;
+  if (options.sessionReplay && typeof posthog._onRemoteConfig === 'function') {
+    const original = posthog._onRemoteConfig.bind(posthog);
+    posthog._onRemoteConfig = (config) => {
+      remoteConfig = config;
+      original(config);
+    };
+  }
+  const fetchRemoteConfig = async (): Promise<Record<string, unknown> | undefined> => {
+    try {
+      const token = posthog.config?.token;
+      const url = token && posthog.requestRouter?.endpointFor?.('assets', `/array/${token}/config`);
+      if (!url) return undefined;
+      const res = await fetch(url);
+      return res.ok ? ((await res.json()) as Record<string, unknown>) : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+  const restartReplay = async () => {
+    try {
+      const config = remoteConfig ?? (await fetchRemoteConfig());
+      if (config && 'sessionRecording' in config) posthog.sessionRecording?.onRemoteConfig?.(config);
+      posthog.startSessionRecording?.();
+    } catch {
+      /* replay starts on the next page load */
+    }
+  };
+
   // With cookieless_mode, has_opted_out_capturing() is already true while consent
   // is pending, so prefer the explicit consent status when the client has it.
   const status = (): 'in' | 'out' | 'pending' => {
@@ -97,8 +137,12 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
     if (granted()) {
       if (last !== 'in') {
         // No `$opt_in` event: the consent itself is recorded by easy-cookie.
+        const fromCookieless = status() === 'out';
         if (status() !== 'in') posthog.opt_in_capturing({ captureEventName: false });
-        if (options.sessionReplay) posthog.startSessionRecording?.();
+        if (options.sessionReplay) {
+          if (fromCookieless) void restartReplay();
+          else posthog.startSessionRecording?.();
+        }
         last = 'in';
       }
       const id = options.identify?.();

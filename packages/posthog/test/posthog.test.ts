@@ -213,3 +213,44 @@ describe('connectPostHog first page load', () => {
     expect(ph.opt_out_capturing).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('session replay after a cookieless opt-in', () => {
+  it('hands the remote config received by posthog-js to the new recorder', async () => {
+    const { api } = createFakeApi();
+    await api.run(testConfig);
+    const recorder = { onRemoteConfig: vi.fn() };
+    const original = vi.fn();
+    const ph = { ...fakePostHog(), _onRemoteConfig: original, sessionRecording: null as typeof recorder | null };
+    connectPostHog(ph, api, { beforeChoice: 'cookieless', sessionReplay: true });
+    // posthog-js receives its remote config while cookieless (no recorder yet)
+    ph._onRemoteConfig({ sessionRecording: { endpoint: '/s/' } });
+    expect(original).toHaveBeenCalledTimes(1);
+    // opt-in creates a new recorder (as posthog-js does after reset)
+    ph.sessionRecording = recorder;
+    api.acceptAll();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(recorder.onRemoteConfig).toHaveBeenCalledWith({ sessionRecording: { endpoint: '/s/' } });
+    expect(ph.startSessionRecording).toHaveBeenCalled();
+  });
+
+  it('fetches the remote config when it was not seen', async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ sessionRecording: { endpoint: '/s/' } }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { api } = createFakeApi();
+    await api.run(testConfig);
+    const recorder = { onRemoteConfig: vi.fn() };
+    const ph = {
+      ...fakePostHog(),
+      sessionRecording: recorder,
+      config: { token: 'phc_x' },
+      requestRouter: { endpointFor: (_t: string, path: string) => `https://eu-assets.i.posthog.com${path}` },
+    };
+    connectPostHog(ph, api, { beforeChoice: 'cookieless', sessionReplay: true });
+    api.acceptAll();
+    await new Promise((r) => setTimeout(r, 0));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(fetchMock).toHaveBeenCalledWith('https://eu-assets.i.posthog.com/array/phc_x/config');
+    expect(recorder.onRemoteConfig).toHaveBeenCalledWith({ sessionRecording: { endpoint: '/s/' } });
+    vi.unstubAllGlobals();
+  });
+});
