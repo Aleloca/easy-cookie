@@ -155,3 +155,108 @@ model ConsentRecord {   // append-only; deleted only by subject erasure or site 
 Implementation notes (`apps/server/prisma/schema.prisma`):
 - `draftConfig` and `PolicyVersion.config` use `@db.Json` (Postgres `json`, not `jsonb`). `jsonb` reorders object keys, and category order is significant: it is the order of the banner and the policy.
 - Foreign keys with `onDelete: Cascade` link `AdminSession` to `AdminUser`, and `PolicyVersion` and `ConsentRecord` to `Site`.
+
+## Service catalog (library of ready-made services)
+
+The catalog lives in `@easy-cookie/core/catalog` (`packages/core/src/catalog/`), typed by `CatalogEntry` in `catalog/types.ts`. It is plain data, so npm users, the CLI and the console share it.
+
+- Exports: `CATALOG: CatalogEntry[]`, `findCatalogEntry(id)`, `catalogToService(entry): ServiceDeclaration`.
+- `catalogToService` copies label, provider, privacyUrl, category, purpose and cookies, and sets `from: entry.id`.
+- `ServiceDeclaration.from?: string` records which catalog entry a service came from. It is informational only: the owner may edit every field afterwards, and the config never depends on the catalog at runtime.
+- Entries carry IT and EN text (`{ it, en }`) for `purpose`, cookie `duration` and cookie `description`.
+
+| Method | Path | Auth | Response |
+|---|---|---|---|
+| GET | `/admin/api/catalog` | session | `CatalogEntry[]`, sorted by group then label |
+
+## Legal documents (cookie policy, privacy policy, terms)
+
+Each site has exactly three documents, `kind ∈ { cookie, privacy, terms }`. They are created lazily on first read, pre-filled from the built-in templates for the site's languages.
+
+### Content
+
+```ts
+interface LegalDocContent {
+  /** One entry per language the document is written in. */
+  translations: Record<string, { title: string; body: string /* Markdown */ }>;
+}
+```
+
+The body is Markdown, rendered with raw HTML **disabled** (HTML in the source is shown as text). Links use the `http`, `https` and `mailto` schemes and relative URLs only.
+
+Directives are written on their own line and expanded at render time:
+
+| Directive | Expands to |
+|---|---|
+| `{{cookie-table}}` | The per-category cookie tables generated from the site's **published** banner config (`@easy-cookie/policy`). In the console preview, the draft config is used. |
+| `{{services-list}}` | The list of third-party services from the config: label, provider, purpose, privacy link and data-transfer countries when known. |
+| `{{preferences-link}}` | A link that opens the cookie preferences: `<a href="#" data-ec-open-preferences>`. The core runtime binds every `[data-ec-open-preferences]` element on the page. |
+| `{{last-updated}}` | The publication date of the version being shown, in the document's language. |
+
+Placeholders the owner must fill in are written as `[[Testo da compilare]]` (double square brackets). The renderer shows them highlighted. The console counts them and warns before publishing, but does not block publishing.
+
+### Versions
+
+- The draft is editable.
+- Publishing creates an immutable `LegalDocumentVersion`, and the newest one is the version shown to visitors.
+- Version ids follow the banner revision rules: `YYYY-MM-DD` by default, with a `-2` suffix on collision, or any id of 1–64 characters from `[A-Za-z0-9._-]`.
+- Legal document versions are independent of the banner `revision`. Changing a legal document does not re-prompt visitors; changing what the banner declares does.
+
+### Admin API (`/admin/api`, session + CSRF on mutations)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/sites/:id/legal` | `[{ kind, title, languages, draftUpdatedAt, publishedVersion, publishedAt, placeholders }]` for all three kinds. `title` is in the site's default language; `placeholders` counts the `[[…]]` left in the draft. |
+| GET | `/sites/:id/legal/:kind` | `{ kind, draft: LegalDocContent, draftUpdatedAt, publishedVersion, placeholders, versions: [{ version, note, publishedAt, publishedBy }] }`, with versions newest first |
+| PUT | `/sites/:id/legal/:kind/draft` | `{ draft }`, same response as GET |
+| POST | `/sites/:id/legal/:kind/versions` | `{ version?, note? }` → `201 { version, note, publishedAt }`. An existing explicit version returns `409 version_exists`; an empty translation set returns `422 empty_document`. |
+| GET | `/sites/:id/legal/:kind/versions/:version` | `{ version, note, publishedAt, content }` |
+| POST | `/sites/:id/legal/:kind/render` | `{ content, lang }` → `{ title, html }`: preview of unsaved content, with directives expanded against the **draft** banner config |
+| GET | `/legal-templates/:kind?lang=it` | `{ title, body }`: the built-in template, with `{{site.name}}` and `{{site.domain}}` already replaced when `siteId` is passed as a query parameter |
+
+### Public endpoints (no auth, `Access-Control-Allow-Origin: *`, `Cache-Control: public, max-age=300`)
+
+| Method | Path | Response |
+|---|---|---|
+| GET | `/v1/sites/:publicKey/legal/:kind.json?lang=` | `{ kind, lang, languages, title, html, version, publishedAt }`. The language falls back to the config default, then to the first translation. Returns 404 `not_published` when nothing is published. |
+| GET | `/v1/sites/:publicKey/legal/:kind.html?lang=` | The same `html` as a bare fragment (`text/html`) |
+| GET | `/v1/sites/:publicKey/legal.js` | Loader script that fills every `<div data-easy-cookie-legal="cookie\|privacy\|terms" [data-lang="it"]>` on the page with the published document, and injects `/static/easy-cookie-legal.css` once (opt out with `data-no-style`). |
+| GET | `/p/:publicKey/:kind?lang=` | Hosted page: a complete, standalone, readable HTML page for the document, with a language switcher and links to the site's other published documents. Use it as the banner's `policyUrl` when the site has no page of its own (the Iubenda-style hosted link). |
+
+The rendered HTML is wrapped in `<div class="ec-legal" lang="…">`. Cookie tables keep the `@easy-cookie/policy` markup. `/static/easy-cookie-legal.css` is a small, neutral, variable-driven stylesheet (`--ec-legal-*`) built from `@easy-cookie/policy`.
+
+### Packages
+
+- `@easy-cookie/policy`:
+  - `renderLegalDocument(content, lang, { config, version?, publishedAt? }) → { title, html }` (shared by the server and SSR);
+  - `fetchLegalDocument({ endpoint, siteKey, kind, lang })`.
+- `@easy-cookie/policy/react`: `<LegalDocument endpoint siteKey kind lang />`, which fetches on the client, and `<LegalDocumentHtml doc={…} />` to render a document fetched on the server.
+- `@easy-cookie/next/server`: `getLegalDocument({ endpoint, siteKey, kind, lang, revalidate? })` for Server Components, using `fetch` with `next: { revalidate }` (default 300 s), so legal pages are server-rendered and indexable.
+
+### Data model
+
+```prisma
+model LegalDocument {
+  id               String   @id @default(cuid())
+  siteId           String
+  kind             String           // cookie | privacy | terms
+  draft            Json     @db.Json
+  draftUpdatedAt   DateTime @default(now())
+  publishedVersion String?
+  site             Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  versions         LegalDocumentVersion[]
+  @@unique([siteId, kind])
+}
+/// Immutable.
+model LegalDocumentVersion {
+  id          String   @id @default(cuid())
+  documentId  String
+  version     String
+  note        String?
+  content     Json     @db.Json
+  publishedAt DateTime @default(now())
+  publishedBy String?
+  document    LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@unique([documentId, version])
+}
+```
