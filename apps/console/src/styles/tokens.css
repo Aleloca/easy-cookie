@@ -1,0 +1,81 @@
+/*
+ * Libretto — the Italian postal savings passbook.
+ * Cool paper ground, passbook navy shell, stamp violet reserved for stamps,
+ * revisions and withdrawals, security-print green for wayfinding and the
+ * guilloche band. Square corners, no shadows.
+ */
+:root {
+  /* palette */
+  --ground: #f6f7f5;
+  --paper: #ffffff;
+  --band: #eef1ec;
+  --navy: #1e2f5a;
+  --navy-2: #2a3d70;
+  --navy-wash: #e7ebf3;
+  --rail-ink: #dfe5f2;
+  --rail-dim: #b9c3dc;
+  --rail-line: #3c5088;
+  --ink: #1b1d22;
+  --ink-2: #4a4f57;
+  --muted: #5d625f;
+  --label: #5f655d;
+  --violet: #5b3f8c;
+  --violet-wash: #efeaf6;
+  --violet-row: #faf7fd;
+  --violet-recede: #6e6582;
+  --green: #3f6b53;
+  --green-print: #4d7c63;
+  --hair: #c9d0c6;
+  --hair-2: #e3e6e0;
+  --field-line: #858c82;
+  --danger: #9f2a2a;
+  --danger-wash: #fbeeee;
+  --ok: #2f6a4a;
+  --recede: #6a6f75;
+
+  /* data series (non-text contrast ≥ 3:1 on paper) */
+  --s-accept_all: #1e2f5a;
+  --s-custom: #4d7c63;
+  --s-reject_all: #6f7fa6;
+  --s-close: #868b82;
+  --s-withdraw: #5b3f8c;
+
+  /* type */
+  --font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --mono: 'SF Mono', ui-monospace, Menlo, Consolas, 'Liberation Mono', monospace;
+  --fs-xs: 11px;
+  --fs-sm: 12.5px;
+  --fs-md: 13.5px;
+  --fs-base: 14px;
+  --fs-lg: 17px;
+  --fs-h2: 15px;
+  --fs-h1: 26px;
+  --track-label: 0.1em;
+  --track-crumb: 0.14em;
+
+  /* space */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s7: 32px;
+  --s8: 36px;
+  --s9: 48px;
+  --gutter: 36px;
+  --rail-w: 232px;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* guilloche: faint concentric security print behind page headers */
+  --guilloche: repeating-radial-gradient(circle at 80% 40%, transparent 0 6px, rgba(77, 124, 99, 0.1) 6px 7px),
+    repeating-radial-gradient(circle at 96% 120%, transparent 0 9px, rgba(77, 124, 99, 0.06) 9px 10px), var(--band);
+}
+
+@media (max-width: 900px) {
+  :root {
+    --gutter: 16px;
+  }
+}
