@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "Next.js App Router integration for easy-cookie: Consent Mode head snippet and server-side consent reading.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aleloca/easy-cookie.git",
+    "directory": "packages/next"
+  },
+  "bugs": {
+    "url": "https://github.com/Aleloca/easy-cookie/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",

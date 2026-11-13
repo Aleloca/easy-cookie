@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "Generate the cookie policy (HTML, Markdown, React) and autoClear rules from an easy-cookie config.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aleloca/easy-cookie.git",
+    "directory": "packages/policy"
+  },
+  "bugs": {
+    "url": "https://github.com/Aleloca/easy-cookie/issues"
+  },
   "type": "module",
   "sideEffects": [
     "*.css"

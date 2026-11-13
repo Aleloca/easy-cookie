@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "Self-hosted, GDPR/ePrivacy-compliant cookie consent: banner, prior blocking, Google Consent Mode v2, proof of consent.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aleloca/easy-cookie.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/Aleloca/easy-cookie/issues"
+  },
   "type": "module",
   "sideEffects": [
     "*.css"

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+  "changelog": ["@changesets/changelog-github", { "repo": "Aleloca/easy-cookie" }],
+  "commit": false,
+  "fixed": [["@easy-cookie/*"]],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": ["@easy-cookie/server", "@easy-cookie/console", "@easy-cookie/site", "@easy-cookie/playground"]
+}

@@ -34,3 +34,13 @@ When you port a fix from upstream, record the upstream commit in the same file.
 
 - Small, focused PRs, with a test for every bug fix.
 - Visitor-facing copy must exist in both IT and EN (`packages/core/src/shared/defaults.ts`).
+
+## Releasing to npm
+
+Releases are automated (`.github/workflows/release.yml`):
+
+1. With every change that should reach npm, add a changeset: `pnpm changeset`. Pick the bump and write one changelog line.
+2. On `main`, the release workflow opens or updates a **Version Packages** pull request with the new versions and changelogs.
+3. Merging that pull request publishes the bumped `@easy-cookie/*` packages to npm, with provenance.
+
+Publishing uses npm Trusted Publishing, so there is no npm token in the repository secrets. Each package is configured on npmjs.com (package → Settings → Trusted publishing) with: GitHub Actions, owner `Aleloca`, repository `easy-cookie`, workflow `release.yml`.
