@@ -133,7 +133,18 @@ export function mountReopenButton(
         revealed = true;
         syncModules(grid, c, null);
         grid.querySelectorAll('.ec-module').forEach((m) => m.classList.remove('ec-module--on'));
-        requestAnimationFrame(() => requestAnimationFrame(() => syncModules(grid, c, state)));
+        // Wait until the banner has gone (the button is display:none while it shows),
+        // otherwise the fill would happen unseen.
+        const start = performance.now();
+        const fillWhenVisible = () => {
+          const bannerUp = document.documentElement.classList.contains('show--consent');
+          if ((bannerUp || getComputedStyle(btn).display === 'none') && performance.now() - start < 1500) {
+            requestAnimationFrame(fillWhenVisible);
+            return;
+          }
+          requestAnimationFrame(() => syncModules(grid, c, current));
+        };
+        requestAnimationFrame(fillWhenVisible);
         return;
       }
       syncModules(grid, c, state);
