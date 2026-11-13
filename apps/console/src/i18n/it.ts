@@ -59,7 +59,7 @@ const it = {
   },
   login: {
     title: 'Accedi alla console',
-    lead: 'Il registro dei consensi e la configurazione del banner dei tuoi siti.',
+    lead: 'Registro dei consensi, banner, revisioni e documenti legali dei tuoi siti, su questo server.',
     email: 'Email',
     password: 'Password',
     submit: 'Accedi',
@@ -90,6 +90,7 @@ const it = {
     ],
     selfHosted: 'Self-hosted: registro, configurazione e documenti restano su questo server.',
     version: 'console',
+    stampSample: 'gg/mm · rev',
   },
   sites: {
     title: 'Siti',

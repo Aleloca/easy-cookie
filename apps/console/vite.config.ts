@@ -8,6 +8,7 @@ import react from '@vitejs/plugin-react';
 // Consent server the dev proxy forwards to (apps/server, `pnpm dev:server`).
 const target = process.env.EASY_COOKIE_SERVER ?? 'http://localhost:8787';
 const mock = process.env.VITE_MOCK === '1';
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
 /**
  * Mock mode has no consent server, so the live preview would find no runtime.
@@ -41,6 +42,7 @@ function mockStatic(): Plugin {
 
 export default defineConfig({
   base: '/admin/',
+  define: { __CONSOLE_VERSION__: JSON.stringify(pkg.version) },
   plugins: [react(), ...(mock ? [mockStatic()] : [])],
   server: {
     port: 5173,

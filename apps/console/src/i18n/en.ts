@@ -57,7 +57,7 @@ const en: Dict = {
   },
   login: {
     title: 'Sign in to the console',
-    lead: 'The consent register and banner configuration of your sites.',
+    lead: 'The consent register, banner, revisions and legal documents of your sites, on this server.',
     email: 'Email',
     password: 'Password',
     submit: 'Sign in',
@@ -88,6 +88,7 @@ const en: Dict = {
     ],
     selfHosted: 'Self-hosted: the register, configuration and documents stay on this server.',
     version: 'console',
+    stampSample: 'dd/mm · rev',
   },
   sites: {
     title: 'Sites',

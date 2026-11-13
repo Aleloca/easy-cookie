@@ -2,7 +2,8 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import type { Site } from '../api/types';
 import { useAuth } from '../auth';
-import { useI18n } from '../i18n';
+import { useI18n, useT } from '../i18n';
+import { revisionLabel } from '../lib/format';
 import { Icon } from './Icon';
 
 export const IS_MOCK = import.meta.env.VITE_MOCK === '1';
@@ -78,14 +79,46 @@ function SiteSwitcher({ site, sites }: { site: Site; sites: Site[] | undefined }
   );
 }
 
+/** Revision stamp drawn in rail ink; it turns violet when its row is inverted to paper. */
+function RailStamp({ revision }: { revision: string | null }) {
+  const t = useT();
+  return revision ? <span className="rail-stamp">{revisionLabel(revision)}</span> : <span className="rail-draft">{t.nav.draftOnly}</span>;
+}
+
+/** Console-wide entries: every site, and the service library. */
+function ConsoleNav({ sites }: { sites?: Site[] }) {
+  const t = useT();
+  return (
+    <ul className="rail-nav">
+      <li>
+        <NavLink to="/sites" end>
+          {t.nav.sites}
+          {sites && <span className="rail-count">{sites.length}</span>}
+        </NavLink>
+      </li>
+      <li>
+        <NavLink to="/library">
+          {t.nav.library}
+        </NavLink>
+      </li>
+    </ul>
+  );
+}
+
 function RailBody({ site, sites }: { site?: Site; sites?: Site[] }) {
   const { t, lang, setLang } = useI18n();
   const { user, logout } = useAuth();
+  const sitesId = useId();
+  const consoleId = useId();
   return (
     <>
       {site ? (
         <>
           <SiteSwitcher site={site} sites={sites} />
+          <p className="rail-site-meta">
+            <span className="rail-site-name">{site.name}</span>
+            <RailStamp revision={site.publishedRevision} />
+          </p>
           <nav aria-label={t.nav.main}>
             <ul className="rail-nav">
               {SECTIONS.map((s) => (
@@ -97,37 +130,66 @@ function RailBody({ site, sites }: { site?: Site; sites?: Site[] }) {
               ))}
             </ul>
           </nav>
+          <nav className="rail-group" aria-labelledby={consoleId}>
+            <h2 className="rail-label" id={consoleId}>
+              {t.nav.consoleNav}
+            </h2>
+            <ConsoleNav sites={sites} />
+          </nav>
         </>
       ) : (
-        <nav aria-label={t.nav.main}>
-          <ul className="rail-nav rail-nav-top">
-            <li>
-              <NavLink to="/sites" end>
-                {t.nav.sites}
-              </NavLink>
-            </li>
-          </ul>
-        </nav>
+        <>
+          <nav className="rail-nav-top" aria-label={t.nav.consoleNav}>
+            <ConsoleNav sites={sites} />
+          </nav>
+          <nav className="rail-group" aria-labelledby={sitesId}>
+            <h2 className="rail-label" id={sitesId}>
+              {t.nav.yourSites}
+            </h2>
+            {sites === undefined ? null : sites.length === 0 ? (
+              <p className="rail-empty">{t.nav.noSites}</p>
+            ) : (
+              <ul className="rail-sites">
+                {sites.map((s) => (
+                  <li key={s.id}>
+                    <NavLink to={`/sites/${s.id}`}>
+                      <span className="rail-site-domain">{s.domain}</span>
+                      <span className="rail-site-sub">
+                        <span className="rail-site-name">{s.name}</span>
+                        <RailStamp revision={s.publishedRevision} />
+                      </span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </nav>
+        </>
       )}
       <div className="rail-foot">
-        {IS_MOCK && <p className="rail-mock">{t.common.mockBadge}</p>}
-        <div className="lang" role="group" aria-label={t.common.language}>
-          {(['it', 'en'] as const).map((l) => (
-            <button key={l} type="button" aria-pressed={lang === l} onClick={() => setLang(l)} lang={l}>
-              {l.toUpperCase()}
-            </button>
-          ))}
-        </div>
         {user && (
-          <p className="rail-user">
-            <span className="sr-only">{t.nav.signedInAs} </span>
-            {user.email}
-          </p>
+          <div className="rail-account">
+            <span className="rail-label">{t.nav.account}</span>
+            <p className="rail-user">
+              <span className="sr-only">{t.nav.signedInAs} </span>
+              {user.email}
+            </p>
+            <button type="button" className="rail-logout" onClick={() => void logout()}>
+              <Icon name="logout" />
+              {t.nav.logout}
+            </button>
+          </div>
         )}
-        <button type="button" className="rail-logout" onClick={() => void logout()}>
-          <Icon name="logout" />
-          {t.nav.logout}
-        </button>
+        <div className="rail-foot-row">
+          <div className="lang" role="group" aria-label={t.common.language}>
+            {(['it', 'en'] as const).map((l) => (
+              <button key={l} type="button" aria-pressed={lang === l} onClick={() => setLang(l)} lang={l}>
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          {IS_MOCK && <p className="rail-mock">{t.common.mockBadge}</p>}
+        </div>
       </div>
     </>
   );
