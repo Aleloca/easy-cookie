@@ -106,7 +106,7 @@ import { ConsentGate, ConsentScript, ConsentEmbed, PreferencesLink } from '@easy
 />
 ```
 
-`<ConsentEmbed>` renders `.ec-embed` with `.ec-embed__text`, `.ec-embed__actions` and `.ec-embed__btn` (plus `--primary`), so the core theme styles it. The texts come from `texts.embed` in the config and are available in IT and EN. It has two buttons:
+`<ConsentEmbed>` renders `.ec-embed` with `.ec-embed__text`, `.ec-embed__actions` and `.ec-embed__btn` (plus `--primary`), so the core theme styles it. The texts come from `texts.embed` in the config and are available in English, Italian, Spanish, French, German and Portuguese. It has two buttons:
 
 - **Show content** accepts only that service and keeps every other choice.
 - **Always enable "category"** accepts the whole category.

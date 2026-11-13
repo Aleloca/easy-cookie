@@ -42,7 +42,7 @@ easy-cookie follows the Italian Garante's 2021 cookie guidelines and the EDPB co
   - a salted hash of the IP, never the raw IP.
 
   Records are append-only, can be linked to a user after login, exported as CSV, and accessed or erased per subject (GDPR art. 15 / 17).
-- **Service library.** About 30 ready-made services (GA4, GTM, Meta Pixel, Google Ads, PostHog, Hotjar, YouTube, Stripe, reCAPTCHA, Intercom…) come with provider, privacy link, purpose and cookies, in Italian and English. Add one and edit what you need.
+- **Service library.** About 30 ready-made services (GA4, GTM, Meta Pixel, Google Ads, PostHog, Hotjar, YouTube, Stripe, reCAPTCHA, Intercom…) come with provider, privacy link, purpose and cookies, in English, Italian, Spanish, French, German and Portuguese. Add one and edit what you need.
 - **Legal documents.** You write the cookie policy, privacy policy and terms in Markdown in the console, in several languages, and publish them as versioned documents.
   - Cookie tables and the list of services are generated from the banner config.
   - Each document is served as a ready-made hosted page, as an embeddable fragment, or rendered by your Next.js app.

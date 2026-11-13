@@ -163,7 +163,7 @@ The catalog lives in `@easy-cookie/core/catalog` (`packages/core/src/catalog/`),
 - Exports: `CATALOG: CatalogEntry[]`, `findCatalogEntry(id)`, `catalogToService(entry): ServiceDeclaration`.
 - `catalogToService` copies label, provider, privacyUrl, category, purpose and cookies, and sets `from: entry.id`.
 - `ServiceDeclaration.from?: string` records which catalog entry a service came from. It is informational only: the owner may edit every field afterwards, and the config never depends on the catalog at runtime.
-- Entries carry IT and EN text (`{ it, en }`) for `purpose`, cookie `duration` and cookie `description`.
+- Entries carry text in six languages (`{ it, en, es, fr, de, pt }`) for `purpose`, cookie `duration`, cookie `description`, `note` and the transfer safeguard.
 
 | Method | Path | Auth | Response |
 |---|---|---|---|

@@ -35,7 +35,7 @@ A recurring type is `Localized`: a string, or a map from language to string, for
 | `googleConsentMode` | object | disabled | See [googleConsentMode](#googleconsentmode). |
 | `log` | object | none | Consent server. Without it, no record is sent. |
 | `ui` | object | see below | Position, reopen button, colour scheme. |
-| `texts` | `Record<lang, DeepPartial<Texts>>` | IT/EN texts included | Overrides any text, per language. |
+| `texts` | `Record<lang, DeepPartial<Texts>>` | Texts for en, it, es, fr, de, pt included | Overrides any text, per language. |
 | `respectGpc` | `boolean` | `true` | A Global Privacy Control signal counts as a rejection. |
 | `hideFromBots` | `boolean` | `true` | Does not show the banner to crawlers and automated browsers. |
 
@@ -144,7 +144,7 @@ The technical cookie in which the browser remembers the choice. It is first-part
 | Field | Type | Default | Notes |
 |---|---|---|---|
 | `language.default` | `string` | `'it'` | Fallback language for the texts. |
-| `language.available` | `string[]` | `[default]` | Languages offered. Italian and English ship with every text. |
+| `language.available` | `string[]` | `[default]` | Languages offered. English, Italian, Spanish, French, German and Portuguese ship with every text; other languages fall back to English. |
 | `language.autoDetect` | `'document' \| 'browser' \| false` | `'document'` | `document` reads `<html lang>`, `browser` reads `navigator.language`. |
 
 ## googleConsentMode
