@@ -21,6 +21,10 @@
       "import": "./dist/head.js",
       "require": "./dist/head.cjs"
     },
+    "./shared": {
+      "types": "./src/shared/index.ts",
+      "default": "./src/shared/index.ts"
+    },
     "./style.css": "./dist/easy-cookie.css",
     "./package.json": "./package.json"
   },
