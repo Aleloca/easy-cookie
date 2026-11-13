@@ -5,8 +5,12 @@
   "description": "Self-hosted consent server for easy-cookie: config hosting, embed script, proof-of-consent database and admin API.",
   "license": "MIT",
   "type": "module",
-  "engines": { "node": ">=20" },
-  "bin": { "easy-cookie-server": "./dist/cli.js" },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "easy-cookie-server": "./dist/cli.js"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "prisma generate && tsup",
@@ -16,7 +20,9 @@
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma migrate deploy"
+    "prisma:deploy": "prisma migrate deploy",
+    "pretest": "prisma generate",
+    "pretypecheck": "prisma generate"
   },
   "dependencies": {
     "@easy-cookie/core": "workspace:*",
