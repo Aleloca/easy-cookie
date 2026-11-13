@@ -201,3 +201,15 @@ describe('connectPostHog with posthog-js consent status', () => {
     expect(ph.opt_in_capturing).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('connectPostHog first page load', () => {
+  it('calls opt_out_capturing once per page load even when already out, so the landing pageview is counted', async () => {
+    const { api } = createFakeApi({ categories: ['necessary'] });
+    await api.run(testConfig);
+    const ph = { ...fakePostHog(), get_explicit_consent_status: () => 'denied' };
+    connectPostHog(ph, api);
+    expect(ph.opt_out_capturing).toHaveBeenCalledTimes(1);
+    api.rejectAll();
+    expect(ph.opt_out_capturing).toHaveBeenCalledTimes(1);
+  });
+});

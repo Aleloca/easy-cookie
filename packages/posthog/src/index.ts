@@ -83,7 +83,9 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
     if (!api.get()) {
       if (options.beforeChoice === 'cookieless') {
         if (last !== 'out') {
-          if (status() !== 'out') posthog.opt_out_capturing();
+          // Also when already out: on a full page load posthog-js sends the first
+          // cookieless $pageview only from opt_out_capturing() (no reset when not opted in).
+          if (status() !== 'out' || last === null) posthog.opt_out_capturing();
           last = 'out';
         }
       } else if (status() === 'in') {
@@ -103,7 +105,7 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
       if (id && posthog.identify && posthog.get_distinct_id?.() !== id) posthog.identify(id);
     } else if (last !== 'out') {
       if (options.sessionReplay) posthog.stopSessionRecording?.();
-      if (status() !== 'out') posthog.opt_out_capturing();
+      if (status() !== 'out' || last === null) posthog.opt_out_capturing();
       last = 'out';
     }
   };
