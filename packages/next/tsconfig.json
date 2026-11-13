@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@easy-cookie/core/shared": ["../core/src/shared/index.ts"],
+      "@easy-cookie/react": ["../react/src/index.ts"]
+    },
+    "types": ["vitest/globals"]
+  },
+  "include": ["src", "test"]
+}
