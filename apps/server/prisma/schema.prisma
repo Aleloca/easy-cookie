@@ -1,0 +1,85 @@
+// easy-cookie consent server. Contract: docs/api.md ("Data model").
+// Relations (with cascading deletes) are added on top of the contract fields
+// so that deleting a site or an admin also removes their dependent rows.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String
+  createdAt    DateTime       @default(now())
+  sessions     AdminSession[]
+}
+
+model AdminSession {
+  id        String    @id
+  userId    String
+  csrfToken String
+  expiresAt DateTime
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Site {
+  id                String          @id @default(cuid())
+  name              String
+  domain            String
+  origins           String[]
+  publicKey         String          @unique
+  secretKeyHash     String          @unique
+  ipHashSalt        String
+  draftConfig       Json            @db.Json // json, not jsonb: keeps key order (category order matters)
+  draftUpdatedAt    DateTime        @default(now())
+  publishedRevision String?
+  createdAt         DateTime        @default(now())
+  versions          PolicyVersion[]
+  consents          ConsentRecord[]
+}
+
+/// Immutable: never updated, deleted only with its site.
+model PolicyVersion {
+  id          String   @id @default(cuid())
+  siteId      String
+  revision    String
+  note        String?
+  config      Json     @db.Json // json keeps key order
+  publishedAt DateTime @default(now())
+  publishedBy String?
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, revision])
+}
+
+/// Append-only: deleted only by subject erasure or site deletion.
+/// The only update ever made is linking `subjectId` (POST /v1/consents/:id/subject).
+model ConsentRecord {
+  id              String   @id @default(cuid())
+  siteId          String
+  consentId       String
+  subjectId       String?
+  revision        String
+  method          String
+  categories      Json
+  services        Json
+  language        String?
+  pageUrl         String?
+  ipHash          String?
+  userAgent       String?
+  clientTimestamp DateTime
+  receivedAt      DateTime @default(now())
+  site            Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, receivedAt])
+  @@index([siteId, consentId])
+  @@index([siteId, subjectId])
+}

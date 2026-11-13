@@ -1,0 +1,35 @@
+{
+  "name": "@easy-cookie/server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-hosted consent server for easy-cookie: config hosting, embed script, proof-of-consent database and admin API.",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "bin": { "easy-cookie-server": "./dist/cli.js" },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "prisma generate && tsup",
+    "start": "node dist/index.js",
+    "cli": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@easy-cookie/core": "workspace:*",
+    "@hono/node-server": "^1.19.5",
+    "@prisma/client": "^6.19.0",
+    "hono": "^4.10.0",
+    "prisma": "^6.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
