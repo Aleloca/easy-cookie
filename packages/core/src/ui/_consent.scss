@@ -262,6 +262,46 @@
   }
 }
 
+// "Barra in basso" on wide screens: an edge-to-edge bar, texts left and buttons right.
+@media (min-width: 641px) {
+  .ec--bar #cc-main {
+    .cm {
+      width: 100vw;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: 0;
+      border-width: 1px 0 0;
+      max-height: 70vh;
+    }
+
+    .cm__body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
+      align-items: end;
+      gap: 12px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .cm__desc {
+      max-width: 72ch;
+    }
+
+    .cm__btns {
+      margin-top: 0;
+    }
+
+    .ec-mosaic {
+      margin-right: 0;
+    }
+
+    .cm__btn.cm__btn--close {
+      right: var(--ec-pad);
+    }
+  }
+}
+
 // Phones: a full-width sheet on the bottom edge.
 @media (max-width: 640px) {
   #cc-main {
@@ -284,9 +324,9 @@
     }
 
     .ec-mosaic__legend {
-      display: grid;
-      grid-template-columns: repeat(2, max-content);
-      gap: 2px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px 14px;
     }
   }
 

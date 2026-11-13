@@ -194,6 +194,8 @@ export function createEasyCookie(): EasyCookieApi {
       const pos = config.ui?.position ?? 'bottom-left';
       const enginePos = pos === 'bottom' ? 'bottom center' : pos === 'center' ? 'middle center' : pos.replace('-', ' ');
       document.documentElement.classList.add('ec');
+      // `bottom` is a full-width bar on wide screens, not a centred box.
+      document.documentElement.classList.toggle('ec--bar', pos === 'bottom');
       const scheme = config.ui?.colorScheme ?? 'light';
       if (scheme === 'dark') document.documentElement.classList.add('ec--dark');
       if (scheme === 'auto' && w.matchMedia?.('(prefers-color-scheme: dark)').matches)

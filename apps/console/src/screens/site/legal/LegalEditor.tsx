@@ -85,6 +85,12 @@ function LegalPreview({ siteId, kind, content, lang }: { siteId: string; kind: L
       shadow.current = { root, doc };
     }
     shadow.current.doc.innerHTML = state.html;
+    // The rendered document carries its own h1; inside the editor it sits under the
+    // page's h1, so shift every heading one level down for assistive technology.
+    shadow.current.doc.querySelectorAll('h1, h2, h3, h4, h5').forEach((h) => {
+      h.setAttribute('role', 'heading');
+      h.setAttribute('aria-level', String(Number(h.tagName[1]) + 1));
+    });
     markPlaceholders(shadow.current.doc);
   }, [state]);
 
