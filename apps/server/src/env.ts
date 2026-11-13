@@ -7,6 +7,8 @@ export const APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export interface ServerConfig {
   databaseUrl: string;
   port: number;
+  /** Interface to listen on (e.g. 127.0.0.1 behind a reverse proxy). Default: all interfaces. */
+  host?: string;
   /** Public base URL of this server, without trailing slash. Empty = derive from the request. */
   publicUrl: string;
   adminEmail?: string;
@@ -38,6 +40,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   return {
     databaseUrl: env.DATABASE_URL ?? '',
     port: Number(env.PORT ?? 8787),
+    host: env.HOST || undefined,
     publicUrl: (env.PUBLIC_URL ?? '').replace(/\/+$/, ''),
     adminEmail: env.ADMIN_EMAIL || undefined,
     adminPassword: env.ADMIN_PASSWORD || undefined,

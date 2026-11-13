@@ -21,8 +21,8 @@ try {
 }
 
 const { app } = createApp({ config, prisma });
-const server = serve({ fetch: app.fetch, port: config.port }, (info) => {
-  console.log(`[easy-cookie] listening on http://localhost:${info.port}`);
+const server = serve({ fetch: app.fetch, port: config.port, hostname: config.host }, (info) => {
+  console.log(`[easy-cookie] listening on http://${config.host ?? 'localhost'}:${info.port}`);
   if (!config.publicUrl) console.warn('[easy-cookie] PUBLIC_URL is not set: URLs are derived from each request');
 });
 
