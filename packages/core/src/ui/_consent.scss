@@ -1,0 +1,295 @@
+// Consent banner ("Modulo"). Replaces the engine's consent-modal stylesheet:
+// one box layout, square, ink-bordered, equal-weight Accept | Reject halves.
+
+#cc-main {
+  .cm-wrapper {
+    all: unset;
+  }
+
+  .cm {
+    position: fixed;
+    z-index: 1;
+    box-sizing: border-box;
+    display: block;
+    width: min(var(--ec-width), calc(100vw - 2 * var(--cc-modal-margin)));
+    max-height: calc(100vh - 2 * var(--cc-modal-margin));
+    overflow: auto;
+    background: var(--ec-bg);
+    color: var(--ec-ink);
+    border: var(--ec-border);
+    border-radius: var(--ec-radius);
+    box-shadow: var(--ec-shadow);
+    font-size: var(--ec-text);
+    line-height: 1.5;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+
+    &--bottom {
+      bottom: var(--cc-modal-margin);
+    }
+
+    &--top {
+      top: var(--cc-modal-margin);
+    }
+
+    &--middle {
+      top: 50%;
+      transform: translateY(calc(-50% + 12px));
+    }
+
+    &--left {
+      left: var(--cc-modal-margin);
+    }
+
+    &--right {
+      right: var(--cc-modal-margin);
+    }
+
+    &--center {
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+    }
+  }
+
+  .cc--anim .cm {
+    transition:
+      opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 180ms,
+      transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cm__body {
+    position: relative;
+    display: block;
+    padding: var(--ec-pad);
+  }
+
+  .cm__texts {
+    display: block;
+  }
+
+  .cm__title {
+    display: block;
+    margin: 0 0 0.5rem;
+    font-size: var(--ec-title);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    color: var(--ec-ink);
+  }
+
+  .cm__desc {
+    display: block;
+    margin: 0;
+    color: var(--ec-ink-2);
+    max-width: 62ch;
+    text-wrap: pretty;
+  }
+
+  .cm__btn.cm__btn--close {
+    position: absolute;
+    min-height: 0;
+    top: calc(var(--ec-pad) - 6px);
+    right: calc(var(--ec-pad) - 6px);
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--ec-hair);
+    border-radius: var(--ec-radius);
+    background: var(--ec-bg);
+    color: var(--ec-ink);
+
+    svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--ec-ink);
+      stroke-width: 4;
+    }
+
+    &:hover {
+      border-color: var(--ec-ink);
+    }
+  }
+
+  .cm__btns {
+    display: grid;
+    gap: 8px;
+    margin-top: 22px;
+  }
+
+  .cm__btn-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .cm__btn-group + .cm__btn-group {
+    grid-template-columns: 1fr;
+  }
+
+  .cm__btn {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7em 1em;
+    border: 1px solid var(--ec-ink);
+    border-radius: var(--ec-radius);
+    background: var(--ec-ink);
+    color: var(--ec-on-ink);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    cursor: pointer;
+
+    &:hover > span {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+  }
+
+  .cm__btn--secondary {
+    background: var(--ec-bg);
+    color: var(--ec-ink);
+
+    &:hover {
+      background: var(--ec-wash);
+    }
+  }
+
+  // Mosaic: the visitor's choice drawn as colour modules.
+  .ec-mosaic {
+    display: block;
+    margin: 0 52px 18px 0;
+  }
+
+  .ec-mosaic__row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .ec-module {
+    display: inline-block;
+    flex: none;
+    box-sizing: border-box;
+    width: var(--ec-module);
+    height: var(--ec-module);
+    border: 2px solid var(--ec-cat, var(--ec-ink));
+    background: transparent;
+
+    &--on {
+      background: var(--ec-cat, var(--ec-ink));
+    }
+  }
+
+  .ec-swatch {
+    display: inline-block;
+    flex: none;
+    box-sizing: border-box;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border: 2px solid var(--ec-cat, var(--ec-ink));
+
+    &--on {
+      background: var(--ec-cat, var(--ec-ink));
+    }
+  }
+
+  .ec-mosaic__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--ec-small);
+    line-height: 1.5;
+    color: var(--ec-ink-2);
+  }
+
+  .ec-mosaic__item {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .ec-mosaic__state {
+    display: inline;
+    margin-left: 0.3em;
+
+    &::before {
+      content: "· ";
+      display: inline;
+    }
+  }
+
+  .ec-error {
+    display: block;
+    margin: 12px 0 0;
+    font-size: var(--ec-small);
+    font-weight: 600;
+    color: var(--ec-c-marketing);
+
+    &:empty {
+      display: none;
+    }
+  }
+}
+
+.show--consent #cc-main .cc--anim .cm {
+  opacity: 1;
+  visibility: visible !important;
+  transform: translateY(0);
+
+  &.cm--middle {
+    transform: translateY(-50%);
+  }
+}
+
+// Phones: a full-width sheet on the bottom edge.
+@media (max-width: 640px) {
+  #cc-main {
+    --cc-modal-margin: 0px;
+    --ec-pad: 20px;
+    --ec-module: 32px;
+
+    .cm {
+      width: 100vw;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: auto;
+      border-width: 1px 0 0;
+      max-height: 88vh;
+    }
+
+    .cm--middle {
+      transform: translateY(12px);
+    }
+
+    .cm__desc {
+      font-size: 14px;
+    }
+  }
+
+  .show--consent #cc-main .cc--anim .cm.cm--middle {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #cc-main .cc--anim .cm {
+    transition: none;
+  }
+}

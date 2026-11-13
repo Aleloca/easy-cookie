@@ -1,0 +1,15 @@
+{
+  "name": "@easy-cookie/playground",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "node serve.mjs",
+    "shots": "node shots.mjs"
+  },
+  "dependencies": {
+    "@easy-cookie/core": "workspace:*"
+  },
+  "devDependencies": {
+    "playwright": "~1.65.0"
+  }
+}

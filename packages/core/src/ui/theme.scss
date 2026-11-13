@@ -1,0 +1,517 @@
+// easy-cookie default theme — "Modulo".
+// Every visual decision is a --ec-* custom property so host sites restyle the
+// banner without touching selectors. The engine's own --cc-* variables are
+// derived from these.
+
+@use "../engine/scss/core/base";
+@use "../engine/scss/abstracts/light-color-scheme";
+@use "../engine/scss/abstracts/dark-color-scheme";
+@use "../engine/scss/core/components/preferences-modal";
+@use "./consent";
+
+:root,
+:host {
+  --ec-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ec-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ec-bg: #ffffff;
+  --ec-ink: #1c1c1a;
+  --ec-ink-2: #4a4a46;
+  --ec-hair: #d9d9d3;
+  --ec-wash: #f4f4f1;
+  --ec-on-ink: #ffffff;
+  --ec-border: 1px solid var(--ec-ink);
+  --ec-radius: 0px;
+  --ec-module: 40px;
+  --ec-pad: 28px;
+  --ec-width: 560px;
+  --ec-text: 15px;
+  --ec-title: 20px;
+  --ec-small: 13px;
+  --ec-shadow: none;
+  --ec-overlay: rgba(28, 28, 26, 0.45);
+  --ec-focus: 0 0 0 2px var(--ec-bg), 0 0 0 4px var(--ec-ink);
+  --ec-step: 120ms;
+
+  // Category modules (Olivetti palette). Override per site.
+  --ec-c-necessary: var(--ec-ink);
+  --ec-c-measurement: #2457c5;
+  --ec-c-functionality: #d9981a;
+  --ec-c-experience: #2f8f5b;
+  --ec-c-marketing: #d63a26;
+  --ec-c-extra-1: #7a4fa0;
+  --ec-c-extra-2: #0f7f86;
+  --ec-c-extra-3: #8a5a2b;
+
+  // Engine variables, derived.
+  --cc-font-family: var(--ec-font);
+  --cc-modal-border-radius: var(--ec-radius);
+  --cc-btn-border-radius: var(--ec-radius);
+  --cc-pm-toggle-border-radius: var(--ec-radius);
+  --cc-link-color: var(--ec-ink);
+  --cc-bg: var(--ec-bg);
+  --cc-primary-color: var(--ec-ink);
+  --cc-secondary-color: var(--ec-ink-2);
+  --cc-btn-primary-bg: var(--ec-ink);
+  --cc-btn-primary-color: var(--ec-on-ink);
+  --cc-btn-primary-border-color: var(--ec-ink);
+  --cc-btn-primary-hover-bg: var(--ec-ink);
+  --cc-btn-primary-hover-color: var(--ec-on-ink);
+  --cc-btn-primary-hover-border-color: var(--ec-ink);
+  --cc-btn-secondary-bg: var(--ec-bg);
+  --cc-btn-secondary-color: var(--ec-ink);
+  --cc-btn-secondary-border-color: var(--ec-ink);
+  --cc-btn-secondary-hover-bg: var(--ec-wash);
+  --cc-btn-secondary-hover-color: var(--ec-ink);
+  --cc-btn-secondary-hover-border-color: var(--ec-ink);
+  --cc-separator-border-color: var(--ec-hair);
+  --cc-toggle-on-bg: var(--ec-ink);
+  --cc-toggle-off-bg: #77776f;
+  --cc-toggle-on-knob-bg: var(--ec-bg);
+  --cc-toggle-off-knob-bg: var(--ec-bg);
+  --cc-toggle-enabled-icon-color: var(--ec-bg);
+  --cc-toggle-disabled-icon-color: var(--ec-bg);
+  --cc-toggle-readonly-bg: var(--ec-hair);
+  --cc-toggle-readonly-knob-bg: var(--ec-bg);
+  --cc-toggle-readonly-knob-icon-color: var(--ec-hair);
+  --cc-section-category-border: var(--ec-hair);
+  --cc-cookie-category-block-bg: var(--ec-bg);
+  --cc-cookie-category-block-border: var(--ec-hair);
+  --cc-cookie-category-block-hover-bg: var(--ec-wash);
+  --cc-cookie-category-block-hover-border: var(--ec-ink);
+  --cc-cookie-category-expanded-block-bg: transparent;
+  --cc-cookie-category-expanded-block-hover-bg: var(--ec-wash);
+  --cc-overlay-bg: var(--ec-overlay);
+  --cc-webkit-scrollbar-bg: var(--ec-hair);
+  --cc-webkit-scrollbar-hover-bg: var(--ec-ink-2);
+  --cc-footer-bg: var(--ec-wash);
+  --cc-footer-color: var(--ec-ink-2);
+  --cc-footer-border-color: var(--ec-hair);
+}
+
+@mixin dark-tokens {
+  --ec-bg: #161615;
+  --ec-ink: #f1f1ec;
+  --ec-ink-2: #b9b9b1;
+  --ec-hair: #3a3a36;
+  --ec-wash: #22221f;
+  --ec-on-ink: #161615;
+  --ec-overlay: rgba(0, 0, 0, 0.6);
+  --ec-c-measurement: #7a9cff;
+  --ec-c-functionality: #f0b33a;
+  --ec-c-experience: #4cc283;
+  --ec-c-marketing: #ff6a52;
+  --ec-c-extra-1: #b48ae0;
+  --ec-c-extra-2: #3cc4cc;
+  --ec-c-extra-3: #d39a5f;
+  --cc-toggle-off-bg: #8a8a82;
+}
+
+html.ec--dark,
+.ec--dark {
+  @include dark-tokens;
+}
+
+// ---------------------------------------------------------------- shared atoms
+
+#cc-main,
+.ec-reopen,
+.ec-embed {
+  font-family: var(--ec-font);
+  color: var(--ec-ink);
+
+  ::selection {
+    background: var(--ec-ink);
+    color: var(--ec-bg);
+  }
+}
+
+#cc-main a,
+#cc-main .cc__link,
+.ec-link {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  background: none;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+    background: none;
+  }
+}
+
+#cc-main button:focus-visible,
+#cc-main a:focus-visible,
+#cc-main input:focus-visible + .section__toggle,
+.ec-reopen:focus-visible,
+.ec-embed button:focus-visible {
+  outline: none;
+  box-shadow: var(--ec-focus);
+}
+
+.ec-module {
+  display: inline-block;
+  width: var(--ec-module);
+  height: var(--ec-module);
+  box-sizing: border-box;
+  border: 2px solid var(--ec-cat, var(--ec-ink));
+  background: transparent;
+  transition: background-color var(--ec-step) steps(2, end);
+
+  &--on {
+    background: var(--ec-cat, var(--ec-ink));
+  }
+}
+
+.ec-swatch {
+  display: inline-block;
+  flex: none;
+  width: 0.8em;
+  height: 0.8em;
+  box-sizing: border-box;
+  border: 2px solid var(--ec-cat, var(--ec-ink));
+  margin-right: 0.45em;
+  vertical-align: -0.05em;
+
+  &--on {
+    background: var(--ec-cat, var(--ec-ink));
+  }
+}
+
+// ---------------------------------------------------------------- preferences
+
+#cc-main .pm {
+  border: var(--ec-border);
+  border-radius: var(--ec-radius);
+  box-shadow: var(--ec-shadow);
+  background: var(--ec-bg);
+  font-size: var(--ec-text);
+}
+
+#cc-main .pm__header,
+#cc-main .pm__footer {
+  border-color: var(--ec-hair);
+}
+
+#cc-main .pm__title {
+  font-size: var(--ec-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+#cc-main .pm__close-btn {
+  border: 1px solid var(--ec-hair);
+  border-radius: var(--ec-radius);
+  background: var(--ec-bg);
+
+  svg {
+    stroke: var(--ec-ink);
+  }
+
+  &:hover {
+    border-color: var(--ec-ink);
+    background: var(--ec-bg);
+  }
+}
+
+#cc-main .pm__section-desc,
+#cc-main .pm__section-desc-wrapper {
+  font-size: var(--ec-text);
+  line-height: 1.5;
+  color: var(--ec-ink-2);
+}
+
+#cc-main .pm__section--toggle,
+#cc-main .pm__section {
+  border-radius: var(--ec-radius);
+}
+
+#cc-main .pm__section-title {
+  font-size: var(--ec-text);
+  font-weight: 600;
+  border-radius: var(--ec-radius);
+  justify-content: flex-start;
+  text-align: left;
+}
+
+#cc-main .pm__section-title-wrapper .pm__section-title {
+  padding-right: 9rem;
+}
+
+#cc-main .pm__badge {
+  border-radius: var(--ec-radius);
+  background: var(--ec-bg);
+  color: var(--ec-ink-2);
+  border: 1px solid var(--ec-hair);
+  font-size: 12px;
+  font-weight: 600;
+  height: 22px;
+  padding: 0 8px;
+}
+
+#cc-main .pm .pm__section-title-wrapper .pm__section-title,
+#cc-main .pm .pm__section--toggle .pm__section-title {
+  justify-content: flex-start;
+  border-radius: var(--ec-radius);
+}
+
+#cc-main .pm .pm__section--expandable .pm__section-arrow {
+  border-radius: var(--ec-radius);
+  background: transparent;
+
+  svg {
+    stroke: var(--ec-ink);
+  }
+}
+
+#cc-main .pm .ec-swatch {
+  display: inline-block;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-right: 10px;
+  background: var(--ec-cat);
+}
+
+#cc-main .pm .ec-always {
+  white-space: nowrap;
+  display: inline;
+}
+
+#cc-main .pm .ec-svc__name,
+#cc-main .pm .ec-svc__purpose,
+#cc-main .pm .ec-svc__meta {
+  display: block;
+}
+
+.ec-always {
+  margin-left: 0.5em;
+  font-size: var(--ec-small);
+  font-weight: 400;
+  color: var(--ec-ink-2);
+}
+
+#cc-main .pm__btn {
+  min-height: 44px;
+  border-radius: var(--ec-radius);
+  border: 1px solid var(--ec-ink);
+  font-weight: 600;
+}
+
+#cc-main .pm__btn--secondary {
+  background: var(--ec-bg);
+  color: var(--ec-ink);
+}
+
+#cc-main .section__toggle,
+#cc-main .toggle__icon,
+#cc-main .toggle__icon-circle {
+  border-radius: var(--ec-radius) !important;
+}
+
+#cc-main .section__toggle-wrapper .toggle__icon-circle {
+  box-shadow: none;
+}
+
+.ec-svcs {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--ec-hair);
+}
+
+.ec-svc {
+  display: grid;
+  gap: 2px;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--ec-hair);
+  font-size: var(--ec-small);
+  color: var(--ec-ink-2);
+}
+
+.ec-svc__name {
+  color: var(--ec-ink);
+  font-size: var(--ec-text);
+  font-weight: 600;
+}
+
+#cc-main .pm__section-table,
+#cc-main .pm__table-th,
+#cc-main .pm__table-td {
+  font-size: var(--ec-small);
+}
+
+#cc-main .pm__table-td code {
+  font-family: var(--ec-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+#cc-main .pm__table-head {
+  border-bottom: 1px solid var(--ec-ink);
+}
+
+// ---------------------------------------------------------------- reopen button
+
+.ec-reopen {
+  position: fixed;
+  z-index: 2147483646;
+  bottom: 16px;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: var(--ec-border);
+  border-radius: var(--ec-radius);
+  background: var(--ec-bg);
+  cursor: pointer;
+
+  &--bottom-left {
+    left: 16px;
+  }
+
+  &--bottom-right {
+    right: 16px;
+  }
+
+  &[hidden] {
+    display: none;
+  }
+
+  &:hover {
+    background: var(--ec-wash);
+  }
+}
+
+.ec-reopen__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 12px);
+  gap: 3px;
+}
+
+.ec-module--mini {
+  --ec-module: 12px;
+  border-width: 1.5px;
+}
+
+html.show--consent .ec-reopen,
+html.show--preferences .ec-reopen {
+  display: none;
+}
+
+// ---------------------------------------------------------------- embed placeholder
+
+.ec-embed {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 200px;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 14px;
+  padding: var(--ec-pad);
+  border: var(--ec-border);
+  border-radius: var(--ec-radius);
+  background: var(--ec-bg);
+
+  .ec-module {
+    --ec-module: 24px;
+  }
+}
+
+.ec-embed__text {
+  margin: 0;
+  max-width: 52ch;
+  font-size: var(--ec-text);
+  line-height: 1.5;
+  color: var(--ec-ink);
+}
+
+.ec-embed__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ec-btn {
+  min-height: 44px;
+  padding: 0.6em 1em;
+  border: 1px solid var(--ec-ink);
+  border-radius: var(--ec-radius);
+  background: var(--ec-ink);
+  color: var(--ec-on-ink);
+  font: 600 var(--ec-text) / 1.2 var(--ec-font);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  &--secondary {
+    background: var(--ec-bg);
+    color: var(--ec-ink);
+
+    &:hover {
+      background: var(--ec-wash);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ec-module {
+    transition: none;
+  }
+}
+
+// Toggles: an outlined track with an ink module that slides and inverts when on.
+#cc-main .pm .toggle__icon {
+  background: var(--ec-bg);
+  box-shadow: inset 0 0 0 1px var(--ec-ink);
+}
+
+#cc-main .pm .toggle__icon-circle {
+  background: var(--ec-ink);
+  box-shadow: none;
+}
+
+#cc-main .pm .toggle__icon-off svg {
+  stroke: var(--ec-bg);
+}
+
+#cc-main .pm .section__toggle:checked ~ .toggle__icon {
+  background: var(--ec-ink);
+  box-shadow: inset 0 0 0 1px var(--ec-ink);
+
+  .toggle__icon-circle {
+    background: var(--ec-bg);
+  }
+}
+
+#cc-main .pm .section__toggle:checked:disabled ~ .toggle__icon {
+  background: var(--ec-hair);
+  box-shadow: inset 0 0 0 1px var(--ec-hair);
+
+  .toggle__icon-circle {
+    background: var(--ec-bg);
+  }
+}
+
+#cc-main .pm .ec-always {
+  white-space: nowrap;
+  margin-left: 0.6em;
+  font-weight: 400;
+  color: var(--ec-ink-2);
+}
+
+#cc-main .pm .ec-swatch {
+  margin-right: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #cc-main .pm .toggle__icon,
+  #cc-main .pm .toggle__icon-circle {
+    transition: none;
+  }
+}

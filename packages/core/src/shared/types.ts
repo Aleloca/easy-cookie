@@ -118,6 +118,8 @@ export interface Texts {
     close: string;
     alwaysOn: string;
     services: string;
+    /** Badge on a category: "singular|plural". */
+    serviceCounter: string;
     cookieName: string;
     cookieDuration: string;
     cookieDescription: string;
@@ -164,6 +166,8 @@ export interface EasyCookieConfig {
   texts?: Record<string, DeepPartial<Texts>>;
   /** Honour the Global Privacy Control signal as a rejection. Default true. */
   respectGpc?: boolean;
+  /** Do not show the banner to crawlers and automated browsers. Default true. */
+  hideFromBots?: boolean;
 }
 
 /** The visitor's stored choice, as exposed by every easy-cookie API. */

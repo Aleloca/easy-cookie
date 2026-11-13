@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>easy-cookie playground</title>
+  <script src="/config.js"></script>
+  <script>
+    // In production this is generated server-side: renderHeadScript(config).
+    // Here we compute it from the IIFE build after it loads (demo only).
+  </script>
+  <link rel="stylesheet" href="/static/easy-cookie.css">
+  <style>
+    body { margin: 0; font: 18px/1.6 Georgia, serif; color: #222; background: #fbfbfa; }
+    header { display: flex; justify-content: space-between; padding: 24px clamp(16px, 8vw, 120px); border-bottom: 1px solid #e3e3e0; font: 15px system-ui; }
+    main { max-width: 720px; margin: 48px auto; padding: 0 16px; }
+    h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.1; }
+    .lede { font-size: 21px; color: #555; }
+    footer { padding: 32px clamp(16px, 8vw, 120px); border-top: 1px solid #e3e3e0; font: 14px system-ui; }
+    footer button { font: inherit; background: none; border: 0; text-decoration: underline; cursor: pointer; padding: 0; }
+    iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; }
+  </style>
+</head>
+<body>
+  <header><b>Rivista Esempio</b><span>Storie · Guide · Negozio</span></header>
+  <main>
+    <p>Guida · 12 novembre 2026</p>
+    <h1>Come scegliere uno zaino per un weekend in montagna</h1>
+    <p class="lede">Peso, volume e tasche: quello che conta davvero quando parti il venerdì sera e torni la domenica.</p>
+    <iframe data-category="experience" data-service="youtube" data-src="https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ" width="560" height="315" title="Video: preparare lo zaino"></iframe>
+    <p>Il primo errore è comprarlo troppo grande. Per due notti in rifugio bastano 30–35 litri: quello che non entra, di solito, non serviva.</p>
+    <p>Il secondo è guardare solo il peso a vuoto. Conta di più come lo zaino porta il carico: schienale, spallacci e cintura in vita.</p>
+  </main>
+  <footer><button type="button" onclick="EasyCookie.openPreferences()">Preferenze cookie</button> · <a href="/cookie-policy.html">Cookie policy</a></footer>
+
+  <script type="text/plain" data-category="measurement" data-service="ga4">
+    console.log('[demo] analytics script executed');
+    window.__analyticsRan = true;
+  </script>
+  <script src="/static/easy-cookie.iife.js"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    new Function(EasyCookie.renderHeadScript(window.demoConfig))();
+    if (window.__noBotCheck) window.demoConfig.hideFromBots = false;
+    EasyCookie.run(window.demoConfig);
+  </script>
+</body>
+</html>

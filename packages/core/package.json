@@ -16,12 +16,13 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./head": {
-      "types": "./dist/head.d.ts",
-      "import": "./dist/head.js",
-      "require": "./dist/head.cjs"
+    "./shared": {
+      "types": "./dist/shared.d.ts",
+      "import": "./dist/shared.js",
+      "require": "./dist/shared.cjs"
     },
     "./style.css": "./dist/easy-cookie.css",
+    "./iife": "./dist/easy-cookie.iife.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -55,5 +56,6 @@
         }
       ]
     }
-  }
+  },
+  "unpkg": "./dist/easy-cookie.iife.js"
 }
