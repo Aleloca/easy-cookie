@@ -44,6 +44,7 @@ model Site {
   createdAt         DateTime        @default(now())
   versions          PolicyVersion[]
   consents          ConsentRecord[]
+  legalDocuments    LegalDocument[]
 }
 
 /// Immutable: never updated, deleted only with its site.
@@ -82,4 +83,33 @@ model ConsentRecord {
   @@index([siteId, receivedAt])
   @@index([siteId, consentId])
   @@index([siteId, subjectId])
+}
+
+/// Cookie policy, privacy policy or terms of a site (docs/api.md "Legal documents").
+/// One row per (site, kind), created lazily on first read.
+model LegalDocument {
+  id               String                 @id @default(cuid())
+  siteId           String
+  kind             String // cookie | privacy | terms
+  draft            Json                   @db.Json // LegalDocContent; json keeps key (language) order
+  draftUpdatedAt   DateTime               @default(now())
+  publishedVersion String?
+  site             Site                   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  versions         LegalDocumentVersion[]
+
+  @@unique([siteId, kind])
+}
+
+/// Immutable: never updated, deleted only with its document (and site).
+model LegalDocumentVersion {
+  id          String        @id @default(cuid())
+  documentId  String
+  version     String
+  note        String?
+  content     Json          @db.Json
+  publishedAt DateTime      @default(now())
+  publishedBy String?
+  document    LegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, version])
 }

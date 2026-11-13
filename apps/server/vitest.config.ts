@@ -10,6 +10,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@easy-cookie/core/shared': fileURLToPath(new URL('../../packages/core/src/shared/index.ts', import.meta.url)),
+      '@easy-cookie/core/catalog': fileURLToPath(new URL('../../packages/core/src/catalog/index.ts', import.meta.url)),
+      '@easy-cookie/policy': fileURLToPath(new URL('../../packages/policy/src/index.ts', import.meta.url)),
     },
   },
   test: {

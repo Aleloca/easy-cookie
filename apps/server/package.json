@@ -26,9 +26,11 @@
   },
   "dependencies": {
     "@easy-cookie/core": "workspace:*",
+    "@easy-cookie/policy": "workspace:*",
     "@hono/node-server": "^1.19.5",
     "@prisma/client": "^6.19.0",
     "hono": "^4.10.0",
+    "markdown-it": "^14.3.3",
     "prisma": "^6.19.0"
   },
   "devDependencies": {

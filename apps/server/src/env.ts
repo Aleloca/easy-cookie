@@ -13,6 +13,8 @@ export interface ServerConfig {
   adminPassword?: string;
   /** Built assets of @easy-cookie/core (easy-cookie.iife.js, easy-cookie.css). */
   staticDir: string;
+  /** Build of @easy-cookie/policy; `/static/easy-cookie-legal.css` falls back to it when missing from staticDir. */
+  policyDir: string;
   /** Built console SPA, served under /admin. */
   consoleDir: string;
   /** Read the client IP from X-Forwarded-For (behind a reverse proxy). */
@@ -40,6 +42,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     adminEmail: env.ADMIN_EMAIL || undefined,
     adminPassword: env.ADMIN_PASSWORD || undefined,
     staticDir: resolve(APP_ROOT, env.STATIC_DIR ?? '../../packages/core/dist'),
+    policyDir: resolve(APP_ROOT, env.POLICY_DIR ?? '../../packages/policy/dist'),
     consoleDir: resolve(APP_ROOT, env.CONSOLE_DIR ?? '../console/dist'),
     trustProxy: truthy(env.TRUST_PROXY),
     rateLimitPerMinute: Number(env.RATE_LIMIT_PER_MINUTE ?? 60),

@@ -16,13 +16,17 @@ function fixtureDirs() {
   const root = mkdtempSync(join(tmpdir(), 'easy-cookie-test-'));
   const staticDir = join(root, 'static');
   const consoleDir = join(root, 'console');
+  const policyDir = join(root, 'policy');
   mkdirSync(staticDir);
+  mkdirSync(policyDir);
+  writeFileSync(join(policyDir, 'easy-cookie-legal.css'), '.ec-legal{}');
+  writeFileSync(join(policyDir, 'index.js'), 'export {}');
   mkdirSync(join(consoleDir, 'assets'), { recursive: true });
   writeFileSync(join(staticDir, 'easy-cookie.iife.js'), 'window.EasyCookie={run:function(){}};');
   writeFileSync(join(staticDir, 'easy-cookie.css'), ':root{}');
   writeFileSync(join(consoleDir, 'index.html'), '<!doctype html><div id="root"></div>');
   writeFileSync(join(consoleDir, 'assets', 'app.js'), 'console.log(1)');
-  return { staticDir, consoleDir };
+  return { staticDir, consoleDir, policyDir };
 }
 
 export function makeApp(overrides: Partial<ServerConfig> = {}) {
@@ -40,7 +44,7 @@ export function makeApp(overrides: Partial<ServerConfig> = {}) {
 
 export async function resetDb() {
   await prisma.$executeRawUnsafe(
-    'TRUNCATE "ConsentRecord", "PolicyVersion", "Site", "AdminSession", "AdminUser" RESTART IDENTITY CASCADE',
+    'TRUNCATE "LegalDocumentVersion", "LegalDocument", "ConsentRecord", "PolicyVersion", "Site", "AdminSession", "AdminUser" RESTART IDENTITY CASCADE',
   );
 }
 

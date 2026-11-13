@@ -1,4 +1,6 @@
-import { validateConfig } from '@easy-cookie/core/shared';
+import { CATALOG } from '@easy-cookie/core/catalog';
+import { validateConfig, type EasyCookieConfig } from '@easy-cookie/core/shared';
+import { isLegalKind, legalTemplate, renderLegalDocument, type LegalKind } from '@easy-cookie/policy';
 import type { Prisma, Site } from '@prisma/client';
 import { Hono, type Context } from 'hono';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
@@ -26,6 +28,15 @@ import {
   serializeSite,
   totals30d,
 } from '../services/sites.js';
+import {
+  documentDetail,
+  ensureDocument,
+  ensureDocuments,
+  parseContent,
+  publishDocument,
+  serializeSummary,
+  siteDefaultLanguage,
+} from '../services/legal.js';
 import { siteStats } from '../services/stats.js';
 import type { AppDeps, AppEnv } from '../types.js';
 
@@ -262,6 +273,96 @@ export function adminRoutes(deps: AppDeps) {
     const days = c.req.query('days') ? Number(c.req.query('days')) : 30;
     if (!Number.isInteger(days) || days < 1 || days > 366) throw badRequest('days: integer between 1 and 366');
     return c.json(await siteStats(prisma, site, days));
+  });
+
+  // ---- service catalog / legal documents -------------------------------------
+
+  app.get('/catalog', (c) => c.json(CATALOG));
+
+  const kindParam = (c: Context): LegalKind => {
+    const kind = c.req.param('kind');
+    if (!isLegalKind(kind)) throw notFound('Unknown document kind (cookie, privacy, terms)');
+    return kind;
+  };
+
+  app.get('/legal-templates/:kind', async (c) => {
+    const kind = kindParam(c);
+    const lang = c.req.query('lang') || 'it';
+    const siteId = c.req.query('siteId');
+    let site: Site | null = null;
+    if (siteId) {
+      site = await prisma.site.findUnique({ where: { id: siteId } });
+      if (!site) throw notFound('Site not found');
+    }
+    return c.json(legalTemplate(kind, lang, site ? { name: site.name, domain: site.domain } : undefined));
+  });
+
+  app.get('/sites/:id/legal', async (c) => {
+    const site = await loadSite(c);
+    const docs = await ensureDocuments(prisma, site);
+    const published = await prisma.legalDocumentVersion.findMany({
+      where: { OR: docs.filter((d) => d.publishedVersion).map((d) => ({ documentId: d.id, version: d.publishedVersion! })) },
+    });
+    return c.json(docs.map((d) => serializeSummary(d, site, published.find((v) => v.documentId === d.id) ?? null)));
+  });
+
+  app.get('/sites/:id/legal/:kind', async (c) => {
+    const site = await loadSite(c);
+    const doc = await ensureDocument(prisma, site, kindParam(c));
+    return c.json(await documentDetail(prisma, doc));
+  });
+
+  app.put('/sites/:id/legal/:kind/draft', async (c) => {
+    const site = await loadSite(c);
+    const kind = kindParam(c);
+    const body = await jsonBody(c);
+    const draft = parseContent(body.draft);
+    const doc = await ensureDocument(prisma, site, kind);
+    const updated = await prisma.legalDocument.update({
+      where: { id: doc.id },
+      data: { draft: draft as unknown as Prisma.InputJsonValue, draftUpdatedAt: new Date() },
+    });
+    return c.json(await documentDetail(prisma, updated));
+  });
+
+  app.post('/sites/:id/legal/:kind/versions', async (c) => {
+    const site = await loadSite(c);
+    const kind = kindParam(c);
+    const body = await jsonBody(c).catch(() => ({}) as Record<string, unknown>);
+    if (body.version !== undefined && body.version !== null && typeof body.version !== 'string')
+      throw badRequest('version: string', 'invalid_version');
+    const doc = await ensureDocument(prisma, site, kind);
+    const v = await publishDocument(prisma, doc, {
+      version: (body.version as string | null | undefined) || undefined,
+      note: (body.note as string | undefined) ?? null,
+      publishedBy: c.get('admin').email,
+    });
+    return c.json({ version: v.version, note: v.note, publishedAt: v.publishedAt.toISOString() }, 201);
+  });
+
+  app.get('/sites/:id/legal/:kind/versions/:version', async (c) => {
+    const site = await loadSite(c);
+    const doc = await ensureDocument(prisma, site, kindParam(c));
+    const v = await prisma.legalDocumentVersion.findUnique({
+      where: { documentId_version: { documentId: doc.id, version: c.req.param('version') } },
+    });
+    if (!v) throw notFound('Version not found');
+    return c.json({ version: v.version, note: v.note, publishedAt: v.publishedAt.toISOString(), content: v.content });
+  });
+
+  app.post('/sites/:id/legal/:kind/render', async (c) => {
+    const site = await loadSite(c);
+    kindParam(c);
+    const body = await jsonBody(c);
+    const content = parseContent(body.content);
+    const lang = typeof body.lang === 'string' && body.lang ? body.lang : siteDefaultLanguage(site);
+    const issues = validateConfig(site.draftConfig);
+    const r = renderLegalDocument(content, lang, {
+      // A broken draft config cannot build tables: preview without them.
+      config: issues.length ? null : (site.draftConfig as unknown as EasyCookieConfig),
+      site: { name: site.name, domain: site.domain },
+    });
+    return c.json({ title: r.title, html: r.html, lang: r.lang });
   });
 
   app.all('*', () => {

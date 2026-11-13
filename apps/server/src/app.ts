@@ -7,9 +7,12 @@ import { ApiError, notFound } from './lib/errors.js';
 import { serveFile } from './lib/files.js';
 import { RateLimiter } from './lib/rate-limit.js';
 import { adminRoutes } from './routes/admin.js';
+import { legalRoutes } from './routes/legal.js';
 import { publicRoutes } from './routes/public.js';
 import { secretRoutes } from './routes/secret.js';
 import type { AppDeps, AppEnv } from './types.js';
+
+const LEGAL_CSS = 'easy-cookie-legal.css';
 
 export function createApp(opts: { config: ServerConfig; prisma?: PrismaClient; deps?: Partial<AppDeps> }) {
   const deps: AppDeps = {
@@ -43,16 +46,18 @@ export function createApp(opts: { config: ServerConfig; prisma?: PrismaClient; d
   });
 
   app.route('/', publicRoutes(deps));
+  app.route('/', legalRoutes(deps));
   app.route('/', secretRoutes(deps));
   app.route('/admin/api', adminRoutes(deps));
 
-  // Built assets of @easy-cookie/core.
+  // Built assets of @easy-cookie/core. The legal stylesheet comes from
+  // @easy-cookie/policy: STATIC_DIR wins (the Docker image copies it there),
+  // then POLICY_DIR (the policy package build, for dev and source installs).
   app.get('/static/*', async (c) => {
     const rel = c.req.path.slice('/static/'.length);
-    const res = await serveFile(config.staticDir, rel, {
-      'Cache-Control': 'public, max-age=3600',
-      'Access-Control-Allow-Origin': '*',
-    });
+    const headers = { 'Cache-Control': 'public, max-age=3600', 'Access-Control-Allow-Origin': '*' };
+    let res = await serveFile(config.staticDir, rel, headers);
+    if (!res && rel === LEGAL_CSS) res = await serveFile(config.policyDir, LEGAL_CSS, headers);
     return res ?? c.json(notFound('Asset not found').toJSON(), 404);
   });
 

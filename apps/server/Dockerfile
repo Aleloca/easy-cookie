@@ -13,8 +13,10 @@ WORKDIR /repo
 FROM base AS build
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-# Browser runtime assets served under /static (easy-cookie.iife.js, easy-cookie.css).
-RUN pnpm --filter @easy-cookie/core build
+# Browser runtime assets served under /static (easy-cookie.iife.js, easy-cookie.css),
+# plus the legal documents stylesheet from @easy-cookie/policy (easy-cookie-legal.css).
+RUN pnpm --filter @easy-cookie/core build && pnpm --filter @easy-cookie/policy build \
+  && cp packages/policy/dist/easy-cookie-legal.css packages/core/dist/
 # Admin console SPA served under /admin (skipped if the app is not in the tree).
 RUN if [ -f apps/console/package.json ]; then pnpm --filter @easy-cookie/console build; else mkdir -p apps/console/dist; fi
 RUN pnpm --filter @easy-cookie/server build

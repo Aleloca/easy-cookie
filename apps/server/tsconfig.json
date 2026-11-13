@@ -6,7 +6,9 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@easy-cookie/core/shared": ["../../packages/core/src/shared/index.ts"]
+      "@easy-cookie/core/shared": ["../../packages/core/src/shared/index.ts"],
+      "@easy-cookie/core/catalog": ["../../packages/core/src/catalog/index.ts"],
+      "@easy-cookie/policy": ["../../packages/policy/src/index.ts"]
     }
   },
   "include": ["src", "test", "tsup.config.ts", "vitest.config.ts"]
