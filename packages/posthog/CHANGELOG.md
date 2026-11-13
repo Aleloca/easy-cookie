@@ -1,5 +1,14 @@
 # @easy-cookie/posthog
 
+## 0.1.5
+
+### Patch Changes
+
+- [`4037f6c`](https://github.com/Aleloca/easy-cookie/commit/4037f6cde8cce174f291af74504c2d6493fab81f) Thanks [@Aleloca](https://github.com/Aleloca)! - posthog-js can be passed to `connectPostHog` again without a cast: the posthog-js internals used to restart session replay are no longer part of `PostHogLike` (their stricter types conflicted). The `_onRemoteConfig` hook is restored when the adapter disconnects, so reconnecting never stacks wrappers.
+
+- Updated dependencies []:
+  - @easy-cookie/core@0.1.5
+
 ## 0.1.4
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@easy-cookie/policy",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Generate the cookie policy (HTML, Markdown, React) and autoClear rules from an easy-cookie config.",
   "license": "MIT",
   "repository": {
