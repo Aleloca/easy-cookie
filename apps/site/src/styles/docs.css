@@ -1,0 +1,488 @@
+/* Docs: navy rail (as in the console), guilloche page header, calm reading column. */
+
+.docs {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* ---------------------------------------------------------------- rail */
+
+.rail {
+  background: var(--navy);
+  color: var(--on-navy);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--on-navy-hair) var(--navy);
+  display: flex;
+  flex-direction: column;
+}
+
+.rail :focus-visible {
+  outline-color: var(--on-navy);
+}
+
+.rail__top {
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--on-navy-hair);
+}
+
+.rail__top .wordmark {
+  color: var(--on-navy);
+}
+
+.rail__menu > summary {
+  display: none;
+}
+
+.rail nav {
+  padding: 8px 0 16px;
+}
+
+.rail__group {
+  padding: 16px 0 4px;
+}
+
+.rail__label {
+  color: var(--on-navy-2);
+  padding: 0 24px 8px;
+}
+
+.rail ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rail nav a {
+  display: block;
+  padding: 7px 24px;
+  color: var(--on-navy);
+  text-decoration: none;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.rail nav a:hover {
+  background: var(--navy-2);
+}
+
+.rail nav a[aria-current='page'] {
+  background: var(--paper);
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.rail__foot {
+  margin-top: auto !important;
+  padding: 16px 24px 24px !important;
+  border-top: 1px solid var(--on-navy-hair);
+  font-size: 14px;
+}
+
+.rail__foot li + li {
+  margin-top: 6px;
+}
+
+.rail__foot a {
+  color: var(--on-navy-2);
+}
+
+.rail__foot a:hover {
+  color: var(--on-navy);
+}
+
+/* ---------------------------------------------------------- page header */
+
+.docs__main {
+  min-width: 0;
+}
+
+.page-head {
+  background-color: var(--paper);
+  background-image: var(--guilloche);
+  background-size: 240px 60px;
+  border-bottom: 1px solid var(--hair);
+}
+
+.page-head__inner {
+  padding: clamp(36px, 5vw, 64px) var(--gutter) 28px;
+  max-width: calc(var(--measure) + 2 * var(--gutter) + 260px);
+}
+
+.page-head h1 {
+  font-size: var(--step-3);
+  letter-spacing: -0.025em;
+  max-width: 28ch;
+  color: var(--ink);
+}
+
+.page-head__lede {
+  margin-top: 14px;
+  max-width: 62ch;
+  font-size: var(--step-1);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.page-head__meta {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.page-head__status {
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+/* ------------------------------------------------------------ body grid */
+
+.docs__body {
+  display: grid;
+  grid-template-columns: minmax(0, var(--measure)) 220px;
+  gap: 56px;
+  padding: 40px var(--gutter) 24px;
+  align-items: start;
+}
+
+.toc {
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding-left: 16px;
+  border-left: 1px solid var(--hair);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.toc__title {
+  color: var(--ink-2);
+  margin-bottom: 10px;
+}
+
+.toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.toc li {
+  margin: 0 0 8px;
+}
+
+.toc__sub {
+  padding-left: 12px;
+}
+
+.toc a {
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.toc a:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------- prose */
+
+.prose {
+  min-width: 0;
+  font-size: var(--step-0);
+  line-height: 1.65;
+}
+
+.prose > * + * {
+  margin-top: 1em;
+}
+
+.prose h2 {
+  font-size: var(--step-2);
+  margin-top: 2.4em;
+  padding-top: 18px;
+  border-top: 1px solid var(--hair);
+  letter-spacing: -0.02em;
+  scroll-margin-top: 24px;
+}
+
+.prose h3 {
+  font-size: var(--step-1);
+  margin-top: 1.9em;
+  scroll-margin-top: 24px;
+}
+
+.prose h4 {
+  font-size: var(--step-0);
+  margin-top: 1.6em;
+}
+
+.prose h2 + *,
+.prose h3 + *,
+.prose h4 + * {
+  margin-top: 0.6em;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose > h2:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.3em;
+}
+
+.prose li + li {
+  margin-top: 0.35em;
+}
+
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.35em;
+}
+
+.prose li::marker {
+  color: var(--ink-3);
+}
+
+.prose strong {
+  font-weight: 700;
+}
+
+.prose .code-wrap,
+.prose > pre {
+  margin-top: 1.1em;
+  margin-bottom: 0.2em;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .prose table {
+    display: block;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+}
+
+.prose table th {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--navy);
+  padding: 10px 12px 8px 0;
+  border-bottom: 2px solid var(--navy);
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.prose table td {
+  padding: 10px 14px 10px 0;
+  border-bottom: 1px solid var(--hair);
+  vertical-align: top;
+}
+
+.prose table td:first-child code {
+  white-space: nowrap;
+}
+
+.prose blockquote {
+  padding: 14px 18px;
+  border: 1px solid var(--hair-strong);
+  background: var(--paper-2);
+}
+
+.prose blockquote > * + * {
+  margin-top: 0.6em;
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--hair);
+  margin: 2.4em 0;
+}
+
+/* Notes and warnings set as stamped slips. */
+.note {
+  position: relative;
+  padding: 16px 18px;
+  border: 1px solid var(--hair-strong);
+  background: var(--paper-2);
+}
+
+.note > * + * {
+  margin-top: 0.6em;
+}
+
+.note--legal {
+  border-color: var(--violet);
+  background: var(--violet-wash);
+}
+
+.note__title {
+  font-weight: 700;
+}
+
+/* Checklist table used on the compliance page. */
+.prose .check {
+  display: inline-block;
+  min-width: 2.2em;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+/* ---------------------------------------------------------------- pager */
+
+.pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: calc(var(--measure) + 2 * var(--gutter));
+  padding: 40px var(--gutter) 0;
+}
+
+.pager__link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--hair-strong);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.pager__link .label {
+  color: var(--ink-2);
+}
+
+.pager__link:hover {
+  border-color: var(--navy);
+  background: var(--paper-2);
+}
+
+.pager__link--next {
+  text-align: right;
+  grid-column: 2;
+}
+
+.pager__title {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.docs__foot {
+  margin-top: 56px;
+  padding: 20px var(--gutter) 32px;
+  border-top: 1px solid var(--hair);
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.docs__foot p + p {
+  margin-top: 4px;
+}
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 1180px) {
+  .docs__body {
+    grid-template-columns: minmax(0, var(--measure));
+  }
+
+  .toc {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .docs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rail {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+
+  .rail__top {
+    padding: 14px 16px;
+  }
+
+  .rail__menu > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    min-height: 44px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .rail__menu > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .rail__menu[open] > summary svg {
+    transform: rotate(180deg);
+  }
+
+  .rail nav a {
+    padding: 9px 16px;
+  }
+
+  .rail__label {
+    padding: 0 16px 6px;
+  }
+
+  .rail__foot {
+    padding: 14px 16px 18px !important;
+  }
+
+  .page-head h1 {
+    font-size: var(--step-2);
+  }
+
+  .page-head__lede {
+    font-size: var(--step-0);
+  }
+
+  .docs__body {
+    padding-top: 28px;
+  }
+
+  .pager {
+    grid-template-columns: 1fr;
+  }
+
+  .pager__link--next {
+    grid-column: 1;
+  }
+}
+
+.prose table code {
+  overflow-wrap: normal;
+}

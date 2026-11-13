@@ -1,0 +1,11 @@
+---
+// Brand mark: a passbook line with three modules (one granted, two denied).
+interface Props { size?: number }
+const { size = 22 } = Astro.props;
+---
+<svg width={size} height={size} viewBox="0 0 22 22" aria-hidden="true" focusable="false">
+  <rect x="1" y="5" width="5.5" height="5.5" fill="currentColor" />
+  <rect x="8.25" y="5.75" width="4.5" height="4.5" fill="none" stroke="currentColor" stroke-width="1.5" />
+  <rect x="15" y="5.75" width="4.5" height="4.5" fill="none" stroke="currentColor" stroke-width="1.5" />
+  <path d="M1 15.5h20" stroke="currentColor" stroke-width="1.5" />
+</svg>

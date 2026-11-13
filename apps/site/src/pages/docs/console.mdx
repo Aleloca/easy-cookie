@@ -1,0 +1,63 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Console di amministrazione
+description: La console servita dal server dei consensi su /admin. Siti, configurazione del banner con anteprima dal vivo, revisioni pubblicate, registro dei consensi ed esportazione, chiavi API.
+status: La console è in sviluppo insieme al server; le schermate possono cambiare prima della versione 1.0.
+---
+
+La console è un'applicazione web servita dal server dei consensi all'indirizzo `/admin`. Non serve installarla a parte: con Docker Compose è già inclusa. Accedi con l'amministratore creato al primo avvio (`ADMIN_EMAIL` e `ADMIN_PASSWORD`).
+
+Funziona come un libretto per ogni sito: ogni consenso, ogni modifica della configurazione e ogni revisione pubblicata è una voce con data e revisione, e nessuna voce viene cancellata.
+
+## Le sezioni
+
+| Sezione | Cosa ci fai |
+|---|---|
+| **Panoramica** | Come hanno scelto i visitatori negli ultimi 30 giorni, per metodo e per categoria, e quanti record sono arrivati dalla revisione corrente. |
+| **Registro consensi** | Cerchi un consenso per `consentId` o id utente, filtri per data, metodo e revisione, apri un record per vedere la prova completa e la storia di quel visitatore, esporti in CSV. |
+| **Configurazione banner** | Modifichi categorie, servizi, cookie e testi con l'anteprima del banner vero accanto. La bozza si salva anche se non è valida, e la console mostra i problemi da correggere. |
+| **Versioni policy** | Pubblichi la bozza come nuova revisione, con una nota. Ogni revisione è un'istantanea immutabile della configurazione. |
+| **Chiavi API** | Vedi la chiave pubblica e lo snippet `embed.js` da copiare, ruoti la chiave segreta. |
+| **Impostazioni** | Nome, dominio e origini ammesse del sito. |
+
+## Pubblicare una revisione
+
+1. Modifica la bozza in **Configurazione banner** e controlla l'anteprima.
+2. In **Versioni policy**, scegli **Pubblica**. Il nome della revisione è la data (`2026-11-13`); se pubblichi due volte nello stesso giorno diventa `2026-11-13-2`.
+3. Da quel momento `embed.js` e `config.json` consegnano la nuova configurazione (con una cache di 60 secondi) e i visitatori vedono di nuovo il banner, perché la revisione è cambiata.
+
+Pubblica una nuova revisione quando cambiano le finalità o le terze parti. Per correggere un refuso nei testi non è necessario far ripetere la scelta a tutti, ma la revisione è l'unico modo per legare una prova al testo esatto mostrato: valuta caso per caso.
+
+## Leggere una prova
+
+Ogni riga del registro inizia con il timbro di data e revisione. Aprendo un record vedi:
+
+- le categorie concesse e negate, e i servizi;
+- il metodo (`accept_all`, `reject_all`, `custom`, `close`, `withdraw`);
+- l'ora del client e quella del server;
+- la pagina, la lingua, lo User-Agent e l'hash dell'IP;
+- la storia completa dello stesso `consentId`, dal più recente;
+- la revisione della configurazione che il visitatore ha visto.
+
+Questo è il materiale da consegnare in caso di verifica: la scelta, il momento e il testo a cui si riferiva.
+
+## Accesso e sicurezza
+
+- Le password degli amministratori sono salvate con scrypt.
+- La sessione è un cookie `ec_admin` httpOnly e `SameSite=Strict`, valido 7 giorni.
+- Ogni richiesta che modifica dati verifica anche un token CSRF.
+
+Esponi `/admin` solo su HTTPS. Se puoi, limita l'accesso per IP o mettilo dietro l'autenticazione del tuo reverse proxy.
+
+## Configurazione nel codice
+
+Se preferisci tenere la configurazione nel repository, la console resta utile per il registro. Spingi la configurazione dalla CI a ogni deploy:
+
+```sh
+curl -X PUT https://consent.example.com/v1/config \
+  -H "Authorization: Bearer $EASY_COOKIE_SECRET" \
+  -H "Content-Type: application/json" \
+  -d "{\"config\": $(cat easy-cookie.config.json), \"publish\": true, \"note\": \"deploy $GIT_SHA\"}"
+```
+
+Il server valida la configurazione prima di pubblicarla e risponde con l'elenco dei problemi se non è valida, così un deploy con una configurazione rotta non arriva ai visitatori.

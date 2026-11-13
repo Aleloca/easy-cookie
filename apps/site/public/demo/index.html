@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Rivista Esempio · demo di easy-cookie</title>
+  <script src="config.js"></script>
+  <script>
+    // Demo instrumentation: mirror what the runtime does to the parent page.
+    (function () {
+      var parentWin = window.parent !== window ? window.parent : null;
+      window.__post = function (kind, data) {
+        if (!parentWin) return;
+        try {
+          parentWin.postMessage({ source: 'ec-demo', kind: kind, data: JSON.parse(JSON.stringify(data)) }, location.origin);
+        } catch (e) {}
+      };
+      var dl = (window.dataLayer = []);
+      var push = Array.prototype.push;
+      dl.push = function () {
+        for (var i = 0; i < arguments.length; i++) {
+          var it = arguments[i];
+          var isArgs = it && typeof it === 'object' && !Array.isArray(it) && typeof it.length === 'number';
+          window.__post('dataLayer', isArgs ? Array.prototype.slice.call(it) : it);
+        }
+        return push.apply(this, arguments);
+      };
+    })();
+  </script>
+  <script src="../static/easy-cookie.iife.js"></script>
+  <script>
+    // In production this comes from embed.js / head.js / <EasyCookieHead>: renderHeadScript(config).
+    new Function(EasyCookie.renderHeadScript(window.demoConfig))();
+  </script>
+  <link rel="stylesheet" href="../static/easy-cookie.css">
+  <style>
+    html { background: #fbfaf7; }
+    body { margin: 0; font: 17px/1.6 Georgia, "Times New Roman", serif; color: #26221e; background: #fbfaf7; }
+    header { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 18px clamp(16px, 6vw, 56px); border-bottom: 1px solid #e6e1d8; font: 14px/1.4 system-ui, sans-serif; }
+    header b { font: 700 19px/1 Georgia, serif; letter-spacing: -0.01em; }
+    header span { color: #6b635a; }
+    main { max-width: 640px; margin: 0 auto; padding: 28px 16px 360px; }
+    .kick { font: 13px/1.4 system-ui, sans-serif; color: #6b635a; margin: 0 0 12px; }
+    h1 { font-size: clamp(26px, 4.4vw, 38px); line-height: 1.12; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .lede { font-size: 19px; color: #4f4840; margin: 0 0 20px; }
+    iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; margin: 0 0 20px; }
+    p { margin: 0 0 16px; }
+    footer { position: fixed; left: 0; right: 0; bottom: 0; display: none; }
+    .prefs { font: 14px system-ui, sans-serif; color: inherit; background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header><b>Rivista Esempio</b><span data-en="Stories · Guides · Shop">Storie · Guide · Negozio</span></header>
+  <main>
+    <h1 data-en="How to pick a backpack for a weekend in the mountains">Come scegliere uno zaino per un weekend in montagna</h1>
+    <p class="kick" data-en="Guide · 12 November 2026">Guida · 12 novembre 2026</p>
+    <p class="lede" data-en="Weight, volume and pockets: what really matters when you leave on Friday night and come back on Sunday.">Peso, volume e tasche: quello che conta davvero quando parti il venerdì sera e torni la domenica.</p>
+    <iframe data-category="experience" data-service="video" data-src="video.html" width="640" height="360" title="Video: preparare lo zaino"></iframe>
+    <p data-en="The first mistake is buying it too big. For two nights in a mountain hut, 30–35 litres is enough: what doesn't fit usually wasn't needed.">Il primo errore è comprarlo troppo grande. Per due notti in rifugio bastano 30–35 litri: quello che non entra, di solito, non serviva.</p>
+    <p data-en="The second is looking only at the empty weight. How the pack carries the load matters more: back panel, shoulder straps and hip belt.">Il secondo è guardare solo il peso a vuoto. Conta di più come lo zaino porta il carico: schienale, spallacci e cintura in vita.</p>
+    <p><button type="button" class="prefs" data-cc="show-preferencesModal" data-en="Cookie preferences">Preferenze cookie</button></p>
+  </main>
+
+  <!-- Blocked until "measurement" is granted: the parent page shows when it runs. -->
+  <script type="text/plain" data-category="measurement" data-service="ga4">
+    window.__post('script', { category: 'measurement', service: 'ga4' });
+  </script>
+  <script type="text/plain" data-category="marketing" data-service="meta">
+    window.__post('script', { category: 'marketing', service: 'meta' });
+  </script>
+
+  <script>
+    if (document.documentElement.lang === 'en') {
+      document.querySelectorAll('[data-en]').forEach(function (el) { el.textContent = el.getAttribute('data-en'); });
+      document.title = 'Example Magazine · easy-cookie demo';
+      document.querySelector('header b').textContent = 'Example Magazine';
+    }
+    ['ready', 'consent', 'change', 'replay'].forEach(function (type) {
+      window.addEventListener('easycookie:' + type, function (e) {
+        var d = e.detail;
+        var cfg = EasyCookie.getConfig();
+        var cats = {};
+        if (d && cfg) Object.keys(cfg.categories).forEach(function (id) { cats[id] = d.consent.categories.indexOf(id) > -1; });
+        window.__post('event', { type: type, detail: d, categories: cats });
+      });
+    });
+    EasyCookie.run(window.demoConfig);
+  </script>
+</body>
+</html>

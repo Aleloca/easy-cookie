@@ -1,0 +1,147 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: API JavaScript
+description: I metodi e gli eventi di EasyCookieApi, l'oggetto esportato da @easy-cookie/core e disponibile come window.EasyCookie nella build per tag script. Gli adattatori React, Next e PostHog usano solo questa interfaccia.
+---
+
+```ts
+import EasyCookie from '@easy-cookie/core';   // con un bundler
+window.EasyCookie                            // con la build IIFE o embed.js
+```
+
+Il motore è unico per pagina: c'è una sola istanza, e `run()` va chiamato una volta.
+
+## Avvio
+
+### `run(config)`
+
+```ts
+run(config: EasyCookieConfig | { remote: { endpoint: string; siteKey: string } }): Promise<void>
+```
+
+Avvia il runtime: mostra il banner se non c'è una scelta valida, riapplica quella salvata, monta il pulsante di riapertura e i segnaposto degli iframe. Con `remote` scarica la configurazione pubblicata dal server dei consensi.
+
+```ts
+await EasyCookie.run({ remote: { endpoint: 'https://consent.example.com', siteKey: 'pk_live_xxx' } });
+```
+
+Una seconda chiamata viene ignorata con un avviso in console.
+
+## Leggere lo stato
+
+### `get()`
+
+```ts
+get(): ConsentState | null
+```
+
+La scelta valida corrente, oppure `null` se il visitatore non ha ancora scelto per questa revisione (o la scelta è scaduta).
+
+```ts
+interface ConsentState {
+  id: string;                         // id casuale, lo stesso del registro
+  revision: string;
+  categories: string[];               // accettate, necessarie comprese
+  services: Record<string, string[]>; // servizi accettati per categoria
+  method: 'accept_all' | 'reject_all' | 'custom' | 'close' | 'withdraw';
+  firstAt: string;                    // ISO, prima scelta con questo id
+  updatedAt: string;                  // ISO, ultima scelta
+  language?: string;
+}
+```
+
+### `isGranted(category)` e `isServiceGranted(service)`
+
+```ts
+isGranted(category: string): boolean
+isServiceGranted(service: string): boolean
+```
+
+`false` finché non c'è una scelta.
+
+### `getConfig()`, `getLanguage()`
+
+La configurazione risolta (con i valori predefiniti) dopo `run()`, e la lingua mostrata.
+
+## Agire
+
+| Metodo | Effetto |
+|---|---|
+| `showBanner()` | Mostra di nuovo il primo livello. |
+| `openPreferences()` | Apre il pannello preferenze. Usalo per il link "Preferenze cookie" nel footer. |
+| `acceptAll()` | Accetta tutte le categorie. Registrato come `accept_all`. |
+| `rejectAll()` | Solo le categorie necessarie. Registrato come `reject_all`. |
+| `accept(categories, services?)` | Aggiunge queste categorie (ed eventualmente servizi) a quelle già accettate. |
+| `reset()` | Dimentica la scelta, registra una revoca (`withdraw`) e cancella il cookie. Per mostrare di nuovo il banner chiama ancora `run()` o ricarica la pagina. |
+| `setLanguage(lang)` | Cambia lingua dei testi, tra quelle in `language.available`. |
+| `identify(subjectId)` | Collega il `consentId` anonimo a un id utente sul server dei consensi. |
+
+Chiama `acceptAll()`, `rejectAll()` e `accept()` solo in risposta a un'azione esplicita del visitatore: il consenso non si deduce.
+
+Senza JavaScript, qualsiasi elemento con `data-cc="show-preferencesModal"` apre il pannello:
+
+```html
+<button type="button" data-cc="show-preferencesModal">Preferenze cookie</button>
+```
+
+## Eventi
+
+### `on(event, callback)`
+
+```ts
+on(event: 'ready' | 'consent' | 'change' | 'replay', cb: (detail: ConsentEventDetail | null) => void): () => void
+```
+
+Restituisce la funzione per annullare l'iscrizione.
+
+| Evento | Quando | `detail` |
+|---|---|---|
+| `ready` | Una volta, al termine di `run()`. | `null` |
+| `consent` | Prima scelta del visitatore per questa revisione. | `{ consent, changed: [], first: true }` |
+| `change` | Ogni modifica successiva, compresa una revoca. | `{ consent, changed: ['marketing'], first: false }` |
+| `replay` | A ogni caricamento di pagina con una scelta già salvata. | `{ consent, changed: [], first: false }` |
+
+```ts
+const off = EasyCookie.on('change', ({ consent, changed }) => {
+  if (changed.includes('marketing') && !consent.categories.includes('marketing')) stopPixel();
+});
+```
+
+Gli stessi eventi arrivano su `window` come `CustomEvent`: `easycookie:ready`, `easycookie:consent`, `easycookie:change`, `easycookie:replay`.
+
+```js
+window.addEventListener('easycookie:consent', (e) => console.log(e.detail.consent));
+```
+
+### `onGranted(category, callback)`
+
+```ts
+onGranted(category: string, cb: () => void): () => void
+```
+
+Chiama `cb` subito se la categoria è già concessa, altrimenti la prima volta che lo diventa (una volta sola). È il modo più semplice per caricare uno script dal codice.
+
+## Funzioni senza DOM
+
+Da `@easy-cookie/core/shared`, utilizzabili sul server, in fase di build o in un middleware:
+
+| Funzione | Uso |
+|---|---|
+| `defineConfig(config)` | Controllo dei tipi, nessun effetto a runtime. |
+| `validateConfig(config)` | Elenco dei problemi, `[]` se valida. |
+| `resolveConfig(config)` | Configurazione con tutti i valori predefiniti. |
+| `renderHeadScript(config)` | Lo snippet di Consent Mode da mettere in `<head>`. |
+| `consentFromCookieHeader(header, { revision })` | Legge la scelta da un'intestazione `Cookie`. `null` se assente, scaduta o di un'altra revisione. |
+| `parseConsent(value, { revision, expiryDays })` | Come sopra, dal valore del cookie. |
+
+Non leggere `ec_consent` a mano: il formato segue quello del motore e può cambiare.
+
+## React
+
+`useConsent()` da `@easy-cookie/react` espone le stesse cose e fa ridisegnare il componente su `consent`, `change` e `replay`:
+
+```tsx
+const { consent, ready, isGranted, isServiceGranted, openPreferences, acceptAll, rejectAll, accept } = useConsent();
+```
+
+`useEasyCookie()` dà accesso all'istanza (`api`), alla configurazione e alla lingua. Componenti: `ConsentGate`, `ConsentScript`, `ConsentEmbed`, `PreferencesLink`.

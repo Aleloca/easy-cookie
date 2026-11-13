@@ -1,0 +1,197 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Avvio rapido
+description: Tre modi di installare easy-cookie. Un solo tag script dal server dei consensi, il pacchetto npm con un tag script, oppure Next.js App Router con i pacchetti React e Next.
+---
+
+Scegli il percorso che somiglia al tuo sito. In tutti e tre i casi la regola è la stessa: lo snippet di Consent Mode va in `<head>` **prima** di Google Tag Manager o di `gtag.js`.
+
+| Il tuo sito | Percorso |
+|---|---|
+| Qualsiasi sito, configurazione gestita dalla console | [Un tag script dal server dei consensi](#un-tag-script-dal-server-dei-consensi) |
+| Sito statico o con un bundler, configurazione nel codice | [npm o tag script](#npm-o-tag-script) |
+| Next.js App Router | [Next.js App Router](#nextjs-app-router) |
+
+## Un tag script dal server dei consensi
+
+È il percorso più vicino a Iubenda. La configurazione vive sul tuo [server dei consensi](/docs/registro-consensi/), la modifichi dalla [console](/docs/console/) e la pubblichi come revisione. Nel sito metti un solo tag, sincrono, in cima a `<head>`:
+
+```html
+<head>
+  <script src="https://consent.example.com/v1/sites/pk_live_xxx/embed.js"></script>
+  <!-- poi Google Tag Manager / gtag.js -->
+</head>
+```
+
+Sostituisci `consent.example.com` con l'indirizzo del tuo server e `pk_live_xxx` con la chiave pubblica del sito. `embed.js` contiene tre cose, nell'ordine giusto:
+
+1. il `default` di Consent Mode calcolato sullo stato salvato del visitatore;
+2. la configurazione pubblicata, con il blocco `log` già compilato;
+3. un caricatore che inserisce `easy-cookie.css` e `easy-cookie.iife.js` e chiama `EasyCookie.run(config)`.
+
+Ogni scelta del visitatore finisce nel registro. Quando pubblichi una nuova revisione dalla console, i visitatori vedono di nuovo il banner.
+
+## npm o tag script
+
+Se preferisci tenere la configurazione nel repository e versionarla con il codice:
+
+```sh
+pnpm add @easy-cookie/core
+```
+
+```ts
+import EasyCookie, { defineConfig } from '@easy-cookie/core';
+import '@easy-cookie/core/style.css';
+
+const config = defineConfig({
+  revision: '2026-11-13',
+  policyUrl: '/cookie-policy',
+  language: { default: 'it', available: ['it', 'en'] },
+  googleConsentMode: { enabled: true },
+  log: { endpoint: 'https://consent.example.com', siteKey: 'pk_live_xxx' },
+  categories: {
+    necessary: { readOnly: true },
+    measurement: {},
+    marketing: {},
+  },
+  services: {
+    ga4: {
+      category: 'measurement',
+      label: 'Google Analytics 4',
+      provider: 'Google Ireland Ltd',
+      privacyUrl: 'https://policies.google.com/privacy',
+      cookies: [{ name: '^_ga', pattern: true, duration: { it: '2 anni', en: '2 years' } }],
+    },
+  },
+});
+
+EasyCookie.run(config);
+```
+
+Il blocco `log` è facoltativo: senza, il banner funziona ma nessun record viene inviato.
+
+Lo snippet di Consent Mode va generato dalla stessa configurazione e messo in `<head>` prima di GTM. In un sito renderizzato lato server:
+
+```ts
+import { renderHeadScript } from '@easy-cookie/core/shared';
+
+const inline = renderHeadScript(config); // <script>{inline}</script> in <head>
+```
+
+### Senza bundler
+
+La build IIFE espone `window.EasyCookie`. Servi i due file dal tuo dominio (o dal server dei consensi, sotto `/static/`):
+
+```html
+<head>
+  <link rel="stylesheet" href="/static/easy-cookie.css">
+  <script src="/consent-head.js"></script> <!-- output di renderHeadScript(config) -->
+  <!-- poi GTM -->
+</head>
+<body>
+  …
+  <script src="/static/easy-cookie.iife.js"></script>
+  <script src="/easy-cookie.config.js"></script> <!-- window.siteConfig = { … } -->
+  <script>EasyCookie.run(window.siteConfig);</script>
+</body>
+```
+
+`EasyCookie.renderHeadScript(config)` esiste anche nella build IIFE, utile per generare `consent-head.js` in uno script di build.
+
+## Next.js App Router
+
+```sh
+pnpm add @easy-cookie/next @easy-cookie/react @easy-cookie/core
+```
+
+Metti la configurazione in un file a parte, così la usano sia il server sia il client:
+
+```ts
+// easy-cookie.config.ts
+import { defineConfig } from '@easy-cookie/core/shared';
+
+export default defineConfig({
+  revision: '2026-11-13',
+  policyUrl: '/cookie-policy',
+  googleConsentMode: { enabled: true },
+  categories: { necessary: { readOnly: true }, measurement: {}, marketing: {} },
+  services: {
+    ga4: {
+      category: 'measurement',
+      provider: 'Google Ireland Ltd',
+      privacyUrl: 'https://policies.google.com/privacy',
+      cookies: [{ name: '^_ga', pattern: true, duration: { it: '2 anni', en: '2 years' } }],
+    },
+  },
+});
+```
+
+```tsx
+// app/layout.tsx
+import Script from 'next/script';
+import { EasyCookieHead, EasyCookieProvider } from '@easy-cookie/next';
+import config from '../easy-cookie.config';
+import '@easy-cookie/core/style.css';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="it">
+      <head>
+        {/* 1. Consent Mode default: prima di GTM */}
+        <EasyCookieHead config={config} />
+        {/* 2. GTM */}
+        <Script id="gtm" strategy="afterInteractive">{`/* snippet GTM */`}</Script>
+      </head>
+      <body>
+        <EasyCookieProvider config={config}>{children}</EasyCookieProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+`<EasyCookieHead>` accetta `nonce` per le CSP basate su nonce. Se la configurazione è sul server dei consensi, usa le varianti remote:
+
+```tsx
+<EasyCookieHeadRemote endpoint="https://consent.example.com" siteKey="pk_live_…" />
+<EasyCookieProvider remote={{ endpoint: 'https://consent.example.com', siteKey: 'pk_live_…' }}>
+```
+
+Nei componenti client leggi il consenso con `useConsent()`:
+
+```tsx
+'use client';
+import { useConsent, PreferencesLink } from '@easy-cookie/react';
+
+export function Footer() {
+  const { isGranted } = useConsent();
+  return (
+    <footer>
+      <PreferencesLink /> {/* "Preferenze cookie", riapre il pannello */}
+      {isGranted('measurement') && <small>Statistiche attive</small>}
+    </footer>
+  );
+}
+```
+
+E sul server, per non renderizzare nulla di terze parti senza consenso:
+
+```ts
+import { cookies } from 'next/headers';
+import { getServerConsent } from '@easy-cookie/next/server';
+import config from '@/easy-cookie.config';
+
+const consent = getServerConsent(await cookies(), config); // ConsentState | null
+```
+
+## Verifica
+
+Apri il sito in una finestra anonima e controlla:
+
+- il banner compare e **Accetta tutti** e **Rifiuta tutti** sono uguali;
+- prima di scegliere, nella scheda Network non partono richieste verso Google, Meta o altri terzi;
+- dopo il rifiuto, il cookie `ec_consent` contiene solo `necessary`;
+- dopo l'accettazione, il `dataLayer` contiene l'evento `easy_cookie_update`;
+- il pulsante in basso riapre le preferenze.
+
+Poi passa a [Blocco preventivo](/docs/blocco-preventivo/) per gli script e a [Consent Mode e GTM](/docs/consent-mode/) per i tag di Google.

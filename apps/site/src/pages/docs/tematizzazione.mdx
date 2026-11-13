@@ -1,0 +1,139 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Tematizzazione
+description: Tutte le variabili CSS --ec-* con i valori predefiniti, lo schema scuro e due esempi per adattare banner, pannello, pulsante di riapertura e segnaposto al tuo marchio.
+---
+
+Il tema predefinito si chiama **Modulo**: fondo bianco, inchiostro quasi nero, bordi di 1px, angoli vivi, nessuna ombra. Ogni categoria è un modulo di colore pieno (concessa) o vuoto (negata), e la scelta del visitatore si legge come una piccola composizione. È neutro di proposito, per stare bene in siti diversi.
+
+Ogni decisione visiva è una variabile CSS `--ec-*`. Le imposti su `:root` (o su un selettore più specifico) dopo aver caricato `easy-cookie.css`, senza toccare i selettori interni.
+
+```css
+@import '@easy-cookie/core/style.css';
+
+:root {
+  --ec-font: inherit;
+  --ec-ink: #14213d;
+}
+```
+
+## Variabili
+
+### Colori
+
+| Variabile | Chiaro | Scuro | Ruolo |
+|---|---|---|---|
+| `--ec-bg` | `#ffffff` | `#161615` | Fondo di banner, pannello, segnaposto |
+| `--ec-ink` | `#1c1c1a` | `#f1f1ec` | Testo, bordi, pulsanti pieni |
+| `--ec-ink-2` | `#4a4a46` | `#b9b9b1` | Testo secondario |
+| `--ec-hair` | `#d9d9d3` | `#3a3a36` | Linee sottili e separatori |
+| `--ec-wash` | `#f4f4f1` | `#22221f` | Fondo al passaggio del mouse, piede del pannello |
+| `--ec-on-ink` | `#ffffff` | `#161615` | Testo sui pulsanti pieni |
+| `--ec-overlay` | `rgba(28, 28, 26, 0.45)` | `rgba(0, 0, 0, 0.6)` | Velo dietro al pannello preferenze |
+
+### Moduli delle categorie
+
+| Variabile | Chiaro | Scuro | Categoria |
+|---|---|---|---|
+| `--ec-c-necessary` | `var(--ec-ink)` | `var(--ec-ink)` | `necessary` |
+| `--ec-c-measurement` | `#2457c5` | `#7a9cff` | `measurement` |
+| `--ec-c-functionality` | `#d9981a` | `#f0b33a` | `functionality` |
+| `--ec-c-experience` | `#2f8f5b` | `#4cc283` | `experience` |
+| `--ec-c-marketing` | `#d63a26` | `#ff6a52` | `marketing` |
+| `--ec-c-extra-1` | `#7a4fa0` | `#b48ae0` | Prima categoria con id non noto |
+| `--ec-c-extra-2` | `#0f7f86` | `#3cc4cc` | Seconda |
+| `--ec-c-extra-3` | `#8a5a2b` | `#d39a5f` | Terza |
+
+Puoi anche dare un colore a una singola categoria dalla configurazione, con `categories.<id>.color`.
+
+### Forma, misure, movimento
+
+| Variabile | Predefinito | Ruolo |
+|---|---|---|
+| `--ec-font` | `system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif` | Carattere di tutto il banner. `inherit` usa quello del sito. |
+| `--ec-font-mono` | `ui-monospace, "SF Mono", Menlo, Consolas, monospace` | Nomi dei cookie nelle tabelle |
+| `--ec-border` | `1px solid var(--ec-ink)` | Bordo di banner e pulsanti |
+| `--ec-radius` | `0px` | Raggio degli angoli, ovunque |
+| `--ec-shadow` | `none` | Ombra del banner |
+| `--ec-width` | `560px` | Larghezza del banner (sotto i 640px è a tutta larghezza) |
+| `--ec-pad` | `28px` | Spaziatura interna del banner |
+| `--ec-module` | `40px` | Lato dei moduli delle categorie |
+| `--ec-text` | `15px` | Testo |
+| `--ec-title` | `20px` | Titolo |
+| `--ec-small` | `13px` | Testo piccolo (legenda, tabelle) |
+| `--ec-focus` | `0 0 0 2px var(--ec-bg), 0 0 0 4px var(--ec-ink)` | Anello di focus, come `box-shadow` |
+| `--ec-step` | `120ms` | Durata di un passo dell'animazione dei moduli |
+
+Le variabili `--cc-*` del motore originale (vanilla-cookieconsent) sono derivate da queste: non serve impostarle.
+
+## Schema scuro
+
+Tre modi:
+
+- `ui.colorScheme: 'dark'` applica sempre lo schema scuro;
+- `ui.colorScheme: 'auto'` lo applica quando il sistema del visitatore preferisce il tema scuro;
+- se il tuo sito ha già un interruttore, aggiungi la classe `ec--dark` all'elemento `<html>` quando è attivo.
+
+Per ritoccare lo schema scuro, ridefinisci le variabili sotto quella classe:
+
+```css
+html.ec--dark {
+  --ec-bg: #0f172a;
+  --ec-ink: #e2e8f0;
+  --ec-hair: #334155;
+  --ec-wash: #1e293b;
+  --ec-on-ink: #0f172a;
+}
+```
+
+## Esempio: un sito editoriale
+
+Inchiostro e carta del sito, un accento ambra per la misurazione, il carattere del sito:
+
+```css
+:root {
+  --ec-font: inherit;
+  --ec-bg: #fffaf0;
+  --ec-ink: #1f1a17;
+  --ec-ink-2: #5b524b;
+  --ec-hair: #e4d9c8;
+  --ec-wash: #f6eedf;
+  --ec-c-measurement: #b7791f;
+}
+```
+
+## Esempio: un'app con angoli arrotondati
+
+```css
+:root {
+  --ec-font: "Inter", system-ui, sans-serif;
+  --ec-radius: 10px;
+  --ec-ink: #1b1530;
+  --ec-border: 1px solid #d8d4e6;
+  --ec-shadow: 0 12px 32px rgba(27, 21, 48, 0.16);
+  --ec-c-measurement: #6d4aff;
+}
+```
+
+## Accessibilità
+
+I colori predefiniti rispettano il contrasto WCAG 2.2 AA in entrambi gli schemi. Se li cambi:
+
+- testo (`--ec-ink`, `--ec-ink-2`) su `--ec-bg` almeno 4,5:1;
+- testo dei pulsanti (`--ec-on-ink`) su `--ec-ink` almeno 4,5:1;
+- l'anello di focus (`--ec-focus`) deve restare visibile sul fondo del sito.
+
+Lo stato delle categorie non è affidato solo al colore: un modulo pieno è concesso, uno vuoto è negato, e c'è sempre una legenda testuale. Accetta e Rifiuta restano uguali qualunque valore tu scelga, perché usano le stesse variabili.
+
+## Le parti del tema
+
+| Classe | Elemento |
+|---|---|
+| `#cc-main .cm` | Banner (primo livello) |
+| `#cc-main .pm` | Pannello preferenze |
+| `.ec-mosaic`, `.ec-module` | Mosaico delle categorie |
+| `.ec-reopen` | Pulsante di riapertura |
+| `.ec-embed`, `.ec-embed__text`, `.ec-embed__actions` | Segnaposto degli iframe bloccati |
+| `.ec-error` | Messaggio d'errore con `requireLog` |
+
+Usale per ritocchi di posizione (per esempio spostare `.ec-reopen` sopra una barra fissa del tuo sito). Per colori e forme usa sempre le variabili, così gli aggiornamenti del tema non rompono il tuo stile.

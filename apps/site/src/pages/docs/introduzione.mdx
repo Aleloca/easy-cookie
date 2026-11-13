@@ -1,0 +1,56 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Introduzione
+description: Cos'è easy-cookie, quali pezzi di Iubenda sostituisce e come stanno insieme banner, blocco preventivo, Consent Mode, registro e cookie policy.
+---
+
+easy-cookie è una soluzione open source (licenza MIT) e self-hosted per il consenso ai cookie. Sostituisce i pezzi di Iubenda che servono a un sito piccolo o medio: il banner con le preferenze, il blocco preventivo degli script, Google Consent Mode v2, il registro dei consensi e la tabella dei cookie per la cookie policy.
+
+Non c'è un servizio esterno nel mezzo. Il codice gira nel browser dei tuoi visitatori e, se vuoi la prova del consenso, sul tuo server.
+
+## Una configurazione, cinque risultati
+
+Tutto parte da un unico oggetto di configurazione, in JSON semplice. Dichiari una volta categorie, servizi e cookie, e da lì easy-cookie ricava:
+
+| Da `config` | Risultato |
+|---|---|
+| `categories`, `texts` | Il **banner** e il pannello delle preferenze, in italiano e inglese |
+| `categories`, `services` | Il **blocco preventivo** di script e iframe, e la pulizia dei cookie quando il consenso viene revocato |
+| `categories[].gcm` | Gli stati di **Google Consent Mode v2**, sia il `default` in `<head>` sia gli `update` |
+| `revision`, `log` | Un **record nel registro dei consensi** per ogni scelta, con la revisione accettata |
+| `services[].cookies` | La **tabella dei cookie** della cookie policy |
+
+Siccome la fonte è una sola, quello che il visitatore legge nel banner, quello che viene bloccato e quello che dice la policy non possono divergere.
+
+## I pacchetti
+
+| Pacchetto | A cosa serve |
+|---|---|
+| `@easy-cookie/core` | Il runtime nel browser: banner, preferenze, blocco, Consent Mode, invio dei record. Build ESM e `<script>` (IIFE) più il foglio di stile. |
+| `@easy-cookie/react` | Provider, hook `useConsent()` e componenti per script e iframe dopo il consenso. |
+| `@easy-cookie/next` | Snippet di Consent Mode in `<head>` e lettura del consenso lato server per Next.js App Router. |
+| `@easy-cookie/policy` | Genera la sezione cookie della policy (HTML, Markdown o React) dalla stessa configurazione. |
+| `@easy-cookie/posthog` | Tiene PostHog allineato al consenso, con la modalità cookieless dopo un rifiuto. |
+| Server dei consensi | Servizio Node + Postgres che conserva la configurazione pubblicata e il registro dei consensi, con la console di amministrazione. |
+
+## Le regole che non puoi sbagliare
+
+Alcune regole delle linee guida del Garante (2021) e dei rilievi dell'EDPB non sono opzioni: sono costruite nel banner e chi integra non può disattivarle.
+
+- **Accetta** e **Rifiuta** hanno lo stesso peso: due metà uguali della stessa riga.
+- La **X chiude e vale come rifiuto**, e nel registro risulta come `close`.
+- Le categorie non necessarie partono **spente**. Scorrere la pagina non vale come consenso.
+- Il banner **torna** quando cambi `revision` o dopo `expiryDays` (182 giorni, circa 6 mesi).
+- Un **pulsante per riaprire le preferenze** resta sempre disponibile, e revocare è facile quanto accettare.
+
+Il dettaglio, punto per punto, è nella pagina [Conformità](/docs/conformita/).
+
+## Cosa non fa
+
+easy-cookie non genera testi legali (privacy policy, termini), non implementa IAB TCF, non fa scansioni automatiche dei cookie e non blocca in automatico i domini noti. Il blocco è dichiarato nel markup, come con i tag manuali di Iubenda.
+
+## Da dove partire
+
+- Vuoi vederlo funzionare: [Avvio rapido](/docs/avvio-rapido/).
+- Vieni da Iubenda: [Migrazione da Iubenda](/docs/migrazione-iubenda/).
+- Devi dimostrare il consenso a un auditor: [Registro dei consensi](/docs/registro-consensi/).
