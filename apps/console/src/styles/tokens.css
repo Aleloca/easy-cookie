@@ -32,6 +32,13 @@
   --danger-wash: #fbeeee;
   --ok: #2f6a4a;
   --recede: #6a6f75;
+  /* "still to do": warnings that never block (wildcard origin, [[…]] left to fill) */
+  --todo-ink: #7a4a00;
+  --todo-rule: #b7791f;
+  --todo-wash: #fbf3e2;
+  --todo-edge: #d9c49a;
+  --todo-mark: #f6e3b4;
+  --todo-mark-ink: #5c3a00;
 
   /* data series (non-text contrast ≥ 3:1 on paper) */
   --s-accept_all: #1e2f5a;

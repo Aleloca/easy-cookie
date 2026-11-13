@@ -25,5 +25,5 @@ export const LEGAL_PREVIEW_CSS = `
 
 /** Appended after the server sheet: the editor's highlight for `[[…]]` always wins. */
 export const LEGAL_PREVIEW_MARKS_CSS = `
-mark.ec-legal__todo, mark.ph { background: #f6e3b4; color: #5c3a00; padding: 0 3px; border-radius: 0; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+mark.ec-legal__todo, mark.ph { background: var(--todo-mark); color: var(--todo-mark-ink); padding: 0 3px; border-radius: 0; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 `;

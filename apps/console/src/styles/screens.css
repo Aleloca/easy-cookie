@@ -1153,10 +1153,10 @@ code.issue-path {
   gap: 8px;
   align-items: flex-start;
   font-size: var(--fs-md);
-  color: #7a4a00;
-  background: #fbf3e2;
-  border-top: 1px solid #b7791f;
-  border-bottom: 1px solid #b7791f;
+  color: var(--todo-ink);
+  background: var(--todo-wash);
+  border-top: 1px solid var(--todo-rule);
+  border-bottom: 1px solid var(--todo-rule);
   padding: 8px 12px;
   max-width: 70ch;
 }
