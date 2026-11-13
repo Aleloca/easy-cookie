@@ -96,6 +96,7 @@ export function validateConfig(input: unknown): ConfigIssue[] {
             });
         }
         if (svc.privacyUrl !== undefined && typeof svc.privacyUrl !== 'string') add(`${p}.privacyUrl`, 'Must be a URL string');
+        if (svc.from !== undefined && typeof svc.from !== 'string') add(`${p}.from`, 'Must be a catalog entry id string');
       }
   }
 

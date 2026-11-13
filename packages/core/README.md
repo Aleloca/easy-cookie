@@ -134,6 +134,12 @@ EasyCookie.reset()                       // forget the choice (logged as withdra
 
 The same events are dispatched on `window` as `easycookie:consent`, `easycookie:change`, `easycookie:replay` and `easycookie:ready`.
 
+No-JS footer links: any element with the `data-ec-open-preferences` attribute opens the preferences when clicked (the default action is prevented). The listener is delegated on `document`, so elements added after `run()` work too, for example the `{{preferences-link}}` of a legal document.
+
+```html
+<a href="#" data-ec-open-preferences>Preferenze cookie</a>
+```
+
 Server side (middleware, RSC, route handlers):
 
 ```ts
@@ -141,6 +147,24 @@ import { consentFromCookieHeader } from '@easy-cookie/core/shared';
 const consent = consentFromCookieHeader(request.headers.get('cookie'), { revision: config.revision });
 if (consent?.categories.includes('measurement')) sendServerSideAnalytics();
 ```
+
+## Service catalog
+
+`@easy-cookie/core/catalog` ships about 30 ready-made service declarations (GA4, GTM, PostHog, Matomo, Plausible, Hotjar, Clarity, Mixpanel, Amplitude, Google Ads, Meta Pixel, LinkedIn, TikTok, Pinterest, Microsoft UET, X, YouTube, Vimeo, Google Maps, Spotify, Calendly, Intercom, Crisp, HubSpot, Zendesk, Stripe, PayPal, reCAPTCHA, hCaptcha, Cloudflare, Sentry, easy-cookie itself). Each entry has the EU-facing provider, the privacy link, the default consent category, cookies with IT/EN durations and descriptions, data transfers and a note for the owner. It is plain data: the console, the CLI and npm users share it, and nothing reads it at runtime.
+
+```ts
+import { CATALOG, findCatalogEntry, catalogToService } from '@easy-cookie/core/catalog';
+
+const config = defineConfig({
+  // …
+  services: {
+    ga4: catalogToService(findCatalogEntry('ga4')!),     // { category: 'measurement', …, from: 'ga4' }
+    youtube: catalogToService(findCatalogEntry('youtube')!),
+  },
+});
+```
+
+`catalogToService` returns a deep copy with `from: entry.id`. Edit the result freely: `from` is informational. Default categories follow the Italian Garante 2021 guidelines: third-party analytics → `measurement`, advertising → `marketing`, embeds → `experience`, support chats → `functionality`, payments, security and infrastructure → `necessary`. Read each entry's `note`, and check the data against your own setup and contracts: providers change their cookies over time.
 
 ## Theming
 

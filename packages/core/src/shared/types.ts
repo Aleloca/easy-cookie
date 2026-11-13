@@ -51,6 +51,8 @@ export interface ServiceDeclaration {
   purpose?: Localized;
   privacyUrl?: string;
   cookies?: CookieDeclaration[];
+  /** Id of the catalog entry this service was created from (informational only). */
+  from?: string;
 }
 
 export interface GoogleConsentModeOptions {

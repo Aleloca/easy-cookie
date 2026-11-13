@@ -21,6 +21,11 @@
       "import": "./dist/shared.js",
       "require": "./dist/shared.cjs"
     },
+    "./catalog": {
+      "types": "./dist/catalog.d.ts",
+      "import": "./dist/catalog.js",
+      "require": "./dist/catalog.cjs"
+    },
     "./style.css": "./dist/easy-cookie.css",
     "./iife": "./dist/easy-cookie.iife.js",
     "./package.json": "./package.json"

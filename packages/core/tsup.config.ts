@@ -8,7 +8,7 @@ const banner = {
 
 export default defineConfig([
   {
-    entry: { index: 'src/index.ts', shared: 'src/shared/index.ts' },
+    entry: { index: 'src/index.ts', shared: 'src/shared/index.ts', catalog: 'src/catalog/index.ts' },
     format: ['esm', 'cjs'],
     dts: true,
     sourcemap: true,
