@@ -3,14 +3,12 @@
 // demo's own path, and sends nothing anywhere (no `log` block).
 (function () {
   var dir = location.pathname.replace(/[^/]*$/, '');
-  var en = /[?&]lang=en\b/.test(location.search);
-  document.documentElement.lang = en ? 'en' : 'it';
   window.demoConfig = {
     revision: '2026-11-13',
     expiryDays: 182,
     cookie: { name: 'ec_demo', path: dir, sameSite: 'Lax' },
-    policyUrl: dir + (en ? 'cookie-policy.html?lang=en' : 'cookie-policy.html'),
-    language: { default: 'it', available: ['it', 'en'], autoDetect: 'document' },
+    policyUrl: dir + 'cookie-policy.html',
+    language: { default: 'en', available: ['en', 'it'] },
     googleConsentMode: { enabled: true },
     hideFromBots: false,
     respectGpc: false,
@@ -25,13 +23,13 @@
       demo: {
         category: 'necessary',
         label: { it: 'Scelta sui cookie', en: 'Cookie choice' },
-        provider: 'Rivista Esempio',
+        provider: 'Example Magazine',
         cookies: [{ name: 'ec_demo', duration: { it: '6 mesi', en: '6 months' }, description: { it: 'Ricorda la scelta fatta in questa demo', en: 'Remembers the choice made in this demo' } }],
       },
       video: {
         category: 'experience',
         label: { it: 'Lettore video', en: 'Video player' },
-        provider: 'Video Esempio Srl',
+        provider: 'Example Video Ltd',
         purpose: { it: 'Video incorporati negli articoli', en: 'Videos embedded in articles' },
         cookies: [{ name: 'vid_session', duration: { it: 'sessione', en: 'session' }, domain: '.video.example' }],
       },
