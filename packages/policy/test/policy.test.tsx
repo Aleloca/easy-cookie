@@ -54,7 +54,8 @@ describe('buildPolicyModel', () => {
     const m = buildPolicyModel(config, 'en');
     expect(m.revision).toBe('2026-11-13');
     expect(m.date).toBe('2026-11-13');
-    expect(m.categories.map((c) => c.id)).toEqual(['necessary', 'measurement', 'marketing', 'experience']);
+    // `experience` has no services: like the banner, the policy leaves it out.
+    expect(m.categories.map((c) => c.id)).toEqual(['necessary', 'measurement', 'marketing']);
     const measurement = m.categories[1];
     expect(measurement.title).toBe('Measurement');
     expect(measurement.services.map((s) => s.id)).toEqual(['ga4', 'gtm']);
@@ -94,7 +95,7 @@ describe('renderPolicyHtml', () => {
   const html = renderPolicyHtml(buildPolicyModel(config, 'it'));
 
   it('renders a section and a table per category with IT headers', () => {
-    expect(html.match(/<section class="ec-policy__category"/g)).toHaveLength(4);
+    expect(html.match(/<section class="ec-policy__category"/g)).toHaveLength(3);
     expect(html.match(/<table class="ec-policy__table">/g)).toHaveLength(3);
     expect(html).toContain('<th scope="col">Cookie</th><th scope="col">Servizio</th><th scope="col">Fornitore</th><th scope="col">Durata</th><th scope="col">Finalità</th>');
     expect(html).toContain('id="ec-policy-measurement"');
@@ -106,7 +107,11 @@ describe('renderPolicyHtml', () => {
   it('links providers to their privacy policy and lists services without cookies', () => {
     expect(html).toContain('<a class="ec-policy__link" href="https://policies.google.com/privacy" rel="noopener noreferrer" target="_blank">Google Ireland Ltd</a>');
     expect(html).toMatch(/<tr data-service="gtm"><th scope="row"><span class="ec-policy__none">—<\/span><\/th>/);
-    expect(html).toContain('<p class="ec-policy__empty">Nessun cookie dichiarato in questa categoria.</p>');
+  });
+
+  it('shows the empty notice for categories without services when no service is declared', () => {
+    const bare = renderPolicyHtml(buildPolicyModel({ ...config, services: undefined }, 'it'));
+    expect(bare).toContain('<p class="ec-policy__empty">Nessun cookie dichiarato in questa categoria.</p>');
   });
 
   it('escapes text and drops unsafe URLs', () => {
@@ -136,7 +141,7 @@ describe('renderPolicyMarkdown', () => {
     expect(md).toContain('| `_ga_*` | Google Analytics 4 | [Google Ireland Ltd](https://policies.google.com/privacy) | 2 years | Visit statistics |');
     expect(md).toContain('| — | Google Tag Manager | Google Ireland Ltd |  |  |');
     expect(md).toContain('Last updated: November 13, 2026 · Revision: 2026-11-13');
-    expect(md).toContain('No cookies declared in this category.');
+    expect(renderPolicyMarkdown(buildPolicyModel({ ...config, services: undefined }, 'en'))).toContain('No cookies declared in this category.');
   });
 });
 
@@ -165,7 +170,7 @@ describe('autoClearRules', () => {
 describe('<CookiePolicy>', () => {
   it('renders the same structure as the HTML renderer', () => {
     const out = renderToStaticMarkup(<CookiePolicy config={config} lang="it" />);
-    expect(out.match(/<section class="ec-policy__category"/g)).toHaveLength(4);
+    expect(out.match(/<section class="ec-policy__category"/g)).toHaveLength(3);
     expect(out).toContain('<th scope="col">Finalità</th>');
     expect(out).toContain('href="https://policies.google.com/privacy"');
     expect(out).not.toContain('javascript:');
