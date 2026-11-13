@@ -52,7 +52,7 @@
 :where(.ec-legal) :where(blockquote) {
   margin-left: 0;
   padding-left: 1em;
-  border-left: 3px solid var(--ec-legal-line, #dcdcd6);
+  border-left: 1px solid var(--ec-legal-line, #dcdcd6);
   color: var(--ec-legal-muted, #5a5a55);
 }
 
