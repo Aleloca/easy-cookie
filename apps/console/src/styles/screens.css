@@ -496,7 +496,7 @@ tr.is-selected .stamp {
 
 .editor {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 440px);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 460px);
   gap: 24px;
   align-items: start;
   margin-top: 4px;
@@ -806,17 +806,80 @@ code.issue-path {
   color: var(--label);
   font-weight: 400;
 }
+.preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px 8px 14px;
+  border-bottom: 1px solid var(--hair-2);
+}
+.preview-meta {
+  font-size: var(--fs-xs);
+  color: var(--label);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.seg-sm button {
+  min-height: 28px;
+  padding: 4px 10px;
+}
+/* The stage holds a device drawn at its real viewport, scaled to fit. */
 .preview-stage {
   position: relative;
-  height: min(620px, calc(100vh - 140px));
-  background: var(--ground);
+  padding: 14px;
+  background: repeating-linear-gradient(0deg, transparent 0 11px, rgba(201, 208, 198, 0.28) 11px 12px), var(--ground);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: hidden;
+}
+.preview-mobile {
+  height: min(640px, calc(100vh - 230px));
+}
+.device {
+  border: 1px solid var(--hair);
+  background: var(--paper);
+  flex: none;
+}
+.device-chrome {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--hair-2);
+  background: var(--band);
+}
+.device-chrome i {
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--field-line);
+}
+.device-url {
+  margin-left: 8px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.preview-mobile .device-chrome i {
+  display: none;
+}
+.preview-mobile .device-url {
+  margin: 0 auto;
+}
+.device-viewport {
+  position: relative;
+  overflow: hidden;
 }
 .preview-frame {
   border: 0;
-  width: 100%;
-  height: 100%;
   display: block;
   background: #fff;
+  transform-origin: 0 0;
 }
 .preview-loading {
   position: absolute;
@@ -829,7 +892,9 @@ code.issue-path {
   border: 1px solid var(--hair);
 }
 .preview-off {
-  height: 100%;
+  align-self: stretch;
+  flex: 1;
+  min-height: 260px;
   display: grid;
   align-content: center;
   justify-items: start;
@@ -1008,8 +1073,8 @@ code.issue-path {
   .editor-side {
     position: static;
   }
-  .preview-stage {
-    height: 480px;
+  .preview-mobile {
+    height: 600px;
   }
 }
 
