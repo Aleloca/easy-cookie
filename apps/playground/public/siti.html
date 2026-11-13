@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prova siti easy-cookie</title>
+<script>
+  // Picks the site from ?site= and loads its embed.js synchronously, exactly as a real site would.
+  window.__noBotCheck = true;
+  var SERVER = 'http://localhost:8787';
+  var SITES = {
+    fua: { name: 'FermoUnAttimo', key: 'pk_OifVPajnB5O6dgLBmVB27Qkh', lang: 'it' },
+    mv: { name: 'MythicVoices', key: 'pk_bUrkyGLBUFu5pwLzOIldWWOE', lang: 'en' }
+  };
+  var siteId = new URLSearchParams(location.search).get('site') || 'fua';
+  var SITE = SITES[siteId] || SITES.fua;
+  document.documentElement.lang = SITE.lang;
+  document.documentElement.dataset.site = siteId;
+  window.dataLayer = window.dataLayer || [];
+  document.write('<script src="' + SERVER + '/v1/sites/' + SITE.key + '/embed.js"><\/script>');
+</script>
+<style>
+  :root { color-scheme: light; --bg: #f6f1e7; --ink: #1c1c1a; --muted: #5b5b55; --line: #d9d3c4; --accent: #b8800f; }
+  html[data-site="mv"] { color-scheme: dark; --bg: #14121a; --ink: #ece6d6; --muted: #a39c8b; --line: #2e2a38; --accent: #c9a24a; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 160px; }
+  nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
+  nav a { padding: 8px 14px; border: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+  nav a[aria-current] { border-color: var(--ink); font-weight: 600; }
+  h1 { font-size: 34px; line-height: 1.1; margin: 0 0 8px; }
+  p { color: var(--muted); margin: 0 0 16px; max-width: 62ch; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 24px 0; }
+  button { font: inherit; padding: 10px 16px; border: 1px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+  button:hover { background: var(--ink); color: var(--bg); }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .06em; margin: 32px 0 8px; }
+  pre { background: rgba(127,127,127,.08); border: 1px solid var(--line); padding: 12px; overflow: auto; font-size: 13px; margin: 0; }
+  code { font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <nav aria-label="Sito">
+    <a href="?site=fua">FermoUnAttimo</a>
+    <a href="?site=mv">MythicVoices</a>
+    <a href="http://localhost:8787/admin" target="_blank" rel="noopener">Console ↗</a>
+  </nav>
+  <h1 id="title"></h1>
+  <p>Pagina di prova: carica il banner pubblicato per questo sito sul consent server locale, con una sola riga <code>&lt;script src=".../embed.js"&gt;</code> in <code>&lt;head&gt;</code>. Ogni scelta finisce nel registro della console.</p>
+
+  <div class="row">
+    <button type="button" id="prefs">Apri preferenze</button>
+    <button type="button" id="forget">Dimentica la scelta</button>
+  </div>
+
+  <h2>Consenso attuale</h2>
+  <pre id="state">nessuna scelta</pre>
+  <h2>Eventi dataLayer</h2>
+  <pre id="dl">—</pre>
+</main>
+<script>
+  document.getElementById('title').textContent = SITE.name;
+  document.querySelector('nav a[href="?site=' + siteId + '"]').setAttribute('aria-current', 'page');
+  var show = function () {
+    var c = window.EasyCookie && EasyCookie.get();
+    document.getElementById('state').textContent = c ? JSON.stringify(c, null, 2) : 'nessuna scelta';
+    var ev = window.dataLayer.filter(function (e) { return e && e.event; });
+    document.getElementById('dl').textContent = ev.length ? ev.map(function (e) { return JSON.stringify(e); }).join('\n') : '—';
+  };
+  ['ready', 'consent', 'change', 'replay'].forEach(function (e) { addEventListener('easycookie:' + e, function () { setTimeout(show, 0); }); });
+  document.getElementById('prefs').onclick = function () { EasyCookie.openPreferences(); };
+  // Clears the cookie locally (no withdraw record), so the banner shows again on reload.
+  document.getElementById('forget').onclick = function () {
+    document.cookie = 'ec_consent=; Max-Age=0; path=/';
+    location.reload();
+  };
+  setTimeout(show, 500);
+</script>
+</body>
+</html>

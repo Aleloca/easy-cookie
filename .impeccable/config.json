@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "apps/playground/public/siti.html"
+        ],
+        "createdAt": "2026-11-13T10:53:00.617Z",
+        "reason": "Claude: test fixture imitating FermoUnAttimo's own 'panna' brand background, not a design choice"
+      }
+    ]
+  }
+}
