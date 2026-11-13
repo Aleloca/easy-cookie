@@ -130,6 +130,6 @@ describe('entries', () => {
     expect(typeof useConsent).toBe('function');
   });
   it('keeps the server entry free of React', () => {
-    expect(Object.keys(serverEntry).sort()).toEqual(['getLegalDocument', 'getServerConsent', 'isGrantedOnServer', 'isServiceGrantedOnServer']);
+    expect(Object.keys(serverEntry).sort()).toEqual(['getLegalDocument', 'getRemoteConfig', 'getServerConsent', 'isGrantedOnServer', 'isServiceGrantedOnServer']);
   });
 });

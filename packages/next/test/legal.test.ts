@@ -44,3 +44,22 @@ describe('getLegalDocument', () => {
     expect(root.getLegalDocument).toBe(getLegalDocument);
   });
 });
+
+describe('getRemoteConfig', () => {
+  it('fetches the published config with Next revalidation', async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ revision: 'r1', categories: { necessary: { readOnly: true } } }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { getRemoteConfig } = await import('../src/server');
+    const cfg = await getRemoteConfig({ endpoint: 'https://consent.test/', siteKey: 'pk_x' });
+    expect(cfg.revision).toBe('r1');
+    expect(fetchMock).toHaveBeenCalledWith('https://consent.test/v1/sites/pk_x/config.json', { next: { revalidate: 60 } });
+    vi.unstubAllGlobals();
+  });
+
+  it('throws when nothing is published', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 404 })));
+    const { getRemoteConfig } = await import('../src/server');
+    await expect(getRemoteConfig({ endpoint: 'https://consent.test', siteKey: 'pk_x' })).rejects.toThrow(/404/);
+    vi.unstubAllGlobals();
+  });
+});

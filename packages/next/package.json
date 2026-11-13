@@ -49,5 +49,16 @@
     "@types/react-dom": "^19.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://consent.aleloca.dev",
+  "keywords": [
+    "cookie",
+    "consent",
+    "gdpr",
+    "cookie-banner",
+    "consent-mode"
+  ]
 }

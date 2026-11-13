@@ -33,7 +33,8 @@
   "files": [
     "dist",
     "LICENSE.upstream",
-    "UPSTREAM.md"
+    "UPSTREAM.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsup && sass --no-source-map --style=compressed src/ui/theme.scss dist/easy-cookie.css",
@@ -62,5 +63,16 @@
       ]
     }
   },
-  "unpkg": "./dist/easy-cookie.iife.js"
+  "unpkg": "./dist/easy-cookie.iife.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://consent.aleloca.dev",
+  "keywords": [
+    "cookie",
+    "consent",
+    "gdpr",
+    "cookie-banner",
+    "consent-mode"
+  ]
 }

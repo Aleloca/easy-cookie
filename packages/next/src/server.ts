@@ -128,3 +128,31 @@ export function getLegalDocument(opts: GetLegalDocumentOptions): Promise<Publish
 }
 
 export type { LegalKind, PublishedLegalDocument };
+
+export interface GetRemoteConfigOptions {
+  /** Base URL of the consent server. */
+  endpoint: string;
+  /** Public site key (`pk_…`). */
+  siteKey: string;
+  /** Seconds Next.js caches the response. Default 60, like the server's own Cache-Control. */
+  revalidate?: number | false;
+}
+
+/**
+ * The config published on the consent server, for server-side consent checks
+ * when the config is managed in the console (`<EasyCookieProvider remote>`).
+ * Throws when nothing is published or the server is unreachable: callers that
+ * gate tracking should treat a failure as "no consent".
+ *
+ * ```ts
+ * const config = await getRemoteConfig({ endpoint, siteKey });
+ * if (isGrantedOnServer(await cookies(), config, 'measurement')) sendServerEvent();
+ * ```
+ */
+export async function getRemoteConfig(opts: GetRemoteConfigOptions): Promise<EasyCookieConfig> {
+  const { endpoint, siteKey, revalidate = 60 } = opts;
+  const url = `${endpoint.replace(/\/+$/, '')}/v1/sites/${encodeURIComponent(siteKey)}/config.json`;
+  const res = await fetch(url, { next: { revalidate } } as RequestInit);
+  if (!res.ok) throw new Error(`easy-cookie: config not available (${res.status} ${url})`);
+  return (await res.json()) as EasyCookieConfig;
+}

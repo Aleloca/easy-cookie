@@ -34,5 +34,16 @@
     "posthog-js": {
       "optional": true
     }
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://consent.aleloca.dev",
+  "keywords": [
+    "cookie",
+    "consent",
+    "gdpr",
+    "cookie-banner",
+    "consent-mode"
+  ]
 }
