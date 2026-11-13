@@ -1,0 +1,656 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T02:02:20+00:00",
+  "title": "Design System: easy-cookie — Modulo",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "primary",
+        "displayName": "Ink",
+        "canonical": "#1c1c1a",
+        "oklch": "oklch(22.6% 0.004 106.7)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#252523",
+          "#424240",
+          "#61615f",
+          "#828280",
+          "#a5a5a2",
+          "#c9c9c6",
+          "#efefec"
+        ],
+        "cssVar": "--ec-ink"
+      },
+      "ink-2": {
+        "role": "primary",
+        "displayName": "Secondary Ink",
+        "canonical": "#4a4a46",
+        "oklch": "oklch(40.8% 0.007 106.7)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#42423f",
+          "#61615e",
+          "#83837e",
+          "#a5a5a2",
+          "#c9c9c6",
+          "#eeeeec"
+        ],
+        "cssVar": "--ec-ink-2"
+      },
+      "bg": {
+        "role": "neutral",
+        "displayName": "Background",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ],
+        "cssVar": "--ec-bg"
+      },
+      "hair": {
+        "role": "neutral",
+        "displayName": "Hair",
+        "canonical": "#d9d9d3",
+        "oklch": "oklch(88.4% 0.008 106.6)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#42423e",
+          "#62625d",
+          "#83837e",
+          "#a5a5a1",
+          "#c9c9c6",
+          "#efefec"
+        ],
+        "cssVar": "--ec-hair"
+      },
+      "wash": {
+        "role": "neutral",
+        "displayName": "Wash",
+        "canonical": "#f4f4f1",
+        "oklch": "oklch(96.6% 0.004 106.5)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#252523",
+          "#424240",
+          "#61615f",
+          "#828280",
+          "#a5a5a2",
+          "#c9c9c6",
+          "#efefec"
+        ],
+        "cssVar": "--ec-wash"
+      },
+      "on-ink": {
+        "role": "neutral",
+        "displayName": "On Ink",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ],
+        "cssVar": "--ec-on-ink"
+      },
+      "toggle-off": {
+        "role": "neutral",
+        "displayName": "Toggle Off",
+        "canonical": "#77776f",
+        "oklch": "oklch(56.7% 0.012 106.8)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#252521",
+          "#42423d",
+          "#62625b",
+          "#83837b",
+          "#a5a59f",
+          "#c9c9c4",
+          "#efefeb"
+        ],
+        "cssVar": "--cc-toggle-off-bg"
+      },
+      "c-measurement": {
+        "role": "secondary",
+        "displayName": "Measurement Blue",
+        "canonical": "#2457c5",
+        "oklch": "oklch(49.1% 0.181 262.8)",
+        "tonalRamp": [
+          "#000729",
+          "#061f58",
+          "#163b8a",
+          "#2a5abe",
+          "#4a7de5",
+          "#76a3fc",
+          "#a4c9ff",
+          "#d5efff"
+        ],
+        "cssVar": "--ec-c-measurement"
+      },
+      "c-functionality": {
+        "role": "secondary",
+        "displayName": "Functionality Ochre",
+        "canonical": "#b8800f",
+        "oklch": "oklch(64.0% 0.131 77.0)",
+        "tonalRamp": [
+          "#170700",
+          "#391e00",
+          "#5f3900",
+          "#875600",
+          "#aa7715",
+          "#c89d59",
+          "#e6c390",
+          "#ffebc8"
+        ],
+        "cssVar": "--ec-c-functionality"
+      },
+      "c-experience": {
+        "role": "secondary",
+        "displayName": "Experience Green",
+        "canonical": "#2f8f5b",
+        "oklch": "oklch(58.1% 0.120 155.6)",
+        "tonalRamp": [
+          "#001103",
+          "#002f15",
+          "#00502c",
+          "#177345",
+          "#419665",
+          "#73b78c",
+          "#a4d8b5",
+          "#d6f9e1"
+        ],
+        "cssVar": "--ec-c-experience"
+      },
+      "c-marketing": {
+        "role": "secondary",
+        "displayName": "Marketing Red",
+        "canonical": "#d63a26",
+        "oklch": "oklch(58.2% 0.196 30.8)",
+        "tonalRamp": [
+          "#230000",
+          "#500000",
+          "#7f0700",
+          "#b1210f",
+          "#d94b37",
+          "#f57d69",
+          "#ffac9a",
+          "#ffdccf"
+        ],
+        "cssVar": "--ec-c-marketing"
+      },
+      "c-extra-1": {
+        "role": "secondary",
+        "displayName": "Extra Violet",
+        "canonical": "#7a4fa0",
+        "oklch": "oklch(51.1% 0.130 306.9)",
+        "tonalRamp": [
+          "#11041c",
+          "#2f1842",
+          "#50316b",
+          "#734c96",
+          "#956dbb",
+          "#b594d7",
+          "#d6bcf2",
+          "#f8e6ff"
+        ],
+        "cssVar": "--ec-c-extra-1"
+      },
+      "c-extra-2": {
+        "role": "secondary",
+        "displayName": "Extra Teal",
+        "canonical": "#0f7f86",
+        "oklch": "oklch(54.4% 0.090 201.9)",
+        "tonalRamp": [
+          "#000f12",
+          "#002c30",
+          "#004c51",
+          "#046f75",
+          "#399197",
+          "#6fb2b7",
+          "#a0d4d8",
+          "#d4f6f9"
+        ],
+        "cssVar": "--ec-c-extra-2"
+      },
+      "c-extra-3": {
+        "role": "secondary",
+        "displayName": "Extra Umber",
+        "canonical": "#8a5a2b",
+        "oklch": "oklch(51.1% 0.089 62.8)",
+        "tonalRamp": [
+          "#150700",
+          "#371e05",
+          "#5b3917",
+          "#82562c",
+          "#a6774d",
+          "#c49c79",
+          "#e3c2a6",
+          "#ffead7"
+        ],
+        "cssVar": "--ec-c-extra-3"
+      },
+      "dark-bg": {
+        "role": "neutral",
+        "displayName": "Dark Background",
+        "canonical": "#161615",
+        "oklch": "oklch(20.0% 0.002 106.6)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252524",
+          "#424241",
+          "#616160",
+          "#828281",
+          "#a5a5a4",
+          "#c9c9c8",
+          "#eeeeed"
+        ],
+        "cssVar": "--ec-bg (.ec--dark); also --ec-on-ink"
+      },
+      "dark-ink": {
+        "role": "primary",
+        "displayName": "Dark Ink",
+        "canonical": "#f1f1ec",
+        "oklch": "oklch(95.7% 0.007 106.5)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#42423f",
+          "#61615d",
+          "#83837e",
+          "#a5a5a2",
+          "#c9c9c6",
+          "#eeeeec"
+        ],
+        "cssVar": "--ec-ink (.ec--dark)"
+      },
+      "dark-ink-2": {
+        "role": "primary",
+        "displayName": "Dark Secondary Ink",
+        "canonical": "#b9b9b1",
+        "oklch": "oklch(78.3% 0.011 106.7)",
+        "tonalRamp": [
+          "#0b0b09",
+          "#252522",
+          "#42423d",
+          "#62625b",
+          "#83837c",
+          "#a5a59f",
+          "#c9c9c5",
+          "#efefeb"
+        ],
+        "cssVar": "--ec-ink-2 (.ec--dark)"
+      },
+      "dark-hair": {
+        "role": "neutral",
+        "displayName": "Dark Hair",
+        "canonical": "#3a3a36",
+        "oklch": "oklch(34.7% 0.007 106.7)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#42423f",
+          "#61615d",
+          "#83837e",
+          "#a5a5a2",
+          "#c9c9c6",
+          "#eeeeec"
+        ],
+        "cssVar": "--ec-hair (.ec--dark)"
+      },
+      "dark-wash": {
+        "role": "neutral",
+        "displayName": "Dark Wash",
+        "canonical": "#22221f",
+        "oklch": "oklch(25.1% 0.006 106.8)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252523",
+          "#424240",
+          "#61615e",
+          "#82827f",
+          "#a5a5a2",
+          "#c9c9c7",
+          "#eeeeed"
+        ],
+        "cssVar": "--ec-wash (.ec--dark)"
+      },
+      "dark-c-measurement": {
+        "role": "secondary",
+        "displayName": "Dark Measurement",
+        "canonical": "#7a9cff",
+        "oklch": "oklch(71.1% 0.150 268.1)",
+        "tonalRamp": [
+          "#030824",
+          "#132050",
+          "#283c7e",
+          "#405aaf",
+          "#5f7dd5",
+          "#86a2ee",
+          "#b0c8ff",
+          "#ddeeff"
+        ],
+        "cssVar": "--ec-c-measurement (.ec--dark)"
+      },
+      "dark-c-functionality": {
+        "role": "secondary",
+        "displayName": "Dark Functionality",
+        "canonical": "#f0b33a",
+        "oklch": "oklch(80.4% 0.148 80.2)",
+        "tonalRamp": [
+          "#170700",
+          "#3a1d00",
+          "#603800",
+          "#895500",
+          "#ac7700",
+          "#ca9d4a",
+          "#e7c386",
+          "#ffebc2"
+        ],
+        "cssVar": "--ec-c-functionality (.ec--dark)"
+      },
+      "dark-c-experience": {
+        "role": "secondary",
+        "displayName": "Dark Experience",
+        "canonical": "#4cc283",
+        "oklch": "oklch(73.1% 0.141 156.7)",
+        "tonalRamp": [
+          "#001103",
+          "#003013",
+          "#005229",
+          "#007641",
+          "#289961",
+          "#67ba89",
+          "#9bdab3",
+          "#d0fbdf"
+        ],
+        "cssVar": "--ec-c-experience (.ec--dark)"
+      },
+      "dark-c-marketing": {
+        "role": "secondary",
+        "displayName": "Dark Marketing",
+        "canonical": "#ff6a52",
+        "oklch": "oklch(70.6% 0.187 31.3)",
+        "tonalRamp": [
+          "#220000",
+          "#4e0000",
+          "#7d1002",
+          "#ae2815",
+          "#d6503b",
+          "#f1806b",
+          "#ffae9c",
+          "#ffddd0"
+        ],
+        "cssVar": "--ec-c-marketing (.ec--dark)"
+      },
+      "dark-c-extra-1": {
+        "role": "secondary",
+        "displayName": "Dark Extra Violet",
+        "canonical": "#b48ae0",
+        "oklch": "oklch(70.6% 0.129 305.8)",
+        "tonalRamp": [
+          "#11051c",
+          "#2e1942",
+          "#4f326b",
+          "#724d97",
+          "#946ebb",
+          "#b495d7",
+          "#d5bdf2",
+          "#f7e6ff"
+        ],
+        "cssVar": "--ec-c-extra-1 (.ec--dark)"
+      },
+      "dark-c-extra-2": {
+        "role": "secondary",
+        "displayName": "Dark Extra Teal",
+        "canonical": "#3cc4cc",
+        "oklch": "oklch(75.3% 0.114 200.8)",
+        "tonalRamp": [
+          "#001013",
+          "#002e32",
+          "#004f55",
+          "#007279",
+          "#00959c",
+          "#5ab6bb",
+          "#94d7db",
+          "#ccf8fb"
+        ],
+        "cssVar": "--ec-c-extra-2 (.ec--dark)"
+      },
+      "dark-c-extra-3": {
+        "role": "secondary",
+        "displayName": "Dark Extra Umber",
+        "canonical": "#d39a5f",
+        "oklch": "oklch(72.8% 0.102 66.0)",
+        "tonalRamp": [
+          "#160700",
+          "#391e00",
+          "#5e3809",
+          "#85551d",
+          "#a97641",
+          "#c79b70",
+          "#e5c2a0",
+          "#ffead2"
+        ],
+        "cssVar": "--ec-c-extra-3 (.ec--dark)"
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "Banner and preferences titles (--ec-title)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions and embed message (--ec-text), max 62ch."
+      },
+      "action": {
+        "displayName": "Action",
+        "purpose": "All buttons: --ec-text at 600."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Legend, service metadata, badges, tables (--ec-small)."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Cookie names and durations (--ec-font-mono)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "ec-shadow",
+        "value": "none",
+        "purpose": "Default for banner and preferences; the only shadow hook a host can opt into."
+      },
+      {
+        "name": "ec-focus",
+        "value": "0 0 0 2px var(--ec-bg), 0 0 0 4px var(--ec-ink)",
+        "purpose": "The single focus treatment, applied as box-shadow on every control."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ec-step",
+        "value": "120ms",
+        "purpose": "One step of the mosaic fill; modules change background in steps(2, end), delayed by index x --ec-step."
+      },
+      {
+        "name": "banner-enter",
+        "value": "opacity 180ms, transform 240ms cubic-bezier(0.16, 1, 0.3, 1); translateY(12px) -> 0",
+        "purpose": "First-layer banner entrance; none under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sheet",
+        "value": "640px",
+        "note": "Banner becomes a full-width bottom sheet; --ec-pad 20px, --ec-module 32px"
+      }
+    ],
+    "publicApi": {
+      "scope": ":root, :host",
+      "darkSchemeClass": "html.ec--dark (or any .ec--dark ancestor); set by ui.colorScheme 'dark' or 'auto' + prefers-color-scheme: dark",
+      "tokens": {
+        "--ec-font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
+        "--ec-font-mono": "ui-monospace, \"SF Mono\", Menlo, Consolas, monospace",
+        "--ec-bg": "#ffffff",
+        "--ec-ink": "#1c1c1a",
+        "--ec-ink-2": "#4a4a46",
+        "--ec-hair": "#d9d9d3",
+        "--ec-wash": "#f4f4f1",
+        "--ec-on-ink": "#ffffff",
+        "--ec-border": "1px solid var(--ec-ink)",
+        "--ec-radius": "0px",
+        "--ec-module": "40px",
+        "--ec-pad": "28px",
+        "--ec-width": "560px",
+        "--ec-text": "15px",
+        "--ec-title": "20px",
+        "--ec-small": "13px",
+        "--ec-shadow": "none",
+        "--ec-overlay": "rgba(28, 28, 26, 0.45)",
+        "--ec-focus": "0 0 0 2px var(--ec-bg), 0 0 0 4px var(--ec-ink)",
+        "--ec-step": "120ms",
+        "--ec-c-necessary": "var(--ec-ink)",
+        "--ec-c-measurement": "#2457c5",
+        "--ec-c-functionality": "#b8800f",
+        "--ec-c-experience": "#2f8f5b",
+        "--ec-c-marketing": "#d63a26",
+        "--ec-c-extra-1": "#7a4fa0",
+        "--ec-c-extra-2": "#0f7f86",
+        "--ec-c-extra-3": "#8a5a2b"
+      },
+      "darkOverrides": {
+        "--ec-bg": "#161615",
+        "--ec-ink": "#f1f1ec",
+        "--ec-ink-2": "#b9b9b1",
+        "--ec-hair": "#3a3a36",
+        "--ec-wash": "#22221f",
+        "--ec-on-ink": "#161615",
+        "--ec-overlay": "rgba(0, 0, 0, 0.6)",
+        "--ec-c-measurement": "#7a9cff",
+        "--ec-c-functionality": "#f0b33a",
+        "--ec-c-experience": "#4cc283",
+        "--ec-c-marketing": "#ff6a52",
+        "--ec-c-extra-1": "#b48ae0",
+        "--ec-c-extra-2": "#3cc4cc",
+        "--ec-c-extra-3": "#d39a5f",
+        "--cc-toggle-off-bg": "#8a8a82"
+      },
+      "perElement": {
+        "--ec-cat": "set inline by the runtime on each module/swatch/embed from the category's color (default var(--ec-c-<category>))",
+        "--i": "module index for the staggered fill"
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Choice Buttons",
+      "kind": "button",
+      "refersTo": "button-choice",
+      "description": "Accept all | Reject all: identical solid-ink halves; Customize spans both, outlined.",
+      "html": "<div class=\"ds-choices\"><button class=\"ds-cbtn\"><span>Accetta tutti</span></button><button class=\"ds-cbtn\"><span>Rifiuta tutti</span></button><button class=\"ds-cbtn ds-cbtn--sec\"><span>Personalizza</span></button></div>",
+      "css": ".ds-choices { display:grid; grid-template-columns:1fr 1fr; gap:8px; max-width:504px; } .ds-cbtn { min-height:48px; padding:0.7em 1em; border:1px solid var(--ec-ink,#1c1c1a); border-radius:var(--ec-radius,0); background:var(--ec-ink,#1c1c1a); color:var(--ec-on-ink,#fff); font:600 15px/1.2 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; cursor:pointer; } .ds-cbtn:hover > span { text-decoration:underline; text-underline-offset:3px; } .ds-cbtn:focus-visible { outline:none; box-shadow:0 0 0 2px #fff, 0 0 0 4px #1c1c1a; } .ds-cbtn--sec { grid-column:1 / -1; background:var(--ec-bg,#fff); color:var(--ec-ink,#1c1c1a); } .ds-cbtn--sec:hover { background:var(--ec-wash,#f4f4f1); }"
+    },
+    {
+      "name": "Consent Mosaic",
+      "kind": "custom",
+      "refersTo": "module",
+      "description": "One 40px module per category; filled = granted, outlined = denied, with a legend.",
+      "html": "<div class=\"ds-mosaic\"><span class=\"ds-mod on\" style=\"--c:#1c1c1a\"></span><span class=\"ds-mod\" style=\"--c:#2457c5\"></span><span class=\"ds-mod\" style=\"--c:#2f8f5b\"></span><span class=\"ds-mod\" style=\"--c:#d63a26\"></span></div><ul class=\"ds-legend\"><li><i class=\"on\" style=\"--c:#1c1c1a\"></i>Necessari · sempre attivi</li><li><i style=\"--c:#2457c5\"></i>Misurazione · spenti</li><li><i style=\"--c:#2f8f5b\"></i>Esperienza · spenti</li><li><i style=\"--c:#d63a26\"></i>Marketing · spenti</li></ul>",
+      "css": ".ds-mosaic { display:flex; gap:6px; margin-bottom:10px; } .ds-mod { width:40px; height:40px; box-sizing:border-box; border:2px solid var(--c); background:transparent; transition:background-color 120ms steps(2,end); } .ds-mod.on, .ds-mosaic:hover .ds-mod { background:var(--c); } .ds-legend { display:flex; flex-wrap:wrap; gap:2px 16px; margin:0; padding:0; list-style:none; font:13px/1.5 system-ui,sans-serif; color:#4a4a46; } .ds-legend i { display:inline-block; width:10px; height:10px; box-sizing:border-box; border:2px solid var(--c); margin-right:6px; vertical-align:-1px; } .ds-legend i.on { background:var(--c); }"
+    },
+    {
+      "name": "Close (X)",
+      "kind": "button",
+      "refersTo": "button-close",
+      "description": "40px square; closing counts as reject.",
+      "html": "<button class=\"ds-x\" aria-label=\"Chiudi e rifiuta\"><svg viewBox=\"0 0 14 14\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\"><path d=\"M1 1l12 12M13 1L1 13\"/></svg></button>",
+      "css": ".ds-x { width:40px; height:40px; display:grid; place-items:center; padding:0; border:1px solid #d9d9d3; border-radius:0; background:#fff; color:#1c1c1a; cursor:pointer; } .ds-x:hover { border-color:#1c1c1a; } .ds-x:focus-visible { outline:none; box-shadow:0 0 0 2px #fff, 0 0 0 4px #1c1c1a; }"
+    },
+    {
+      "name": "Reopen Button",
+      "kind": "button",
+      "refersTo": "reopen-button",
+      "description": "48px square holding the current choice as a 2x2 mini mosaic.",
+      "html": "<button class=\"ds-reopen\" aria-label=\"Preferenze cookie\"><span class=\"ds-rg\"><i class=\"on\" style=\"--c:#1c1c1a\"></i><i class=\"on\" style=\"--c:#2457c5\"></i><i style=\"--c:#2f8f5b\"></i><i class=\"on\" style=\"--c:#d63a26\"></i></span></button>",
+      "css": ".ds-reopen { width:48px; height:48px; display:grid; place-items:center; padding:0; border:1px solid #1c1c1a; border-radius:0; background:#fff; cursor:pointer; } .ds-reopen:hover { background:#f4f4f1; } .ds-reopen:focus-visible { outline:none; box-shadow:0 0 0 2px #fff, 0 0 0 4px #1c1c1a; } .ds-rg { display:grid; grid-template-columns:repeat(2,12px); gap:3px; } .ds-rg i { width:12px; height:12px; box-sizing:border-box; border:1.5px solid var(--c); } .ds-rg i.on { background:var(--c); }"
+    },
+    {
+      "name": "Embed Placeholder",
+      "kind": "card",
+      "refersTo": "embed-placeholder",
+      "description": "Stands in for a blocked iframe with its category module and two actions.",
+      "html": "<div class=\"ds-embed\"><span class=\"ds-emod\"></span><p>Questo contenuto di YouTube è bloccato finché non accetti i cookie «Esperienza».</p><div><button class=\"ds-eb\">Mostra il contenuto</button><button class=\"ds-eb ds-eb--sec\">Attiva sempre «Esperienza»</button></div></div>",
+      "css": ".ds-embed { display:grid; gap:14px; justify-items:start; padding:28px; border:1px solid #1c1c1a; background:#fff; color:#1c1c1a; font:15px/1.5 system-ui,sans-serif; } .ds-embed p { margin:0; max-width:52ch; } .ds-embed div { display:flex; flex-wrap:wrap; gap:8px; } .ds-emod { width:40px; height:40px; box-sizing:border-box; border:2px solid #2f8f5b; } .ds-eb { min-height:44px; padding:0.6em 1em; border:1px solid #1c1c1a; border-radius:0; background:#1c1c1a; color:#fff; font:600 15px/1.2 system-ui,sans-serif; cursor:pointer; } .ds-eb:hover { text-decoration:underline; text-underline-offset:3px; } .ds-eb--sec { background:#fff; color:#1c1c1a; } .ds-eb--sec:hover { background:#f4f4f1; text-decoration:none; } .ds-eb:focus-visible { outline:none; box-shadow:0 0 0 2px #fff, 0 0 0 4px #1c1c1a; }"
+    },
+    {
+      "name": "Category Toggle Row",
+      "kind": "input",
+      "refersTo": "module",
+      "description": "Preferences row: swatch fills when the square toggle is on.",
+      "html": "<label class=\"ds-row\"><input type=\"checkbox\"><span class=\"ds-sw\"></span><span class=\"ds-t\">Misurazione</span><span class=\"ds-tg\"><span></span></span></label>",
+      "css": ".ds-row { display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid #d9d9d3; font:600 15px system-ui,sans-serif; color:#1c1c1a; cursor:pointer; max-width:420px; } .ds-row input { position:absolute; opacity:0; } .ds-sw { width:14px; height:14px; box-sizing:border-box; border:2px solid #2457c5; transition:background-color 120ms steps(2,end); } .ds-t { flex:1; } .ds-tg { width:44px; height:24px; box-shadow:inset 0 0 0 1px #1c1c1a; background:#fff; position:relative; } .ds-tg span { position:absolute; top:3px; left:3px; width:18px; height:18px; background:#fff; box-shadow:inset 0 0 0 1px #1c1c1a; transition:left 120ms; } .ds-row input:checked ~ .ds-sw { background:#2457c5; } .ds-row input:checked ~ .ds-tg { background:#1c1c1a; } .ds-row input:checked ~ .ds-tg span { left:23px; } .ds-row input:focus-visible ~ .ds-tg { box-shadow:0 0 0 2px #fff, 0 0 0 4px #1c1c1a; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Consent Mosaic",
+    "overview": "Modulo is the consent UI that `@easy-cookie/core` renders inside other people's websites: the first-layer banner, the preferences panel, the reopen button, the blocked-embed placeholder and the generated cookie-policy tables. Its reference is Olivetti corporate design of the 1950s–70s, reduced to a working theme: white ground, near-black ink, 1px ink borders, square corners, flat colour.\n\nEach consent category is a flat colour module. A visitor's choice is a small composition read at a glance: filled means granted, outlined means denied. The same grammar recurs everywhere: the 40px mosaic at the top of the banner, the legend swatches, the swatch beside each category in preferences, the 2×2 mini mosaic inside the reopen button, the module on a blocked embed and the square before each category in the cookie policy.\n\nThe whole public API is the set of `--ec-*` custom properties declared on `:root` and `:host` in `src/ui/theme.scss`. The host's brand wins by overriding them; selectors are not part of the contract. The engine's own `--cc-*` variables are derived from `--ec-*` and should not be set directly. This file documents the defaults. The platform's own identity (console and site, \"Libretto\") is recorded separately in the repository root `DESIGN.md`.",
+    "keyCharacteristics": [
+      "Two equal doors: Accept all and Reject all are identical solid-ink halves of one grid; Customize spans both, outlined.",
+      "Category colour carries meaning only together with fill state and a text label.",
+      "Square corners, no shadows, 1px ink frame, hairline seams.",
+      "The host's font (system-ui stack by default) and two text sizes do almost all the work.",
+      "One reserved focus treatment: a 2px ink ring at a 2px offset."
+    ],
+    "rules": [
+      {
+        "name": "The Equal Doors Rule",
+        "body": "Accept and Reject use the same token (`--ec-ink`), the same size and the same weight, in a two-column grid that forces equal width. Never give either a different colour, size or position of honour.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never Hue Alone Rule",
+        "body": "A category's state is fill versus outline plus a text state (\"sempre attivi\", \"spenti\", \"attivi\"); colour only tells categories apart.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Sizes Rule",
+        "body": "Body and title carry the UI; the small size is reserved for legend, metadata and tables. Do not add a third heading size.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline Seams Rule",
+        "body": "Edges are drawn, never cast. The default theme ships no drop shadow on any surface.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** restyle only through `--ec-*` custom properties; treat selectors as private.",
+      "**Do** keep Accept all and Reject all identical in colour, size, weight and width.",
+      "**Do** show state as filled versus outlined modules plus a text state.",
+      "**Do** keep corners at `--ec-radius` and edges as 1px lines.",
+      "**Do** give every motion a reduced-motion instant path."
+    ],
+    "donts": [
+      "**Don't** give Accept a brand colour and Reject a grey or a text link.",
+      "**Don't** dim or block the page behind the first layer; no cookie wall.",
+      "**Don't** add a drop shadow, rounded card or cookie illustration to the default theme.",
+      "**Don't** set the engine's `--cc-*` variables directly; derive them from `--ec-*`.",
+      "**Don't** add a second focus style."
+    ]
+  }
+}

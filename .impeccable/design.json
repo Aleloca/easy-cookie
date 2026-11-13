@@ -1,0 +1,726 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T02:02:19+00:00",
+  "title": "Design System: easy-cookie — Libretto",
+  "extensions": {
+    "colorMeta": {
+      "passbook-navy": {
+        "role": "primary",
+        "displayName": "Passbook Navy",
+        "canonical": "#1e2f5a",
+        "oklch": "oklch(31.5% 0.080 265.8)",
+        "tonalRamp": [
+          "#050a19",
+          "#1a243c",
+          "#324163",
+          "#4d608c",
+          "#6d82af",
+          "#93a5cd",
+          "#bac9e9",
+          "#e4efff"
+        ],
+        "cssVar": "--navy"
+      },
+      "navy-press": {
+        "role": "primary",
+        "displayName": "Navy Press",
+        "canonical": "#2a3d70",
+        "oklch": "oklch(37.2% 0.091 266.6)",
+        "tonalRamp": [
+          "#050a1a",
+          "#19243f",
+          "#314067",
+          "#4b5f91",
+          "#6b81b5",
+          "#91a4d2",
+          "#b9c9ee",
+          "#e3efff"
+        ],
+        "cssVar": "--navy-2"
+      },
+      "navy-wash": {
+        "role": "primary",
+        "displayName": "Navy Wash",
+        "canonical": "#e7ebf3",
+        "oklch": "oklch(93.9% 0.012 264.5)",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#232529",
+          "#404247",
+          "#5e6168",
+          "#7f8289",
+          "#a2a5ab",
+          "#c7c9ce",
+          "#edeef2"
+        ],
+        "cssVar": "--navy-wash"
+      },
+      "stamp-violet": {
+        "role": "secondary",
+        "displayName": "Stamp Violet",
+        "canonical": "#5b3f8c",
+        "oklch": "oklch(43.7% 0.124 297.9)",
+        "tonalRamp": [
+          "#0e061d",
+          "#2a1b44",
+          "#49356d",
+          "#6a5199",
+          "#8b72be",
+          "#ac98d9",
+          "#cebff4",
+          "#f2e8ff"
+        ],
+        "cssVar": "--violet"
+      },
+      "violet-wash": {
+        "role": "secondary",
+        "displayName": "Violet Wash",
+        "canonical": "#efeaf6",
+        "oklch": "oklch(94.4% 0.017 304.8)",
+        "tonalRamp": [
+          "#0c0a0d",
+          "#262429",
+          "#434048",
+          "#635f69",
+          "#84808a",
+          "#a7a3ac",
+          "#cac8cf",
+          "#efedf2"
+        ],
+        "cssVar": "--violet-wash"
+      },
+      "violet-row": {
+        "role": "secondary",
+        "displayName": "Violet Row",
+        "canonical": "#faf7fd",
+        "oklch": "oklch(98.0% 0.009 308.4)",
+        "tonalRamp": [
+          "#0c0b0c",
+          "#262427",
+          "#434145",
+          "#626065",
+          "#848186",
+          "#a6a4a8",
+          "#cac8cc",
+          "#efeef0"
+        ],
+        "cssVar": "--violet-row"
+      },
+      "violet-recede": {
+        "role": "secondary",
+        "displayName": "Violet Recede",
+        "canonical": "#6e6582",
+        "oklch": "oklch(52.6% 0.046 299.0)",
+        "tonalRamp": [
+          "#0c0912",
+          "#272231",
+          "#443e53",
+          "#645c77",
+          "#867d99",
+          "#a8a1b9",
+          "#cbc6d9",
+          "#f0ecfa"
+        ],
+        "cssVar": "--violet-recede"
+      },
+      "print-green": {
+        "role": "tertiary",
+        "displayName": "Print Green",
+        "canonical": "#4d7c63",
+        "oklch": "oklch(54.5% 0.065 160.0)",
+        "tonalRamp": [
+          "#020e07",
+          "#122b1e",
+          "#294a39",
+          "#416c55",
+          "#628e76",
+          "#8aaf9a",
+          "#b4d1c1",
+          "#e0f4e8"
+        ],
+        "cssVar": "--green-print (console), --green (site)"
+      },
+      "print-green-ink": {
+        "role": "tertiary",
+        "displayName": "Print Green Ink",
+        "canonical": "#3f6b53",
+        "oklch": "oklch(48.8% 0.063 159.1)",
+        "tonalRamp": [
+          "#030e07",
+          "#142b1e",
+          "#2a4a39",
+          "#436c55",
+          "#648d76",
+          "#8caf9a",
+          "#b5d1c0",
+          "#e1f4e8"
+        ],
+        "cssVar": "--green (console), --green-ink (site)"
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Ground",
+        "canonical": "#f6f7f5",
+        "oklch": "oklch(97.5% 0.003 128.5)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#252524",
+          "#414241",
+          "#616160",
+          "#828381",
+          "#a4a5a3",
+          "#c8c9c7",
+          "#eeefed"
+        ],
+        "cssVar": "--ground (console), --paper (site)"
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ],
+        "cssVar": "--paper (console)"
+      },
+      "band": {
+        "role": "neutral",
+        "displayName": "Band",
+        "canonical": "#eef1ec",
+        "oklch": "oklch(95.4% 0.007 132.4)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#242523",
+          "#414340",
+          "#60625e",
+          "#81837f",
+          "#a4a6a2",
+          "#c8cac7",
+          "#eeefed"
+        ],
+        "cssVar": "--band"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1b1d22",
+        "oklch": "oklch(23.1% 0.010 268.2)",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#242528",
+          "#404246",
+          "#5f6167",
+          "#808288",
+          "#a3a5aa",
+          "#c7c9cd",
+          "#edeef1"
+        ],
+        "cssVar": "--ink"
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "#4a4f57",
+        "oklch": "oklch(42.6% 0.015 259.8)",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#232529",
+          "#3e4248",
+          "#5d6269",
+          "#7e838b",
+          "#a1a5ac",
+          "#c6c9cf",
+          "#eceff3"
+        ],
+        "cssVar": "--ink-2"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "canonical": "#5d625f",
+        "oklch": "oklch(49.1% 0.008 159.9)",
+        "tonalRamp": [
+          "#0a0c0b",
+          "#232624",
+          "#3f4341",
+          "#5e6260",
+          "#7f8481",
+          "#a2a6a4",
+          "#c7cac8",
+          "#edefee"
+        ],
+        "cssVar": "--muted"
+      },
+      "label-grey": {
+        "role": "neutral",
+        "displayName": "Label Grey",
+        "canonical": "#5f655d",
+        "oklch": "oklch(49.9% 0.015 137.8)",
+        "tonalRamp": [
+          "#0a0c09",
+          "#232622",
+          "#3f433e",
+          "#5e635c",
+          "#7e847d",
+          "#a2a7a0",
+          "#c6cac5",
+          "#edefec"
+        ],
+        "cssVar": "--label"
+      },
+      "recede": {
+        "role": "neutral",
+        "displayName": "Recede",
+        "canonical": "#6a6f75",
+        "oklch": "oklch(53.9% 0.011 252.9)",
+        "tonalRamp": [
+          "#0a0b0d",
+          "#232528",
+          "#3f4247",
+          "#5d6267",
+          "#7e8389",
+          "#a1a5aa",
+          "#c6c9cd",
+          "#eceff1"
+        ],
+        "cssVar": "--recede"
+      },
+      "hair": {
+        "role": "neutral",
+        "displayName": "Hair",
+        "canonical": "#c9d0c6",
+        "oklch": "oklch(84.9% 0.016 136.1)",
+        "tonalRamp": [
+          "#0a0c09",
+          "#232622",
+          "#3f443d",
+          "#5e635b",
+          "#7e847c",
+          "#a2a79f",
+          "#c6cbc5",
+          "#edefeb"
+        ],
+        "cssVar": "--hair"
+      },
+      "hair-2": {
+        "role": "neutral",
+        "displayName": "Hair 2",
+        "canonical": "#e3e6e0",
+        "oklch": "oklch(92.1% 0.009 128.6)",
+        "tonalRamp": [
+          "#0b0b0a",
+          "#242623",
+          "#41433f",
+          "#60625d",
+          "#81837e",
+          "#a4a6a1",
+          "#c8cac6",
+          "#eeefec"
+        ],
+        "cssVar": "--hair-2"
+      },
+      "field-line": {
+        "role": "neutral",
+        "displayName": "Field Line",
+        "canonical": "#858c82",
+        "oklch": "oklch(63.1% 0.017 136.1)",
+        "tonalRamp": [
+          "#0a0c09",
+          "#232621",
+          "#3f443d",
+          "#5d635b",
+          "#7e857b",
+          "#a1a79f",
+          "#c6cbc4",
+          "#ecefeb"
+        ],
+        "cssVar": "--field-line"
+      },
+      "rail-ink": {
+        "role": "neutral",
+        "displayName": "Rail Ink",
+        "canonical": "#dfe5f2",
+        "oklch": "oklch(92.1% 0.019 266.0)",
+        "tonalRamp": [
+          "#0a0b0e",
+          "#22252b",
+          "#3e424a",
+          "#5c616b",
+          "#7d828d",
+          "#a1a5ae",
+          "#c6c9d1",
+          "#eceef4"
+        ],
+        "cssVar": "--rail-ink"
+      },
+      "rail-dim": {
+        "role": "neutral",
+        "displayName": "Rail Dim",
+        "canonical": "#b9c3dc",
+        "oklch": "oklch(81.7% 0.037 268.2)",
+        "tonalRamp": [
+          "#090b12",
+          "#202530",
+          "#3b4252",
+          "#596175",
+          "#798297",
+          "#9da5b7",
+          "#c3c9d8",
+          "#eaeef9"
+        ],
+        "cssVar": "--rail-dim"
+      },
+      "rail-line": {
+        "role": "neutral",
+        "displayName": "Rail Line",
+        "canonical": "#3c5088",
+        "oklch": "oklch(44.3% 0.096 267.6)",
+        "tonalRamp": [
+          "#050a1b",
+          "#192341",
+          "#314069",
+          "#4b5f94",
+          "#6b80b8",
+          "#91a4d4",
+          "#b9c9ef",
+          "#e3eeff"
+        ],
+        "cssVar": "--rail-line"
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Danger",
+        "canonical": "#9f2a2a",
+        "oklch": "oklch(47.0% 0.153 25.3)",
+        "tonalRamp": [
+          "#1f0001",
+          "#480a0b",
+          "#74201f",
+          "#a23835",
+          "#c95b55",
+          "#e6867f",
+          "#ffb2ab",
+          "#ffdfda"
+        ],
+        "cssVar": "--danger"
+      },
+      "danger-wash": {
+        "role": "status",
+        "displayName": "Danger Wash",
+        "canonical": "#fbeeee",
+        "oklch": "oklch(95.9% 0.014 17.4)",
+        "tonalRamp": [
+          "#0d0a0a",
+          "#292323",
+          "#484040",
+          "#685e5e",
+          "#8a7f7f",
+          "#aca2a2",
+          "#cfc7c7",
+          "#f2eded"
+        ],
+        "cssVar": "--danger-wash"
+      },
+      "ok": {
+        "role": "status",
+        "displayName": "OK",
+        "canonical": "#2f6a4a",
+        "oklch": "oklch(47.5% 0.081 157.5)",
+        "tonalRamp": [
+          "#010f06",
+          "#0d2c1c",
+          "#224c35",
+          "#396e50",
+          "#5a9071",
+          "#84b196",
+          "#b0d3bd",
+          "#ddf6e6"
+        ],
+        "cssVar": "--ok"
+      },
+      "series-reject": {
+        "role": "data",
+        "displayName": "Series: Reject All",
+        "canonical": "#6f7fa6",
+        "oklch": "oklch(59.9% 0.063 267.2)",
+        "tonalRamp": [
+          "#070b16",
+          "#1d2437",
+          "#36415c",
+          "#526083",
+          "#7382a6",
+          "#97a5c4",
+          "#bec9e2",
+          "#e7eeff"
+        ],
+        "cssVar": "--s-reject_all"
+      },
+      "series-close": {
+        "role": "data",
+        "displayName": "Series: Closed",
+        "canonical": "#868b82",
+        "oklch": "oklch(63.0% 0.014 130.9)",
+        "tonalRamp": [
+          "#0a0c09",
+          "#242622",
+          "#40433d",
+          "#5f635b",
+          "#7f847c",
+          "#a3a79f",
+          "#c7cac5",
+          "#edefeb"
+        ],
+        "cssVar": "--s-close"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Site hero headline only (--step-4)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Site section heads under a 2px navy rule (--step-3)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Console page titles on the guilloche band; 22px under 900px."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "KPI values, tabular; 20px on phones."
+      },
+      "section-title": {
+        "displayName": "Section Title",
+        "purpose": "Console panel and section heads (--fs-h2)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Console default text (--fs-base)."
+      },
+      "body-reading": {
+        "displayName": "Body Reading",
+        "purpose": "Site and docs reading text (--step-0), 60-70ch."
+      },
+      "body-dense": {
+        "displayName": "Body Dense",
+        "purpose": "Tables, buttons, inputs, notices (--fs-md)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Mono caps labels and table headers; uppercase, 0.1em (site 0.12em)."
+      },
+      "data-mono": {
+        "displayName": "Data Mono",
+        "purpose": "Consent IDs, timestamps, hashes, code values."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All state transitions (--ease-out)."
+      },
+      {
+        "name": "state-transition",
+        "value": "120ms var(--ease-out)",
+        "purpose": "Button and tab background/colour/border changes."
+      },
+      {
+        "name": "stamp-press",
+        "value": "120ms steps(2, jump-none); scale 1.04 -> 1 with 12% violet tint",
+        "purpose": "Stamping a newly published revision; instant under reduced motion."
+      },
+      {
+        "name": "stamp-in (site)",
+        "value": "160ms steps(2, end), 200ms delay; scale 1.06 -> 1, opacity 0.4 -> 1",
+        "purpose": "Hero spread stamp landing once; only with no-preference."
+      },
+      {
+        "name": "dialog-in",
+        "value": "160ms var(--ease-out); translateY(6px) and opacity",
+        "purpose": "Dialog entrance."
+      },
+      {
+        "name": "save-blink",
+        "value": "900ms steps(2, jump-none) infinite",
+        "purpose": "Autosave 'saving' indicator square."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "560px",
+        "note": "KPI strip to 2 columns"
+      },
+      {
+        "name": "rail",
+        "value": "900px",
+        "note": "Console rail becomes top bar; gutter 36px -> 16px"
+      },
+      {
+        "name": "kpi",
+        "value": "1100px",
+        "note": "KPI strip to 3 columns"
+      }
+    ],
+    "surfaces": [
+      {
+        "name": "guilloche (console)",
+        "value": "repeating-radial-gradient(circle at 80% 40%, transparent 0 6px, rgba(77,124,99,0.1) 6px 7px), repeating-radial-gradient(circle at 96% 120%, transparent 0 9px, rgba(77,124,99,0.06) 9px 10px), #eef1ec",
+        "purpose": "Page header and dialog head band."
+      },
+      {
+        "name": "dialog-backdrop",
+        "value": "rgba(27, 29, 34, 0.5)",
+        "purpose": "Behind dialogs."
+      }
+    ],
+    "focus": {
+      "value": "outline: 2px solid var(--navy); outline-offset: 2px",
+      "onNavy": "outline-color: var(--ground)",
+      "inputs": "outline-offset: -1px; border-color: var(--navy)"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Navy, square, 36px; the main action in console pages.",
+      "html": "<button class=\"ds-btn-primary\">Esporta CSV</button>",
+      "css": ".ds-btn-primary { display:inline-flex; align-items:center; gap:7px; min-height:36px; padding:8px 14px; border:1px solid transparent; border-radius:0; background:#1e2f5a; color:#fff; font:500 13.5px/1.2 'Helvetica Neue',Helvetica,Arial,sans-serif; cursor:pointer; transition:background-color 120ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-primary:hover { background:#2a3d70; } .ds-btn-primary:focus-visible { outline:2px solid #1e2f5a; outline-offset:2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Navy outline; secondary page actions.",
+      "html": "<button class=\"ds-btn-ghost\">Filtri</button>",
+      "css": ".ds-btn-ghost { display:inline-flex; align-items:center; min-height:36px; padding:8px 14px; border:1px solid #1e2f5a; border-radius:0; background:transparent; color:#1e2f5a; font:500 13.5px/1.2 'Helvetica Neue',Helvetica,Arial,sans-serif; cursor:pointer; transition:background-color 120ms cubic-bezier(0.16,1,0.3,1); } .ds-btn-ghost:hover { background:#e7ebf3; } .ds-btn-ghost:focus-visible { outline:2px solid #1e2f5a; outline-offset:2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Square field with a mono caps label above.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-label\">Dominio</span><input class=\"ds-input\" value=\"esempio.it\"></label>",
+      "css": ".ds-field { display:grid; gap:6px; max-width:320px; } .ds-label { font:11px 'SF Mono',ui-monospace,Menlo,monospace; letter-spacing:0.1em; text-transform:uppercase; color:#5f655d; } .ds-input { min-height:36px; padding:7px 10px; border:1px solid #858c82; border-radius:0; background:#fff; color:#1b1d22; font:13.5px 'Helvetica Neue',Helvetica,Arial,sans-serif; } .ds-input:hover { border-color:#4a4f57; } .ds-input:focus-visible { outline:2px solid #1e2f5a; outline-offset:-1px; border-color:#1e2f5a; }"
+    },
+    {
+      "name": "Stamp",
+      "kind": "custom",
+      "refersTo": "stamp",
+      "description": "Violet date · revision stamp; the signature mark.",
+      "html": "<span class=\"ds-stamp\">13/11 02:31:24 · r26-11-13</span>",
+      "css": ".ds-stamp { display:inline-block; border:1.5px solid #5b3f8c; color:#5b3f8c; font:600 11px/1.3 'SF Mono',ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums; letter-spacing:0.04em; padding:2px 6px; transform:rotate(-2deg); white-space:nowrap; } .ds-stamp:hover { background:#efeaf6; }"
+    },
+    {
+      "name": "Rail Navigation",
+      "kind": "nav",
+      "refersTo": "rail",
+      "description": "Navy side rail; active item inverts to the paper ground.",
+      "html": "<nav class=\"ds-rail\"><a href=\"#\">Panoramica</a><a href=\"#\" class=\"is-active\">Registro consensi</a><a href=\"#\">Versioni policy</a></nav>",
+      "css": ".ds-rail { background:#1e2f5a; padding:18px; width:232px; display:grid; } .ds-rail a { padding:9px 10px; font:14px 'Helvetica Neue',Helvetica,Arial,sans-serif; color:#b9c3dc; text-decoration:none; } .ds-rail a:hover { color:#fff; background:rgba(255,255,255,0.06); } .ds-rail a.is-active { background:#f6f7f5; color:#1e2f5a; font-weight:600; } .ds-rail a:focus-visible { outline:2px solid #f6f7f5; outline-offset:2px; }"
+    },
+    {
+      "name": "Tabs",
+      "kind": "nav",
+      "refersTo": "tab-selected",
+      "description": "Tabs on a 2px navy baseline; selected is a solid navy block.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\"><button role=\"tab\" aria-selected=\"true\">Testi</button><button role=\"tab\">Categorie</button><button role=\"tab\">Aspetto</button></div>",
+      "css": ".ds-tabs { display:flex; border-bottom:2px solid #1e2f5a; } .ds-tabs button { background:none; border:0; padding:10px 14px 9px; font:13.5px 'Helvetica Neue',Helvetica,Arial,sans-serif; color:#4a4f57; cursor:pointer; } .ds-tabs button:hover { color:#1e2f5a; background:#e7ebf3; } .ds-tabs button[aria-selected='true'] { background:#1e2f5a; color:#fff; font-weight:600; } .ds-tabs button:focus-visible { outline:2px solid #1e2f5a; outline-offset:-3px; }"
+    },
+    {
+      "name": "Ruled Notice",
+      "kind": "custom",
+      "refersTo": "notice",
+      "description": "Passbook line: violet rules above and below, violet wash.",
+      "html": "<p class=\"ds-notice\">Revisione <b>2026-11-13</b> pubblicata oggi · 1 consenso registrato da allora</p>",
+      "css": ".ds-notice { margin:0; padding:10px 14px; font:13.5px 'Helvetica Neue',Helvetica,Arial,sans-serif; color:#1b1d22; border-top:1px solid #5b3f8c; border-bottom:1px solid #5b3f8c; background:#efeaf6; } .ds-notice b { color:#5b3f8c; font-family:'SF Mono',ui-monospace,Menlo,monospace; }"
+    },
+    {
+      "name": "KPI Strip",
+      "kind": "card",
+      "refersTo": "kpi-cell",
+      "description": "Hairline-divided figures in one frame; no cards.",
+      "html": "<div class=\"ds-kpis\"><div><span class=\"ds-kl\">Consensi · 30 gg</span><div class=\"ds-kv\">1.284</div></div><div><span class=\"ds-kl\"><i style=\"background:#1e2f5a\"></i>Accetta tutti</span><div class=\"ds-kv\">62% <small>796</small></div></div><div><span class=\"ds-kl\"><i style=\"background:#6f7fa6\"></i>Rifiuta tutti</span><div class=\"ds-kv\">31% <small>398</small></div></div></div>",
+      "css": ".ds-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border:1px solid #c9d0c6; background:#fff; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; } .ds-kpis > div { padding:12px 14px; border-right:1px solid #c9d0c6; } .ds-kpis > div:last-child { border-right:0; } .ds-kl { display:block; font:11px 'SF Mono',ui-monospace,Menlo,monospace; letter-spacing:0.1em; text-transform:uppercase; color:#5f655d; } .ds-kl i { display:inline-block; width:9px; height:9px; margin-right:6px; } .ds-kv { font-size:24px; font-weight:600; font-variant-numeric:tabular-nums; color:#1b1d22; } .ds-kv small { font:12.5px 'SF Mono',ui-monospace,Menlo,monospace; color:#5d625f; }"
+    },
+    {
+      "name": "Register Table",
+      "kind": "custom",
+      "refersTo": "table-header",
+      "description": "Mono caps header over a navy rule, stamp column first, category squares.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Timbro</th><th>Consent ID</th><th>Metodo</th><th>Categorie</th></tr></thead><tbody><tr><td><span class=\"ds-st\">13/11 02:31 · r26-11-13</span></td><td class=\"m\">7a62·f658</td><td>Accetta tutti</td><td><i class=\"on\"></i><i class=\"on\"></i><i></i></td></tr></tbody></table>",
+      "css": ".ds-table { border-collapse:collapse; background:#fff; border:1px solid #c9d0c6; font:13.5px 'Helvetica Neue',Helvetica,Arial,sans-serif; color:#1b1d22; } .ds-table th { font:11px 'SF Mono',ui-monospace,Menlo,monospace; letter-spacing:0.1em; text-transform:uppercase; color:#5f655d; text-align:left; padding:9px 12px; border-bottom:2px solid #1e2f5a; } .ds-table td { padding:8px 12px; height:38px; } .ds-table tbody tr:hover td { background:#fafbf9; cursor:pointer; } .ds-table .m { font:12.5px 'SF Mono',ui-monospace,Menlo,monospace; } .ds-table i { display:inline-block; width:9px; height:9px; border:1.5px solid #1e2f5a; margin-right:3px; } .ds-table i.on { background:#1e2f5a; } .ds-st { display:inline-block; border:1.5px solid #5b3f8c; color:#5b3f8c; font:600 11px/1.3 'SF Mono',ui-monospace,Menlo,monospace; padding:2px 6px; transform:rotate(-2deg); white-space:nowrap; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Passbook",
+    "overview": "Libretto is the identity of the consent platform itself: the admin console (`apps/console`) and the public project site (`apps/site`) share it. Each site is a passbook. Consents, configuration changes and published policy revisions are entries stamped with a date and a revision, kept newest first, never erased, only countersigned. The material is an Italian postal savings book: cool paper, a navy cover, a violet rubber stamp, a faint green security print behind headers, thin ruled lines.\n\nThe console is dense and operational: a 232px navy rail, a guilloche page header, a hairline-divided KPI strip and a register table that stays scannable at thousands of rows. The site reads the same book at reading scale: a navy masthead, a hero set in a very large grotesque, the \"spread\" (config on the left page, recorded entries on the right, with a navy double-rule gutter) and docs with the same navy rail. Depth comes from rules and tone, never from shadows. Corners are square everywhere.\n\nThe consent banner that ships inside host sites is a separate world (\"Modulo\") recorded in `packages/core/DESIGN.md`. Libretto shows the banner only as a framed specimen (preview, demo); it never restyles it.",
+    "keyCharacteristics": [
+      "Cool paper ground with passbook navy as the only structural colour (rail, masthead, primary buttons, table header rule, selected tab).",
+      "Stamp violet is reserved: stamps, revisions, withdrawals, the selected record, secrets that must be copied once.",
+      "One grotesque (Helvetica Neue / Arial stack) for everything; mono only for labels, IDs, timestamps, hashes and figures' units.",
+      "Square corners, no shadows, 1px hairlines and 2px navy rules.",
+      "All figures tabular."
+    ],
+    "rules": [
+      {
+        "name": "The Reserved Stamp Rule",
+        "body": "Violet means \"stamped\": a revision, a date of record, a withdrawal, the record under inspection. Never use it for decoration, primary actions or generic emphasis.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Cover Rule",
+        "body": "Navy is the only saturated structural colour. There is no blue primary, no pastel status pills, no second brand hue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ruled Notice Rule",
+        "body": "Notices are ruled passbook lines: a 1px rule above and below plus a wash. Never a coloured side stripe.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every figure is tabular (`font-variant-numeric: tabular-nums`); IDs, timestamps and hashes are mono. Numbers in columns align right.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Grotesque Rule",
+        "body": "No display face, no serif, no second sans. Hierarchy comes from size, weight and the mono label voice.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Ledger Rule",
+        "body": "Surfaces never float. If something needs to stand out, give it a rule, a wash or the navy, not a shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep every corner square and every surface flat.",
+      "**Do** put violet only on stamps, revisions, withdrawals, the selected record and one-time secrets.",
+      "**Do** set every number tabular, and IDs, timestamps and hashes in mono.",
+      "**Do** order records newest first and expand a selected record in place, letting the rest recede.",
+      "**Do** use mono 11px tracked caps for labels and table headers, over a 2px navy rule.",
+      "**Do** keep a 2px navy focus outline with 2px offset (switch it to Ground on navy surfaces)."
+    ],
+    "donts": [
+      "**Don't** add drop shadows, rounded cards, pastel status pills or a blue primary.",
+      "**Don't** use a coloured side stripe for notices or alerts; use the ruled line.",
+      "**Don't** use a cream or warm paper; the ground is cool.",
+      "**Don't** introduce a second typeface or a display face.",
+      "**Don't** style the consent banner with Libretto tokens; it is its own world."
+    ]
+  }
+}
