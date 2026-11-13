@@ -1,0 +1,158 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Registro dei consensi
+description: Il server dei consensi self-hosted. Installazione con Docker Compose, chiavi pubbliche e segrete, endpoint, cosa viene registrato e come il registro stesso tratta i dati (IP solo come hash, append-only, art. 7.1, 15 e 17).
+---
+
+Il GDPR chiede al titolare di **poter dimostrare** che il visitatore ha prestato il consenso (art. 7.1) e, più in generale, di rendere conto delle proprie scelte (art. 5.2). Il banner da solo non basta: il cookie sta nel browser del visitatore e può sparire. Il server dei consensi conserva una prova per ogni scelta, sul tuo server, insieme alla revisione della configurazione che il visitatore ha visto.
+
+È un servizio unico per tutti i tuoi siti (multi-sito, con chiavi per sito), scritto in Node con Hono e Prisma, su Postgres. Ospita anche la configurazione pubblicata e la [console di amministrazione](/docs/console/).
+
+## Installazione con Docker Compose
+
+Dalla radice del repository:
+
+```sh
+cp apps/server/.env.example .env
+# modifica ADMIN_EMAIL, ADMIN_PASSWORD, PUBLIC_URL e POSTGRES_PASSWORD
+docker compose up -d --build
+```
+
+Il `docker-compose.yml` avvia Postgres 17 e il server sulla porta 3000. All'avvio il server applica le migrazioni del database e, se non esiste ancora un amministratore, lo crea con `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
+
+| Variabile | Uso |
+|---|---|
+| `DATABASE_URL` | Stringa di connessione a Postgres. In Compose è già impostata. |
+| `PORT` | Porta HTTP, `3000` predefinita. |
+| `PUBLIC_URL` | Indirizzo pubblico del server, senza `/` finale. Finisce nel blocco `log` della configurazione consegnata e negli indirizzi di `embed.js`. Con `https://` attiva anche il flag `Secure` sul cookie di sessione della console. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Primo amministratore, creato solo se non ce n'è nessuno. |
+| `TRUST_PROXY` | `true` dietro un reverse proxy che sovrascrive `X-Forwarded-For`. Lasciala `false` altrimenti, o l'IP si può falsificare. |
+| `RATE_LIMIT_PER_MINUTE` | Record al minuto per hash IP e per sito, `60` predefinito. |
+| `POSTGRES_PASSWORD`, `SERVER_PORT` | Solo per Compose. |
+
+Mettilo dietro un reverse proxy con TLS (Caddy, nginx, Traefik) su un sottodominio, per esempio `consent.example.com`. Controlla che risponda:
+
+```sh
+curl https://consent.example.com/health
+# {"ok":true,"db":true}
+```
+
+### Riga di comando
+
+Per chi preferisce non usare la console, lo stesso pacchetto ha una CLI:
+
+```sh
+easy-cookie-server create-admin admin@example.com
+easy-cookie-server create-site --name "Rivista" --domain rivista.example --origin https://rivista.example
+easy-cookie-server export <siteId> --format csv --from 2026-01-01 > consensi.csv
+```
+
+`create-site` stampa la chiave pubblica e la chiave segreta. La segreta non viene mostrata una seconda volta.
+
+## Le chiavi
+
+| Chiave | Formato | Dove sta | Cosa può fare |
+|---|---|---|---|
+| Pubblica | `pk_` + 24 caratteri | Nell'HTML del sito | Solo scrivere: registrare un consenso, collegare un id utente, leggere la configurazione pubblicata. Ogni richiesta è verificata contro l'elenco `origins` del sito (intestazione `Origin`). |
+| Segreta | `sk_` + 32 caratteri | Solo sul tuo back end, `Authorization: Bearer sk_…` | Leggere ed esportare i record, rispondere a richieste di accesso e cancellazione, pubblicare configurazioni dalla CI. |
+
+Della chiave segreta il server conserva solo l'hash sha256. Se la perdi, generane una nuova dalla console (**Chiavi API → Ruota**); la vecchia smette di funzionare subito.
+
+L'origine `*` è ammessa ma la console la segnala: chiunque potrebbe scrivere record a nome del tuo sito.
+
+## Cosa viene registrato
+
+A ogni scelta il browser invia un `POST /v1/consents` con `keepalive`, così il record parte anche se il visitatore cambia pagina:
+
+```json
+{
+  "consentId": "8f14e45f-ceea-4e7a-9b1d-2c6a1f0e3b91",
+  "revision": "2026-11-13",
+  "categories": { "necessary": true, "measurement": true, "marketing": false },
+  "services": { "measurement": ["ga4"] },
+  "method": "custom",
+  "language": "it",
+  "pageUrl": "https://rivista.example/guide/zaino",
+  "clientTimestamp": "2026-11-13T09:41:07.220Z"
+}
+```
+
+Il server aggiunge:
+
+- `ipHash`: `sha256(salt del sito ‖ IP)`, mai l'IP in chiaro;
+- lo `User-Agent`, troncato a 512 caratteri;
+- `receivedAt`, l'ora del server, accanto all'ora del client;
+- `subjectId`, se il sito ha collegato il consenso a un utente con `identify()`.
+
+`method` dice come è stata espressa la scelta:
+
+| `method` | Significato |
+|---|---|
+| `accept_all` | Accetta tutti |
+| `reject_all` | Rifiuta tutti |
+| `custom` | Scelta dal pannello preferenze |
+| `close` | Chiusura con la X, che vale come rifiuto |
+| `withdraw` | Revoca tramite `reset()` |
+
+Insieme al record, la configurazione pubblicata con quella `revision` è conservata come istantanea immutabile. Per dimostrare un consenso puoi quindi mostrare cosa ha scelto il visitatore **e** cosa gli è stato presentato: categorie, servizi, testi.
+
+Se il server non risponde, il record resta in coda nel browser e viene ritentato alla visita successiva. Con `log.requireLog: true` il banner resta invece aperto, con un messaggio d'errore, finché il server non conferma.
+
+## Endpoint
+
+### Pubblici (chiave pubblica, CORS per le origini del sito)
+
+| Metodo | Percorso | Uso |
+|---|---|---|
+| `POST` | `/v1/consents` | Registra una scelta. Intestazione `X-Site-Key: pk_…`. Accetta anche corpi `text/plain` (sendBeacon). Risponde `201 { id, receivedAt }`. |
+| `POST` | `/v1/consents/:consentId/subject` | Collega tutti i record di quel `consentId` a un id utente: `{ subjectId }`. |
+| `GET` | `/v1/sites/:publicKey/config.json` | Configurazione pubblicata, con `log` compilato. |
+| `GET` | `/v1/sites/:publicKey/head.js` | Lo snippet di Consent Mode. |
+| `GET` | `/v1/sites/:publicKey/embed.js` | Snippet, configurazione e caricatore in un solo tag. |
+| `GET` | `/static/*` | `easy-cookie.iife.js` e `easy-cookie.css`. |
+| `GET` | `/health` | Stato del server e del database. |
+
+### Da server a server (chiave segreta)
+
+| Metodo | Percorso | Uso |
+|---|---|---|
+| `GET` | `/v1/consents?consentId=&subjectId=&from=&to=` | Ricerca per prova e audit, paginata, dal più recente. |
+| `GET` | `/v1/subjects/:subjectId/consents` | Tutti i consensi di un utente: risposta a una richiesta di accesso (art. 15). |
+| `DELETE` | `/v1/subjects/:subjectId` | Cancella i record di un utente (art. 17). Risponde `{ deleted: n }`. |
+| `PUT` | `/v1/config` | `{ config, publish?, note? }`: la CI spinge la configurazione scritta nel codice, la valida e, se richiesto, la pubblica. |
+
+Esempio di richiesta di accesso:
+
+```sh
+curl -H "Authorization: Bearer $EASY_COOKIE_SECRET" \
+  https://consent.example.com/v1/subjects/user_4821/consents
+```
+
+### Collegare il consenso a un utente
+
+Il `consentId` è anonimo: un id casuale nel cookie del visitatore. Dopo il login puoi collegarlo all'utente, così le richieste di accesso e cancellazione si fanno per utente:
+
+```ts
+await EasyCookie.identify(user.id);
+```
+
+Usa un id interno, non l'email: il registro non ha bisogno di dati di contatto.
+
+## La privacy del registro
+
+Il registro è a sua volta un trattamento di dati personali. È progettato per tenerne il meno possibile:
+
+- **IP solo come hash** con un sale diverso per ogni sito. Serve a riconoscere abusi e richieste ripetute, non a identificare.
+- **Nessun cookie** impostato dal server verso i visitatori.
+- **Append-only**: un record non si modifica. Una nuova scelta è un nuovo record; la revoca è un record `withdraw`. La console mostra la storia di un `consentId` dal più recente.
+- **Cancellazione solo per art. 17** (`DELETE /v1/subjects/:id`) o eliminando il sito.
+- **Accesso per art. 15** con `GET /v1/subjects/:id/consents` o con l'esportazione CSV dalla console.
+
+<div class="note note--legal">
+<p class="note__title">Da decidere tu</p>
+<p>Il periodo di conservazione dei record, la base giuridica del registro (di norma l'obbligo di dimostrare il consenso, art. 7.1), la menzione del registro nella tua informativa privacy e, se il server è gestito da un fornitore, la nomina a responsabile del trattamento. easy-cookie fornisce gli strumenti, non queste decisioni.</p>
+</div>
+
+## Importare dati esistenti
+
+Se hai già una tabella di consensi (per esempio quella di un'implementazione su misura), per ora non c'è uno strumento di importazione dedicato. Conserva l'esportazione originale insieme alla policy di allora: resta la tua prova per i consensi raccolti prima del passaggio. I record nuovi usano il formato descritto sopra.

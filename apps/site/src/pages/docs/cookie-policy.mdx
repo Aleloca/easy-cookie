@@ -1,0 +1,97 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Cookie policy generata
+description: Il pacchetto @easy-cookie/policy genera la sezione cookie della policy dalla stessa configurazione del banner, in React, HTML o Markdown. Cosa genera, come si usa, cosa devi scrivere tu.
+---
+
+La cookie policy deve elencare, per ogni cookie, nome, fornitore, finalità e durata, ed essere raggiungibile dal banner e da ogni pagina. Se la tabella è scritta a mano, prima o poi diverge dal banner. `@easy-cookie/policy` la genera dalla stessa configurazione: categorie, servizi e cookie sono quelli che il banner mostra e che il runtime cancella alla revoca.
+
+```sh
+pnpm add @easy-cookie/policy
+```
+
+Non usa il DOM: gira in fase di build, sul server, in un React Server Component o in uno script.
+
+## React e Next.js
+
+```tsx
+// app/cookie-policy/page.tsx
+import { CookiePolicy } from '@easy-cookie/policy/react';
+import config from '../../easy-cookie.config';
+
+export default function Page() {
+  return (
+    <article>
+      <h1>Cookie policy</h1>
+      <p>…la tua introduzione: titolare, basi giuridiche, diritti…</p>
+      <CookiePolicy config={config} lang="it" />
+    </article>
+  );
+}
+```
+
+## HTML o Markdown
+
+```ts
+import { buildPolicyModel, renderPolicyHtml, renderPolicyMarkdown } from '@easy-cookie/policy';
+
+const model = buildPolicyModel(config, 'it');            // categorie → servizi → cookie, già tradotti
+const html = renderPolicyHtml(model, { headingLevel: 3 });
+const md = renderPolicyMarkdown(model);
+```
+
+`buildPolicyModel(config, lang, { date?, labels? })`:
+
+- la data predefinita è quella della revisione, quando `revision` inizia con `AAAA-MM-GG`;
+- i cookie dichiarati come espressione regolare vengono mostrati in forma leggibile (`^_ga_.*$` diventa `_ga_*`), con il pattern completo nell'attributo `title`;
+- le etichette delle tabelle sono in italiano e inglese; le altre lingue usano l'inglese, e ogni etichetta si può sovrascrivere con `labels`.
+
+Opzioni di `renderPolicyHtml`:
+
+| Opzione | Predefinito | |
+|---|---|---|
+| `headingLevel` | `2` | Livello dei titoli delle categorie. |
+| `idPrefix` | `'ec-policy-'` | Prefisso degli id delle sezioni, per esempio `#ec-policy-measurement`. |
+| `meta` | `true` | Mostra la riga "Ultimo aggiornamento · Revisione". |
+| `hideEmpty` | `false` | Salta le categorie senza servizi. |
+
+## Cosa viene generato
+
+Per ogni categoria: titolo, descrizione e una tabella con cookie, servizio, fornitore (con il link all'informativa), durata e finalità. Le categorie necessarie hanno l'etichetta "Sempre attivi". Un servizio senza cookie dichiarati compare comunque, con un trattino.
+
+```html
+<div class="ec-policy" lang="it">
+  <p class="ec-policy__meta">Ultimo aggiornamento: <time datetime="2026-11-13">13 novembre 2026</time> · Revisione: 2026-11-13</p>
+  <section class="ec-policy__category" id="ec-policy-measurement" data-category="measurement">
+    <h2 class="ec-policy__title">Misurazione</h2>
+    <p class="ec-policy__description">…</p>
+    <div class="ec-policy__table-wrap">
+      <table class="ec-policy__table">…</table>
+    </div>
+  </section>
+</div>
+```
+
+L'HTML ha solo classi `ec-policy*`, nessuno stile inline: lo stili con il CSS del tuo sito. Tutti i testi sono sottoposti a escape, e un `privacyUrl` diventa link solo se è `http(s):`, `mailto:` o relativo.
+
+## Regole di cancellazione
+
+Lo stesso pacchetto espone le regole di cancellazione dei cookie per categoria, utili se gestisci la revoca in un tuo script:
+
+```ts
+import { autoClearRules, matchesRule } from '@easy-cookie/policy';
+
+autoClearRules(config);
+// { measurement: [{ name: '^_ga$', pattern: true, service: 'ga4' }, …], marketing: [...] }
+```
+
+## Cosa devi scrivere tu
+
+La tabella dei cookie è solo una parte della cookie policy. Il resto è testo legale che dipende dal tuo trattamento, e easy-cookie non lo genera:
+
+- chi è il titolare e come contattarlo;
+- le basi giuridiche e i destinatari, compresi eventuali trasferimenti fuori dallo Spazio economico europeo;
+- come revocare il consenso (indica il pulsante "Preferenze cookie");
+- i diritti dell'interessato e il reclamo al Garante.
+
+Fai rivedere il testo a chi segue la privacy del tuo sito.

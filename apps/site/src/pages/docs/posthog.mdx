@@ -1,0 +1,106 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: PostHog
+description: L'adattatore @easy-cookie/posthog tiene PostHog allineato al consenso senza ricaricare la pagina. Niente prima della scelta, modalità cookieless dopo un rifiuto, cattura completa dopo l'accettazione.
+---
+
+PostHog può contare le visite anche senza cookie, con la modalità **cookieless**. L'adattatore la usa così:
+
+| Stato del visitatore | PostHog |
+|---|---|
+| Nessuna scelta | Non cattura nulla. |
+| Ha rifiutato `measurement` | Solo cookieless: nessun cookie, nessuno storage, nessun profilo persona. Autocapture, eccezioni, web vitals e heatmap vengono scartati. |
+| Ha accettato `measurement` | Cattura normale con cookie, poi `identify()` per gli utenti autenticati. |
+
+Il passaggio da uno stato all'altro avviene senza ricaricare la pagina.
+
+## Requisiti
+
+- `posthog-js` con il supporto a `cookieless_mode` (1.200 o successiva).
+- Nelle impostazioni del progetto PostHog, **Cookieless server hash mode** attivo. Senza, gli eventi cookieless vengono scartati dal server di PostHog.
+- PostHog inizializzato con `cookieless_mode: 'on_reject'`. `posthogInitOptions()` lo fa per te.
+
+```sh
+pnpm add @easy-cookie/posthog posthog-js
+```
+
+## Uso
+
+```ts
+import posthog from 'posthog-js';
+import EasyCookie from '@easy-cookie/core';
+import { connectPostHog, posthogInitOptions } from '@easy-cookie/posthog';
+
+posthog.init('phc_…', {
+  ...posthogInitOptions({ api: EasyCookie }),
+  api_host: 'https://eu.i.posthog.com',
+});
+
+const disconnect = connectPostHog(posthog, EasyCookie, {
+  category: 'measurement',            // predefinita
+  identify: () => session?.user?.id,  // facoltativa, chiamata solo dopo l'opt-in
+});
+```
+
+Con React, collegalo in un effetto dentro il provider:
+
+```tsx
+'use client';
+import { useEffect } from 'react';
+import posthog from 'posthog-js';
+import { useEasyCookie } from '@easy-cookie/react';
+import { connectPostHog } from '@easy-cookie/posthog';
+
+export function PostHogConsent({ userId }: { userId?: string }) {
+  const { api } = useEasyCookie();
+  useEffect(() => (api ? connectPostHog(posthog, api, { identify: () => userId }) : undefined), [api, userId]);
+  return null;
+}
+```
+
+Nel markup **non** bloccare lo script di PostHog con `type="text/plain"`: deve caricarsi per poter contare in modalità cookieless. È l'adattatore a decidere cosa può fare.
+
+## API
+
+### `connectPostHog(posthog, api, opzioni)`
+
+Ascolta gli eventi `replay`, `consent` e `change` e applica subito lo stato attuale, nel caso la scelta salvata sia stata riapplicata prima del collegamento.
+
+- **Concesso:** `posthog.opt_in_capturing()` (se non lo è già), poi `posthog.identify(id)` quando `identify()` restituisce un id diverso dall'attuale.
+- **Non concesso, con una scelta:** `posthog.opt_out_capturing()`. Con `on_reject`, PostHog continua a contare in forma anonima e senza cookie.
+- **Nessuna scelta:** non fa nulla.
+
+Restituisce una funzione per scollegarsi. Con `service: 'posthog'` segue l'interruttore del singolo servizio invece della categoria.
+
+### `posthogInitOptions(opzioni)`
+
+```ts
+{
+  cookieless_mode: 'on_reject',
+  persistence: 'localStorage+cookie',   // usata solo dopo l'opt-in
+  person_profiles: 'identified_only',
+  before_send: consentBeforeSend(opzioni),
+}
+```
+
+### `consentBeforeSend({ category?, api?, isGranted?, drop? })`
+
+Un filtro `before_send`. Senza consenso scarta `$autocapture`, `$rageclick`, `$dead_click`, `$exception`, `$web_vitals` e `$$heatmap` (l'elenco `NON_ESSENTIAL_EVENTS`, sostituibile con `drop`). Le pageview e i tuoi eventi restano.
+
+Per sapere se c'è consenso usa, nell'ordine: `isGranted` se lo passi; il runtime se passi `api`; altrimenti lo stato pubblicato dallo snippet in `<head>` (`window.__easyCookieHead`), disponibile anche prima che il runtime sia caricato.
+
+## Nella cookie policy
+
+Dichiara PostHog come servizio della categoria `measurement`, con i suoi cookie, così compare nel banner e nella policy:
+
+```ts
+posthog: {
+  category: 'measurement',
+  label: 'PostHog',
+  provider: 'PostHog Inc.',
+  privacyUrl: 'https://posthog.com/privacy',
+  cookies: [{ name: '^ph_.*_posthog$', pattern: true, duration: { it: '1 anno', en: '1 year' } }],
+},
+```
+
+La modalità cookieless dopo un rifiuto non usa cookie, ma tratta comunque dati di navigazione: descrivila nella tua informativa e verifica con chi segue la privacy del sito che la base giuridica sia adeguata.

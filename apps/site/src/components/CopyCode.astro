@@ -1,0 +1,28 @@
+---
+// Adds a "Copia" button to every highlighted code block (progressive enhancement).
+const { lang = 'it' } = Astro.props as { lang?: 'it' | 'en' };
+const labels = lang === 'en' ? { copy: 'Copy', done: 'Copied' } : { copy: 'Copia', done: 'Copiato' };
+---
+<script is:inline define:vars={{ labels }}>
+  document.querySelectorAll('pre.astro-code').forEach((pre) => {
+    if (!navigator.clipboard) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'code-wrap';
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'code-copy';
+    btn.textContent = labels.copy;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(pre.innerText.replace(/\n$/, ''));
+        btn.textContent = labels.done;
+        setTimeout(() => (btn.textContent = labels.copy), 1600);
+      } catch (e) {
+        /* clipboard refused: leave the text selectable */
+      }
+    });
+    wrap.appendChild(btn);
+  });
+</script>

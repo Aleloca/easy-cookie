@@ -1,0 +1,134 @@
+---
+layout: ../../layouts/DocsLayout.astro
+title: Google Consent Mode v2 e GTM
+description: Lo snippet di default da mettere prima di Google Tag Manager, gli update dopo ogni scelta e l'attivatore easy_cookie_update, che serve ai tag bloccati su gtm.init per partire dopo il consenso.
+---
+
+Consent Mode è il modo in cui i tag di Google (GA4, Google Ads, Floodlight e i tag di terzi in GTM che lo supportano) sanno cosa possono fare. easy-cookie lo gestisce in due tempi: un **default** sincrono in `<head>`, prima di GTM, e un **update** dopo ogni scelta.
+
+Attivalo nella configurazione:
+
+```ts
+googleConsentMode: { enabled: true },
+```
+
+## Categorie e segnali
+
+| Categoria | Segnali concessi quando è accettata |
+|---|---|
+| `necessary` | `security_storage` (sempre concesso) |
+| `functionality` | `functionality_storage` |
+| `experience` | `personalization_storage` |
+| `measurement` | `analytics_storage` |
+| `marketing` | `ad_storage`, `ad_user_data`, `ad_personalization` |
+
+Per una categoria con un id diverso, o per cambiare la mappa, usa `gcm` nella categoria: `measurement: { gcm: ['analytics_storage'] }`. Un segnale è concesso se almeno una categoria accettata lo include.
+
+## Lo snippet di default, prima di GTM
+
+Consent Mode non salva niente: a ogni pagina, prima che GTM legga qualunque cosa, qualcuno deve dirgli lo stato. Lo fa lo snippet generato da `renderHeadScript(config)`:
+
+- legge il cookie `ec_consent` in modo sincrono;
+- se c'è una scelta valida per la revisione corrente e non scaduta, chiama `gtag('consent', 'default', …)` con lo **stato reale** del visitatore;
+- altrimenti nega tutto e aggiunge `wait_for_update` (500 ms predefiniti), così GTM aspetta la scelta prima di far partire i tag;
+- imposta `ads_data_redaction` e `url_passthrough` se configurati.
+
+È ES5, senza dipendenze, e viene dalla stessa funzione che usa il runtime: nessun parser del cookie copiato a mano nel tuo sito.
+
+```html
+<head>
+  <!-- 1. easy-cookie: Consent Mode default -->
+  <script>/* output di renderHeadScript(config), oppure head.js / embed.js dal server */</script>
+
+  <!-- 2. Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-XXXX');</script>
+</head>
+```
+
+Dove prenderlo:
+
+| Installazione | Snippet |
+|---|---|
+| Server dei consensi | È già dentro `embed.js`. Se carichi il runtime in altro modo, usa `/v1/sites/pk_…/head.js`. |
+| Next.js | `<EasyCookieHead config={config} />` in `<head>`, prima del componente di GTM. |
+| Altro rendering lato server | `renderHeadScript(config)` da `@easy-cookie/core/shared`, in un `<script>` inline. |
+
+L'ordine conta. Se GTM parte prima dello snippet, i tag vedono "nessun consenso dichiarato" e si comportano come se Consent Mode non ci fosse.
+
+## Dopo ogni scelta
+
+Alla prima scelta e a ogni modifica (mai al semplice caricamento di una pagina con una scelta già salvata) il runtime:
+
+1. chiama `gtag('consent', 'update', …)` con i nuovi segnali;
+2. aggiunge al `dataLayer` questo evento:
+
+```js
+{
+  event: 'easy_cookie_update',
+  easyCookie: {
+    categories: { necessary: true, measurement: true, marketing: false },
+    method: 'custom',          // accept_all | reject_all | custom | close
+    first: true,               // prima scelta per questa revisione
+    revision: '2026-11-13',
+  },
+}
+```
+
+Ai caricamenti successivi lo snippet ha già impostato il default giusto, quindi l'evento non viene ripetuto e i tag non partono due volte.
+
+## Configurare Tag Manager
+
+### Il problema: i tag bloccati su gtm.init non ripartono
+
+In GTM i tag base (configurazione GA4, Google Ads, pixel di Meta) di solito usano l'attivatore **Inizializzazione** o **All Pages**. Con Consent Mode, un tag che richiede `analytics_storage` viene **trattenuto** se in quel momento il consenso è negato.
+
+Il punto è che GTM valuta quell'attivatore una volta sola, al caricamento. Quando il visitatore accetta, qualche secondo dopo, il `consent update` cambia lo stato ma **non** rimette in coda gli eventi già passati. Il tag resta fermo fino alla pagina successiva, e la prima pagina vista (quella con la sorgente di traffico, l'UTM, il gclid) va persa.
+
+### La soluzione: un attivatore sull'evento personalizzato
+
+1. In GTM, **Attivatori → Nuovo → Evento personalizzato**.
+2. Nome evento: `easy_cookie_update`.
+3. Questo attivatore si attiva su: **Alcuni eventi personalizzati**, con la condizione corrispondente alla categoria. Prima crea una variabile **Variabile di livello dati** con nome `easyCookie.categories.measurement` (e una per `marketing`), poi usa la condizione `easyCookie.categories.measurement` uguale a `true`.
+4. Aggiungi questo attivatore ai tag base **accanto** a quello di caricamento pagina, non al suo posto.
+5. Nelle **Impostazioni avanzate** di quei tag, imposta le opzioni di attivazione su **Una volta per pagina**. Se il visitatore cambia un'altra categoria nella stessa pagina, l'evento arriva di nuovo con `measurement = true` e il tag non deve ripartire.
+
+| Tag | Attivatori |
+|---|---|
+| Google tag (GA4) | Inizializzazione · `easy_cookie_update` con `measurement = true` |
+| Google Ads, conversion linker | Inizializzazione · `easy_cookie_update` con `marketing = true` |
+| Pixel di Meta (template con Consent Mode) | All Pages · `easy_cookie_update` con `marketing = true` |
+
+Nelle impostazioni di consenso di ogni tag lascia **Richiedi consenso aggiuntivo** sui segnali giusti (`analytics_storage` per GA4, `ad_storage` per Ads e Meta). Così il tag parte una volta sola: al caricamento se il consenso c'era già, oppure sull'evento quando il visitatore accetta.
+
+> Se usi i tag di terze parti senza supporto per Consent Mode, non basta l'impostazione di consenso del tag: usa sempre la condizione sulla variabile di livello dati, altrimenti l'evento `easy_cookie_update` dopo un rifiuto li farebbe partire.
+
+### Verificare con l'anteprima
+
+Apri l'anteprima di Tag Assistant in una finestra anonima:
+
+- al primo evento (`Consent Initialization`) la scheda **Consenso** deve mostrare tutti i segnali `denied`;
+- dopo **Accetta tutti** compare l'evento `easy_cookie_update` e i tag base risultano **attivati** su quell'evento;
+- ricaricando la pagina, lo stato di default è già `granted` e l'evento non compare.
+
+## Consent Mode di base o avanzato
+
+Con la modalità **di base** i tag di Google non si caricano affatto senza consenso. Con quella **avanzata** si caricano e inviano ping senza cookie, che Google usa per la modellazione.
+
+easy-cookie fornisce i segnali in entrambi i casi: la scelta dipende da come configuri i tag in GTM. La modalità avanzata trasmette comunque dati a Google prima del consenso (anche senza cookie): valuta con il tuo consulente se è compatibile con la tua informativa e con le indicazioni del Garante.
+
+## Regioni
+
+Per applicare i default solo ad alcuni paesi, per esempio quando il sito ha anche traffico extra-UE:
+
+```ts
+googleConsentMode: {
+  enabled: true,
+  region: ['IT', 'FR', 'DE', 'ES' /* … elenco SEE */],
+},
+```
+
+Il banner, invece, viene mostrato a tutti: easy-cookie non fa geolocalizzazione.
