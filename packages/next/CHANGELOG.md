@@ -1,5 +1,14 @@
 # @easy-cookie/next
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @easy-cookie/core@0.1.4
+  - @easy-cookie/policy@0.1.4
+  - @easy-cookie/react@0.1.4
+
 ## 0.1.3
 
 ### Patch Changes
