@@ -1,0 +1,61 @@
+name: Pages
+
+# Builds the public site (apps/site) and publishes it to GitHub Pages at
+# https://aleloca.github.io/easy-cookie/.
+#
+# One-time setup: in the repository settings, Pages → Build and deployment →
+# Source must be "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/site/**'
+      - 'packages/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push does not cancel a deployment in progress.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The landing demo runs the real browser runtime, and the service library
+      # section reads @easy-cookie/core/catalog: both need the core build.
+      - run: pnpm --filter @easy-cookie/core build
+      - name: Build the site
+        run: pnpm --filter @easy-cookie/site build
+        env:
+          SITE_BASE: /easy-cookie/
+          SITE_URL: https://aleloca.github.io
+      # Serve files and folders that start with "_" as they are.
+      - run: touch apps/site/dist/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
