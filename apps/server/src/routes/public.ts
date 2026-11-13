@@ -139,8 +139,9 @@ export function publicRoutes(deps: AppDeps) {
   app.get('/v1/sites/:publicKey/config.json', async (c) => {
     const p = await published(c);
     if (!p) throw notFound('No published config for this site');
-    const origin = requestOrigin(c);
-    if (origin && originAllowed(origin, p.site.origins)) setCors(c, origin);
+    // Public, read-only data (like head.js and embed.js): readable from any origin,
+    // so local development works too. Writes stay restricted to the site's origins.
+    c.header('Access-Control-Allow-Origin', '*');
     c.header('Cache-Control', 'public, max-age=60');
     return c.json(deliveredConfig(p.version, p.site, baseUrl(c, config.publicUrl)));
   });

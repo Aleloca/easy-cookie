@@ -613,7 +613,7 @@ export const ENTRIES: CatalogEntry[] = [
   },
   {
     id: 'easy-cookie',
-    label: 'Consenso cookie (easy-cookie)',
+    label: 'easy-cookie',
     provider: '',
     privacyUrl: '',
     group: 'infrastructure',

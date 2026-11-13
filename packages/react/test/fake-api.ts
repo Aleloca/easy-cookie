@@ -105,7 +105,7 @@ export function createFakeApi(initial?: { categories: string[]; services?: Recor
     acceptAll: vi.fn(() => set(Object.keys(config?.categories ?? {}), undefined, 'accept_all')),
     rejectAll: vi.fn(() => set([], undefined, 'reject_all')),
     accept: vi.fn((cats: string[], services?: Record<string, string[]>) => set(cats, services, 'custom')),
-    identify: vi.fn(async () => undefined),
+    identify: vi.fn(async () => true),
     reset: vi.fn(() => {
       consent = null;
     }),

@@ -236,8 +236,12 @@ export interface EasyCookieApi {
   rejectAll(): void;
   /** Accept exactly these categories (necessary ones are always included). */
   accept(categories: string[], services?: Record<string, string[]>): void;
-  /** Link the anonymous consent id to a user id on the consent server (after login). */
-  identify(subjectId: string): Promise<void>;
+  /**
+   * Link the anonymous consent id to a user id on the consent server (after login).
+   * Resolves true once the server confirmed the link. Before the visitor's first
+   * choice it resolves false and the link is made right after that choice.
+   */
+  identify(subjectId: string): Promise<boolean>;
   /** Forget the stored choice and show the banner again. */
   reset(): void;
   /** Resolved config (after run). */

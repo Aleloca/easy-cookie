@@ -119,6 +119,33 @@ describe('runtime', () => {
     vi.unstubAllGlobals();
   });
 
+  it('keeps window.__easyCookieHead in sync after a choice', async () => {
+    const ec = await fresh();
+    (window as any).__easyCookieHead = { granted: ['necessary'], valid: false };
+    await ec.run(base as any);
+    ec.accept(['measurement']);
+    await tick();
+    const head = (window as any).__easyCookieHead;
+    expect(head.valid).toBe(true);
+    expect([...head.granted].sort()).toEqual(['measurement', 'necessary']);
+  });
+
+  it('links a subject passed to identify() before the first choice once the record is sent', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+    const ec = await fresh();
+    await ec.run({ ...base, log: { endpoint: 'https://consent.test', siteKey: 'pk_x' } } as any);
+    expect(await ec.identify('user-1')).toBe(false);
+    ec.acceptAll();
+    await tick();
+    const subject = fetchMock.mock.calls.find((c) => String(c[0]).includes('/subject'));
+    expect(subject).toBeDefined();
+    expect(String(subject![0])).toContain(`/v1/consents/${ec.get()!.id}/subject?key=pk_x`);
+    expect(JSON.parse(subject![1].body)).toEqual({ subjectId: 'user-1' });
+    expect(await ec.identify('user-1')).toBe(true);
+    vi.unstubAllGlobals();
+  });
+
   it('replaces blocked iframes with a placeholder until granted', async () => {
     const ec = await fresh();
     document.body.innerHTML = '<iframe data-category="marketing" data-src="https://example.com/x"></iframe>';

@@ -233,7 +233,34 @@ function createMarkdown(): MarkdownIt {
     if (/^https?:\/\//i.test(href)) tokens[idx].attrSet('rel', 'noopener noreferrer');
     return linkOpen(tokens, idx, options, env, self);
   };
+
+  // Stable anchors on headings ("## 4.2 Purchasing Credits" → id="4-2-purchasing-credits"),
+  // so pages and checkboxes can link to a section. Duplicates get -2, -3…
+  md.core.ruler.push('ec_heading_ids', (state) => {
+    const seen = new Map<string, number>();
+    const tokens = state.tokens;
+    for (let i = 0; i < tokens.length; i++) {
+      if (tokens[i].type !== 'heading_open') continue;
+      const text = tokens[i + 1]?.children?.map((t) => (t.type === 'text' || t.type === 'code_inline' ? t.content : '')).join('') ?? '';
+      const base = slugify(text) || 'section';
+      const n = (seen.get(base) ?? 0) + 1;
+      seen.set(base, n);
+      tokens[i].attrSet('id', n === 1 ? base : `${base}-${n}`);
+    }
+    return true;
+  });
   return md;
+}
+
+/** URL-safe heading slug: accents folded, lowercase, non-alphanumerics → "-". */
+export function slugify(text: string): string {
+  return text
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
 }
 
 let markdown: MarkdownIt | undefined;

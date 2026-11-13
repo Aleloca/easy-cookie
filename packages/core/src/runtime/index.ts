@@ -43,6 +43,8 @@ export function createEasyCookie(): EasyCookieApi {
   let texts: Texts | null = null;
   const listeners = new Map<EasyCookieEvent, Set<Listener>>();
   let pendingMethod: ConsentMethod | null = null;
+  let pendingSubject: string | null = null;
+  let lastSend: Promise<boolean> = Promise.resolve(true);
   let firstFlag = false;
   let previous: string[] = [];
   let reopen: ReopenHandle | null = null;
@@ -132,6 +134,14 @@ export function createEasyCookie(): EasyCookieApi {
     afterState(state);
     emit(first ? 'consent' : 'change', { consent: state, changed, first });
     const sent = config.log ? sendRecord(config.log, record(state)) : Promise.resolve(true);
+    lastSend = sent;
+    // A subject passed to identify() before the first choice is linked as soon
+    // as the record exists on the server.
+    if (pendingSubject && config.log) {
+      const subject = pendingSubject;
+      pendingSubject = null;
+      void sent.then((ok) => ok && sendSubject(config!.log!, state.id, subject));
+    }
     if (config.log?.requireLog)
       sent.then((ok) => {
         if (!ok) {
@@ -148,6 +158,9 @@ export function createEasyCookie(): EasyCookieApi {
   };
 
   const afterState = (state: ConsentState | null) => {
+    // Keep the head script's snapshot in sync, for code that reads it before or
+    // without the runtime (e.g. the PostHog before_send filter).
+    if (w) w.__easyCookieHead = { granted: state ? state.categories : config!.resolvedCategories.filter((c) => c.readOnly).map((c) => c.id), valid: !!state };
     renderMosaic(document.querySelector('#cc-main .cm'), config!, texts!, lang, state);
     reopen?.update(state);
     embeds?.refresh();
@@ -337,9 +350,16 @@ export function createEasyCookie(): EasyCookieApi {
       engine.hide();
     },
     async identify(subjectId) {
+      if (!config?.log) return false;
       const s = get();
-      if (!s || !config?.log) return;
-      await sendSubject(config.log, s.id, subjectId);
+      if (!s) {
+        // No choice yet: link it right after the visitor chooses.
+        pendingSubject = subjectId;
+        return false;
+      }
+      // The record must exist on the server before the link (see docs/api.md).
+      await lastSend;
+      return sendSubject(config.log, s.id, subjectId);
     },
     reset() {
       if (!config) return;

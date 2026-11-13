@@ -120,6 +120,10 @@ When the visitor makes a first choice or changes it, the runtime calls `gtag('co
 
 > **GTM setup:** a tag blocked by consent on `gtm.init` / `All Pages` is **not** fired again by a later consent update. Add a *Custom Event* trigger `easy_cookie_update` to your GA4 / Ads / Meta base tags, next to their page-view trigger.
 
+The event name is `googleConsentMode.eventName` (default `easy_cookie_update`). When migrating, set it to the event your GTM triggers already listen to (e.g. `cookie_consent_update`) and nothing changes in GTM. The payload is always `easyCookie.categories.<id>`. If a GTM variable read other keys (`analytics`, `marketing`…), point it there.
+
+Category ids are yours too: `measurement`, `marketing`, `functionality` and `experience` only come with default titles and Consent Mode signals. A category such as `analytics` works the same with `gcm: ['analytics_storage']`.
+
 Page loads with a stored choice do **not** push the event (the head snippet already set the right default), so tags never fire twice.
 
 ## API

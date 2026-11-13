@@ -70,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 <EasyCookieProvider remote={{ endpoint: 'https://consent.example.com', siteKey: 'pk_live_…' }}>…
 ```
 
-In GTM, re-point the GA4 and Meta tags to a Custom Event trigger on **`easy_cookie_update`**. The runtime pushes it on the first choice and on every change, never on page-load replay. Tags blocked on `gtm.init` then fire as soon as the visitor accepts.
+In GTM, the GA4 and Meta tags need a Custom Event trigger on **`easy_cookie_update`**, or on your existing event if you set `googleConsentMode.eventName` to it (the easiest path when migrating). The runtime pushes it on the first choice and on every change, never on page-load replay. Tags blocked on `gtm.init` then fire as soon as the visitor accepts.
 
 ## Reading consent on the server
 
@@ -212,7 +212,7 @@ export default async function Page({ params }: { params: Promise<{ lang: string 
    - Put the descriptions in `{ it, en }` maps.
 5. **Reopen button:** set `ui.reopenButton: { hideOn: ['/dashboard', '/admin'] }`. The footer uses `<PreferencesLink />`.
 6. **"First choice" detection:** remove the global-flag hack. The runtime emits `consent` (first choice), `change` and `replay` (page load) separately.
-7. **GTM:** re-point the custom triggers from `cookie_consent_update` to `easy_cookie_update`.
+7. **GTM:** keep the triggers on `cookie_consent_update` by setting `googleConsentMode.eventName: 'cookie_consent_update'`. Any GTM variable that read `analytics`/`marketing` from the dataLayer must read `easyCookie.categories.analytics` / `.marketing`.
 8. **PostHog:**
    - Replace the hand-written opt-in/out and `before_send` with `@easy-cookie/posthog`: `posthog.init(key, { ...posthogInitOptions(), … })` + `connectPostHog(posthog, api, { identify })`.
    - Keep "Cookieless server hash mode" enabled.

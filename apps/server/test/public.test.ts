@@ -162,7 +162,7 @@ describe('public /v1 API', () => {
       const res = await app.request(`/v1/sites/${site.publicKey}/config.json`, { headers: { Origin: ORIGIN } });
       expect(res.status).toBe(200);
       expect(res.headers.get('cache-control')).toBe('public, max-age=60');
-      expect(res.headers.get('access-control-allow-origin')).toBe(ORIGIN);
+      expect(res.headers.get('access-control-allow-origin')).toBe('*');
       const cfg = (await res.json()) as any;
       expect(cfg.revision).toBe('r1');
       expect(cfg.log).toEqual({ endpoint: 'https://consent.test', siteKey: site.publicKey });
@@ -170,6 +170,12 @@ describe('public /v1 API', () => {
       expect(cfg.categories.necessary.readOnly).toBe(true);
       expect(cfg.googleConsentMode.enabled).toBe(true);
       expect(cfg.language).toEqual({ default: 'it', available: ['it', 'en'] });
+    });
+
+    it('lets any origin read the config (local development), unlike consent writes', async () => {
+      const res = await app.request(`/v1/sites/${site.publicKey}/config.json`, { headers: { Origin: 'http://localhost:4310' } });
+      expect(res.status).toBe(200);
+      expect(res.headers.get('access-control-allow-origin')).toBe('*');
     });
 
     it('returns 404 when nothing is published or the key is unknown', async () => {

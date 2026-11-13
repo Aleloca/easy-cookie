@@ -92,3 +92,17 @@ The consent check works like this:
 ## License
 
 MIT
+
+## Options
+
+`connectPostHog(posthog, api, options)`:
+
+| Option | Default | Effect |
+|---|---|---|
+| `category` | `measurement` | Category that allows PostHog cookies and profiles |
+| `service` | — | Decide on this service's consent instead of the category |
+| `identify` | — | Returns the logged-in user id; called after opt-in |
+| `beforeChoice` | `'pending'` | `'pending'`: capture nothing until the visitor chooses (a stale stored opt-in is cleared). `'cookieless'`: count visits without cookies before the choice, as after a rejection. Use it only when your privacy policy covers cookieless measurement without consent. |
+| `sessionReplay` | `false` | Start session recording on opt-in and stop it on opt-out |
+
+Opt-in does not send a `$opt_in` event: easy-cookie already records the consent.

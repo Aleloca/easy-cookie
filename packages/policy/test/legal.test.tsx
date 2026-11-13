@@ -42,7 +42,7 @@ describe('renderLegalDocument', () => {
     expect(r.title).toBe('Titolo');
     expect(r.html).toMatch(/^<div class="ec-legal" lang="it" data-version="v1">/);
     expect(r.html).toContain('<h1 class="ec-legal__title">Titolo</h1>');
-    expect(r.html).toContain('<h2>Sezione</h2>');
+    expect(r.html).toContain('<h2 id="sezione">Sezione</h2>');
     expect(r.html).toContain('<strong>forte</strong>');
     expect(r.html.endsWith('</div>')).toBe(true);
     expect(renderLegalDocument(doc('x'), 'it', { heading: false }).html).not.toContain('<h1');
@@ -211,5 +211,19 @@ describe('built-in templates', () => {
     expect(t.body).not.toContain('{{site.');
     expect(legalTemplate('terms', 'de').title).toBe(LEGAL_TEMPLATES.terms.en.title);
     expect(legalTemplate('cookie', 'it').body).toContain('{{site.domain}}');
+  });
+});
+
+describe('heading anchors', () => {
+  it('gives every heading a stable, unique id', async () => {
+    const { renderLegalDocument } = await import('../src');
+    const { html } = renderLegalDocument(
+      { translations: { en: { title: 'Terms', body: '## 4.2 Purchasing Credits\n\ntext\n\n## Città e foro\n\n## Città e foro' } } },
+      'en',
+      { config: { revision: 'r', categories: { necessary: { readOnly: true } } } },
+    );
+    expect(html).toContain('<h2 id="4-2-purchasing-credits">');
+    expect(html).toContain('<h2 id="citta-e-foro">');
+    expect(html).toContain('<h2 id="citta-e-foro-2">');
   });
 });

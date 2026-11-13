@@ -15,11 +15,19 @@ function fakePostHog() {
     }),
     has_opted_in_capturing: () => state === 'in',
     has_opted_out_capturing: () => state === 'out',
+    clear_opt_in_out_capturing: vi.fn(() => {
+      state = 'pending';
+    }),
+    startSessionRecording: vi.fn(),
+    stopSessionRecording: vi.fn(),
+    setState(s: 'pending' | 'in' | 'out') {
+      state = s;
+    },
     identify: vi.fn((id?: string) => {
       distinctId = id ?? distinctId;
     }),
     get_distinct_id: () => distinctId,
-  } satisfies PostHogLike;
+  } satisfies PostHogLike & { setState(s: "pending" | "in" | "out"): void };
   return ph;
 }
 
@@ -142,5 +150,34 @@ describe('posthogInitOptions', () => {
     });
     expect(opts.before_send({ event: '$autocapture' })).toBeNull();
     expect(opts.before_send({ event: 'signup' })).toEqual({ event: 'signup' });
+  });
+});
+
+describe('connectPostHog options', () => {
+  it('clears a stale opt-in before the first choice', async () => {
+    const { api } = createFakeApi();
+    await api.run(testConfig);
+    const ph = fakePostHog();
+    ph.setState('in');
+    connectPostHog(ph, api);
+    expect(ph.clear_opt_in_out_capturing).toHaveBeenCalledTimes(1);
+    expect(ph.has_opted_in_capturing()).toBe(false);
+  });
+
+  it('counts cookieless before the first choice when asked', async () => {
+    const { api } = createFakeApi();
+    await api.run(testConfig);
+    const ph = fakePostHog();
+    connectPostHog(ph, api, { beforeChoice: 'cookieless' });
+    expect(ph.opt_out_capturing).toHaveBeenCalledTimes(1);
+  });
+
+  it('opts in without an $opt_in event and drives session replay', async () => {
+    const { api } = createFakeApi({ categories: ['necessary', 'measurement'] });
+    const ph = fakePostHog();
+    connectPostHog(ph, api, { sessionReplay: true });
+    await api.run(testConfig);
+    expect(ph.opt_in_capturing).toHaveBeenCalledWith({ captureEventName: false });
+    expect(ph.startSessionRecording).toHaveBeenCalledTimes(1);
   });
 });

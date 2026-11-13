@@ -5,10 +5,13 @@ import type { EasyCookieApi, EasyCookieEvent } from '@easy-cookie/core/shared';
  * `posthog-js` stays an optional peer dependency and any compatible client works.
  */
 export interface PostHogLike {
-  opt_in_capturing(options?: unknown): void;
+  opt_in_capturing(options?: { captureEventName?: string | null | false; [key: string]: unknown }): void;
   opt_out_capturing(): void;
   has_opted_in_capturing?(): boolean;
   has_opted_out_capturing?(): boolean;
+  clear_opt_in_out_capturing?(): void;
+  startSessionRecording?(...args: unknown[]): void;
+  stopSessionRecording?(): void;
   identify?(distinctId?: string, ...rest: unknown[]): void;
   get_distinct_id?(): string;
 }
@@ -16,8 +19,8 @@ export interface PostHogLike {
 /** Minimal shape of a PostHog event passed to `before_send`. */
 export interface PostHogEventLike {
   event: string;
-  properties?: Record<string, unknown>;
-  [key: string]: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- matches posthog-js `Properties`
+  properties?: Record<string, any>;
 }
 
 export interface ConnectPostHogOptions {
@@ -30,6 +33,16 @@ export interface ConnectPostHogOptions {
    * identified person profile is created only with consent.
    */
   identify?: () => string | undefined | null;
+  /**
+   * Before the visitor's first choice:
+   * - `'pending'` (default): capture nothing. A stale opt-in left in storage by an
+   *   earlier setup is cleared, so nothing is captured with cookies.
+   * - `'cookieless'`: count visits without cookies (same as after a rejection).
+   *   Only if your privacy policy covers cookieless measurement without consent.
+   */
+  beforeChoice?: 'pending' | 'cookieless';
+  /** Start session recording on opt-in and stop it on opt-out. Default false. */
+  sessionReplay?: boolean;
 }
 
 /**
@@ -49,16 +62,29 @@ export function connectPostHog(posthog: PostHogLike, api: EasyCookieApi, options
   let last: 'in' | 'out' | null = null;
 
   const apply = () => {
-    // No valid choice yet: leave PostHog in its pending state (it captures nothing).
-    if (!api.get()) return;
+    if (!api.get()) {
+      if (options.beforeChoice === 'cookieless') {
+        if (last !== 'out') {
+          if (!posthog.has_opted_out_capturing?.()) posthog.opt_out_capturing();
+          last = 'out';
+        }
+      } else if (posthog.has_opted_in_capturing?.()) {
+        // Pending: an opt-in stored by a previous banner must not keep capturing.
+        posthog.clear_opt_in_out_capturing?.();
+      }
+      return;
+    }
     if (granted()) {
       if (last !== 'in') {
-        if (!posthog.has_opted_in_capturing?.()) posthog.opt_in_capturing();
+        // No `$opt_in` event: the consent itself is recorded by easy-cookie.
+        if (!posthog.has_opted_in_capturing?.()) posthog.opt_in_capturing({ captureEventName: false });
+        if (options.sessionReplay) posthog.startSessionRecording?.();
         last = 'in';
       }
       const id = options.identify?.();
       if (id && posthog.identify && posthog.get_distinct_id?.() !== id) posthog.identify(id);
     } else if (last !== 'out') {
+      if (options.sessionReplay) posthog.stopSessionRecording?.();
       if (!posthog.has_opted_out_capturing?.()) posthog.opt_out_capturing();
       last = 'out';
     }
