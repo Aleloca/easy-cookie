@@ -214,6 +214,15 @@ export function createEasyCookie(): EasyCookieApi {
         true,
       );
 
+      // Any `[data-ec-open-preferences]` element opens the preferences, including
+      // elements added later (e.g. the `{{preferences-link}}` of a legal document).
+      document.addEventListener('click', (e) => {
+        const el = (e.target as Element | null)?.closest?.('[data-ec-open-preferences]');
+        if (!el) return;
+        e.preventDefault();
+        api.openPreferences();
+      });
+
       await engine.run({
         root: document.body,
         mode: 'opt-in',

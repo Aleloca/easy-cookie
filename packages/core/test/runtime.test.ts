@@ -127,4 +127,24 @@ describe('runtime', () => {
     expect(document.querySelector('.ec-embed')).toBeNull();
     expect(document.querySelector('iframe')!.getAttribute('src')).toBe('https://example.com/x');
   });
+  it('opens the preferences from any [data-ec-open-preferences] element, even one added later', async () => {
+    const ec = await fresh();
+    await ec.run(base as any);
+    const spy = vi.spyOn(ec, 'openPreferences');
+    const link = document.createElement('a');
+    link.href = '#';
+    link.setAttribute('data-ec-open-preferences', '');
+    link.innerHTML = '<span>Preferenze cookie</span>';
+    document.body.appendChild(link);
+    const ev = new MouseEvent('click', { bubbles: true, cancelable: true });
+    const notPrevented = link.querySelector('span')!.dispatchEvent(ev);
+    expect(notPrevented).toBe(false);
+    expect(spy).toHaveBeenCalledTimes(1);
+    // Other clicks are untouched.
+    const other = document.createElement('a');
+    other.href = '#x';
+    document.body.appendChild(other);
+    expect(other.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))).toBe(true);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
 });
