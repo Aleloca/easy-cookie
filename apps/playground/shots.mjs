@@ -25,6 +25,10 @@ for (const [name, viewport] of Object.entries(sizes)) {
       await page.click('#cc-main [data-role="show"]');
       await page.waitForTimeout(400);
       await page.screenshot({ path: `${out}${name}-preferences.png` });
+      await page.click('#cc-main .pm .pm__section--expandable:nth-of-type(3) .pm__section-title').catch(() => {});
+      await page.click('#cc-main .pm label.section__toggle-wrapper >> nth=1').catch(() => {});
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${out}${name}-preferences-expanded.png` });
       await page.click('#cc-main .pm [data-role="all"]');
       await page.waitForTimeout(400);
       await page.screenshot({ path: `${out}${name}-after-accept.png` });

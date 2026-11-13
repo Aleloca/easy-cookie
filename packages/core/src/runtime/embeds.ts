@@ -38,12 +38,15 @@ export function mountEmbeds(
     const svcName = (svc && localize(svc.label, lang(), c.language.default)) || svcId || frame.title || catName;
 
     const box = document.createElement('div');
-    box.className = 'ec-embed';
+    // The placeholder takes the iframe's own box (class, inline style, ratio) so
+    // nothing shifts when the real embed loads.
+    box.className = ['ec-embed', frame.className].filter(Boolean).join(' ');
+    if (frame.style.cssText) box.style.cssText = frame.style.cssText;
     if (cat) box.style.setProperty('--ec-cat', cat.color);
-    const w = frame.getAttribute('width');
-    const hgt = frame.getAttribute('height');
-    if (w && /^\d+$/.test(w)) box.style.maxWidth = `${w}px`;
-    if (hgt && /^\d+$/.test(hgt) && w && /^\d+$/.test(w)) box.style.aspectRatio = `${w} / ${hgt}`;
+    const rect = frame.getBoundingClientRect();
+    const w = Number(frame.getAttribute('width')) || rect.width;
+    const hgt = Number(frame.getAttribute('height')) || rect.height;
+    if (w > 0 && hgt > 0) box.style.aspectRatio = `${w} / ${hgt}`;
 
     const sw = document.createElement('span');
     sw.className = 'ec-module';

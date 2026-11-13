@@ -82,6 +82,7 @@ export const DEFAULT_TEXTS: Record<'it' | 'en', Texts> = {
       policyLink: 'Cookie policy',
       legendOn: 'attivi',
       legendOff: 'spenti',
+      legendAlways: 'sempre attivi',
     },
     preferences: {
       title: 'Preferenze cookie',
@@ -121,6 +122,7 @@ export const DEFAULT_TEXTS: Record<'it' | 'en', Texts> = {
       policyLink: 'Cookie policy',
       legendOn: 'on',
       legendOff: 'off',
+      legendAlways: 'always on',
     },
     preferences: {
       title: 'Cookie preferences',

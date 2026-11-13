@@ -35,7 +35,7 @@
   // Category modules (Olivetti palette). Override per site.
   --ec-c-necessary: var(--ec-ink);
   --ec-c-measurement: #2457c5;
-  --ec-c-functionality: #d9981a;
+  --ec-c-functionality: #b8800f;
   --ec-c-experience: #2f8f5b;
   --ec-c-marketing: #d63a26;
   --ec-c-extra-1: #7a4fa0;
@@ -70,9 +70,9 @@
   --cc-toggle-off-knob-bg: var(--ec-bg);
   --cc-toggle-enabled-icon-color: var(--ec-bg);
   --cc-toggle-disabled-icon-color: var(--ec-bg);
-  --cc-toggle-readonly-bg: var(--ec-hair);
+  --cc-toggle-readonly-bg: var(--ec-ink-2);
   --cc-toggle-readonly-knob-bg: var(--ec-bg);
-  --cc-toggle-readonly-knob-icon-color: var(--ec-hair);
+  --cc-toggle-readonly-knob-icon-color: var(--ec-ink-2);
   --cc-section-category-border: var(--ec-hair);
   --cc-cookie-category-block-bg: var(--ec-bg);
   --cc-cookie-category-block-border: var(--ec-hair);
@@ -244,7 +244,7 @@ html.ec--dark,
   background: var(--ec-bg);
   color: var(--ec-ink-2);
   border: 1px solid var(--ec-hair);
-  font-size: 12px;
+  font-size: var(--ec-small);
   font-weight: 600;
   height: 22px;
   padding: 0 8px;
@@ -265,12 +265,19 @@ html.ec--dark,
   }
 }
 
+// Same grammar as the banner mosaic: outlined = off, filled = on.
 #cc-main .pm .ec-swatch {
   display: inline-block;
   flex: none;
   width: 14px;
   height: 14px;
   margin-right: 10px;
+  border: 2px solid var(--ec-cat);
+  background: transparent;
+  transition: background-color var(--ec-step) steps(2, end);
+}
+
+#cc-main .pm .pm__section-title-wrapper:has(.section__toggle:checked) .ec-swatch {
   background: var(--ec-cat);
 }
 
@@ -416,7 +423,8 @@ html.show--preferences .ec-reopen {
   background: var(--ec-bg);
 
   .ec-module {
-    --ec-module: 24px;
+    --ec-module: 40px;
+    border: 2px solid var(--ec-cat, var(--ec-ink));
   }
 }
 
@@ -465,19 +473,20 @@ html.show--preferences .ec-reopen {
   }
 }
 
-// Toggles: an outlined track with an ink module that slides and inverts when on.
+// Toggles speak the module grammar: off = outlined track and outlined knob,
+// on = filled ink track. Read-only (necessary) is a filled secondary-ink track.
 #cc-main .pm .toggle__icon {
   background: var(--ec-bg);
   box-shadow: inset 0 0 0 1px var(--ec-ink);
 }
 
 #cc-main .pm .toggle__icon-circle {
-  background: var(--ec-ink);
-  box-shadow: none;
+  background: var(--ec-bg);
+  box-shadow: inset 0 0 0 1px var(--ec-ink);
 }
 
 #cc-main .pm .toggle__icon-off svg {
-  stroke: var(--ec-bg);
+  stroke: var(--ec-ink);
 }
 
 #cc-main .pm .section__toggle:checked ~ .toggle__icon {
@@ -486,15 +495,25 @@ html.show--preferences .ec-reopen {
 
   .toggle__icon-circle {
     background: var(--ec-bg);
+    box-shadow: inset 0 0 0 1px var(--ec-ink);
+  }
+
+  .toggle__icon-on svg {
+    stroke: var(--ec-ink);
   }
 }
 
 #cc-main .pm .section__toggle:checked:disabled ~ .toggle__icon {
-  background: var(--ec-hair);
-  box-shadow: inset 0 0 0 1px var(--ec-hair);
+  background: var(--ec-ink-2);
+  box-shadow: inset 0 0 0 1px var(--ec-ink-2);
 
   .toggle__icon-circle {
     background: var(--ec-bg);
+    box-shadow: inset 0 0 0 1px var(--ec-ink-2);
+  }
+
+  svg {
+    stroke: var(--ec-ink-2);
   }
 }
 
@@ -505,9 +524,6 @@ html.show--preferences .ec-reopen {
   color: var(--ec-ink-2);
 }
 
-#cc-main .pm .ec-swatch {
-  margin-right: 10px;
-}
 
 @media (prefers-reduced-motion: reduce) {
   #cc-main .pm .toggle__icon,
@@ -596,4 +612,24 @@ html.show--preferences .ec-reopen {
 .ec-policy__meta,
 .ec-policy__domain {
   opacity: 0.75;
+}
+
+#cc-main .pm .pm__btn {
+  font-size: var(--ec-text);
+}
+
+#cc-main .pm .pm__close-btn svg {
+  stroke-width: 2.5;
+}
+
+// Staggered fill: each module turns on one step after the previous one.
+.ec-module {
+  transition-delay: calc(var(--i, 0) * var(--ec-step));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ec-module,
+  #cc-main .pm .ec-swatch {
+    transition: none;
+  }
 }

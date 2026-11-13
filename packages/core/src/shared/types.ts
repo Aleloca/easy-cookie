@@ -108,6 +108,7 @@ export interface Texts {
     policyLink: string;
     legendOn: string;
     legendOff: string;
+    legendAlways: string;
   };
   preferences: {
     title: string;

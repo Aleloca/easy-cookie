@@ -108,7 +108,7 @@
       width: 14px;
       height: 14px;
       stroke: var(--ec-ink);
-      stroke-width: 4;
+      stroke-width: 2.5;
     }
 
     &:hover {
@@ -190,6 +190,11 @@
     &--on {
       background: var(--ec-cat, var(--ec-ink));
     }
+  }
+
+  .ec-module {
+    transition: background-color var(--ec-step) steps(2, end);
+    transition-delay: calc(var(--i, 0) * var(--ec-step));
   }
 
   .ec-swatch {
@@ -278,8 +283,10 @@
       transform: translateY(12px);
     }
 
-    .cm__desc {
-      font-size: 14px;
+    .ec-mosaic__legend {
+      display: grid;
+      grid-template-columns: repeat(2, max-content);
+      gap: 2px 16px;
     }
   }
 
@@ -292,4 +299,11 @@
   #cc-main .cc--anim .cm {
     transition: none;
   }
+}
+
+// Only one ink frame at a time: the banner steps back while preferences are open
+// (it returns if they close without a choice).
+html.show--preferences #cc-main .cc--anim .cm,
+html.show--preferences #cc-main .cm {
+  visibility: hidden !important;
 }

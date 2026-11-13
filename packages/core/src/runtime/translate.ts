@@ -28,8 +28,14 @@ export function engineTranslation(c: ResolvedConfig, lang: string, texts: Texts 
         const svc = services[sid]!;
         const label = localize(svc.label, lang, c.language.default) || sid;
         const purpose = localize(svc.purpose, lang, c.language.default);
+        const durations = Array.from(
+          new Set((svc.cookies ?? []).map((ck) => localize(ck.duration, lang, c.language.default)).filter(Boolean)),
+        );
         const bits = [
           svc.provider ? `<span class="ec-svc__provider">${esc(texts.preferences.provider)}: ${esc(svc.provider)}</span>` : '',
+          durations.length
+            ? `<span class="ec-svc__duration">${esc(texts.preferences.cookieDuration)}: ${esc(durations.join(', '))}</span>`
+            : '',
           svc.privacyUrl
             ? `<a class="ec-link" href="${esc(svc.privacyUrl)}" target="_blank" rel="noopener">${esc(texts.preferences.privacyPolicy)}</a>`
             : '',
