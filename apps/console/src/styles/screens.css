@@ -38,6 +38,7 @@
   letter-spacing: -0.01em;
 }
 .login-lead {
+  text-wrap: pretty;
   color: var(--ink-2);
   margin-top: 6px;
   max-width: 52ch;
