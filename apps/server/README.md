@@ -15,7 +15,7 @@ Run these commands at the repository root:
 ```sh
 cp apps/server/.env.example .env      # set ADMIN_EMAIL, ADMIN_PASSWORD, PUBLIC_URL, POSTGRES_PASSWORD
 docker compose up -d --build
-open http://localhost:3000/admin/
+open http://localhost:8787/admin/
 ```
 
 `docker-compose.yml` starts Postgres 17 and the server. The image is built by `apps/server/Dockerfile`. It builds `@easy-cookie/core` (served under `/static`), the console (served under `/admin`) and the server, then runs `prisma migrate deploy` on every start.
@@ -30,7 +30,7 @@ For production, put the server behind a TLS reverse proxy (Caddy, nginx, Traefik
 | Variable | Default | Meaning |
 |---|---|---|
 | `DATABASE_URL` | (required) | Postgres connection string |
-| `PORT` | `3000` | HTTP port |
+| `PORT` | `8787` | HTTP port |
 | `PUBLIC_URL` | derived from each request | Public base URL. It is written into `log.endpoint` of the delivered config and into the asset URLs of `embed.js`. |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | none | Create the first admin on boot, only when no admin exists yet. The password needs at least 10 characters. |
 | `STATIC_DIR` | `../../packages/core/dist` | Built core assets (`easy-cookie.iife.js`, `easy-cookie.css`). Relative paths resolve from `apps/server`. Missing files return 404. |
@@ -122,7 +122,7 @@ pnpm install                                   # at the repo root
 docker run -d --name easy-cookie-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=easycookie -p 5432:5432 postgres:17
 cp apps/server/.env.example apps/server/.env    # adjust DATABASE_URL
 pnpm --filter @easy-cookie/server prisma:deploy # apply migrations (prisma:migrate to create new ones)
-pnpm --filter @easy-cookie/server dev           # tsx watch on :3000
+pnpm --filter @easy-cookie/server dev           # tsx watch on :8787
 ```
 
 Other scripts: `build` (prisma generate + tsup bundle into `dist/`), `start`, `typecheck`, `test`.

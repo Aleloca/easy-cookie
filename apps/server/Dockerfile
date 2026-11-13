@@ -25,7 +25,7 @@ RUN pnpm --filter @easy-cookie/server deploy --prod --legacy /prod/server \
 # ---- runtime ---------------------------------------------------------------------
 FROM base AS runtime
 ENV NODE_ENV=production \
-    PORT=3000 \
+    PORT=8787 \
     STATIC_DIR=/app/static \
     CONSOLE_DIR=/app/console
 WORKDIR /app/server
@@ -33,8 +33,8 @@ COPY --from=build /prod/server /app/server
 COPY --from=build /repo/packages/core/dist /app/static
 COPY --from=build /repo/apps/console/dist /app/console
 USER node
-EXPOSE 3000
+EXPOSE 8787
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
-  CMD node -e "fetch('http://localhost:'+(process.env.PORT||3000)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD node -e "fetch('http://localhost:'+(process.env.PORT||8787)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 # Apply pending migrations, then start.
 CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/index.js"]

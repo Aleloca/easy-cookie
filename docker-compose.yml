@@ -1,7 +1,7 @@
 # Self-hosted easy-cookie: Postgres + consent server.
 #   cp apps/server/.env.example .env   # then edit ADMIN_*, PUBLIC_URL, POSTGRES_PASSWORD
 #   docker compose up -d --build
-# The server listens on :3000. Put it behind a TLS reverse proxy and set TRUST_PROXY=true.
+# The server listens on :8787. Put it behind a TLS reverse proxy and set TRUST_PROXY=true.
 
 services:
   db:
@@ -29,13 +29,13 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://easycookie:${POSTGRES_PASSWORD:-change-me}@db:5432/easycookie
-      PORT: 3000
-      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:3000}
+      PORT: 8787
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8787}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       TRUST_PROXY: ${TRUST_PROXY:-false}
     ports:
-      - '${SERVER_PORT:-3000}:3000'
+      - '${SERVER_PORT:-8787}:8787'
 
 volumes:
   pgdata:
