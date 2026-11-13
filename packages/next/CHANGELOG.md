@@ -1,5 +1,14 @@
 # @easy-cookie/next
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [[`214c3fd`](https://github.com/Aleloca/easy-cookie/commit/214c3fd19d3fa5a1c3e3c0d692b47cd88fc16779)]:
+  - @easy-cookie/core@0.1.6
+  - @easy-cookie/policy@0.1.6
+  - @easy-cookie/react@0.1.6
+
 ## 0.1.5
 
 ### Patch Changes
