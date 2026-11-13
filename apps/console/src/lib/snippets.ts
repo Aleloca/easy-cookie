@@ -8,10 +8,10 @@ export function embedSnippet(origin: string, publicKey: string): string {
   return `<script src="${origin}/v1/sites/${publicKey}/embed.js"></script>`;
 }
 
-// TODO(adapters): align with the final @easy-cookie/next API once packages/next lands.
 export function nextSnippet(origin: string, publicKey: string): string {
   return `// app/layout.tsx
-import { EasyCookieHead, EasyCookieProvider } from '@easy-cookie/next';
+import { EasyCookieHeadRemote, EasyCookieProvider } from '@easy-cookie/next';
+import '@easy-cookie/core/style.css';
 
 const remote = { endpoint: '${origin}', siteKey: '${publicKey}' };
 
@@ -19,10 +19,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="it">
       <head>
-        <EasyCookieHead remote={remote} />
+        {/* Consent Mode default: before GTM */}
+        <EasyCookieHeadRemote {...remote} />
       </head>
       <body>
-        <EasyCookieProvider config={{ remote }}>{children}</EasyCookieProvider>
+        <EasyCookieProvider remote={remote}>{children}</EasyCookieProvider>
       </body>
     </html>
   );
