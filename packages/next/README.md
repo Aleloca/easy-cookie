@@ -152,7 +152,7 @@ Rules of thumb:
    - `/api/consent/me` maps to the server's `GET /v1/subjects/:id/consents` (art. 15) and `DELETE /v1/subjects/:id` (art. 17).
    - Withdrawal (art. 7.3) is just a new choice from the preferences modal.
    - Call `api.identify(userId)` after login (via `useEasyCookie().api`) to link the anonymous consent to the user.
-   - Existing `ConsentLog` rows can be imported into the consent server.
+   - There is no import tool yet: keep the existing `ConsentLog` table as the archive of past proofs (or write a one-off script against `POST /v1/consents`).
 5. **Versioning:**
    - Set `revision` from the published cookie policy version, in code, so the browser and the server always agree.
    - This fixes the `COOKIE_POLICY_VERSION`-undefined re-prompt loop by construction.
