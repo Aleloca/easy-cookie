@@ -1,5 +1,14 @@
 # @easy-cookie/posthog
 
+## 0.1.3
+
+### Patch Changes
+
+- [`7c77db9`](https://github.com/Aleloca/easy-cookie/commit/7c77db98f770f731ad5b3ca856a195c6d695aaf5) Thanks [@Aleloca](https://github.com/Aleloca)! - `connectPostHog` calls `opt_out_capturing()` once per page load even when PostHog is already opted out, so in `cookieless_mode: 'on_reject'` the landing `$pageview` of returning visitors who rejected (or have not chosen, with `beforeChoice: 'cookieless'`) is counted. posthog-js only resets the instance when the visitor was opted in, so this is safe.
+
+- Updated dependencies []:
+  - @easy-cookie/core@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes
