@@ -360,7 +360,7 @@ const it = {
     fromLibrary: 'dalla libreria',
     fromLibraryLabel: (label: string) => `Aggiunto dalla libreria: ${label}. Ogni campo resta modificabile.`,
     libraryAdded: (n: number, cats: string) =>
-      `${n === 1 ? '1 servizio aggiunto' : `${n} servizi aggiunti`} alla bozza${cats ? `, insieme a ${cats}` : ''}. Controlla finalità e cookie prima di pubblicare.`,
+      `${n === 1 ? '1 servizio aggiunto' : `${n} servizi aggiunti`} alla bozza${cats ? `, insieme ${cats}` : ''}. Controlla finalità e cookie prima di pubblicare.`,
     customHint: 'Per uno strumento che non è in libreria, crea un servizio vuoto.',
     // publish dialog
     publishTitle: 'Pubblica una nuova revisione',
@@ -476,7 +476,7 @@ const it = {
       n === 1
         ? `Verrà aggiunta anche la categoria ${list}, con titolo, descrizione e segnali predefiniti.`
         : `Verranno aggiunte anche le categorie ${list}, con titoli, descrizioni e segnali predefiniti.`,
-    categoryWord: (n: number, list: string) => (n === 1 ? `la categoria ${list}` : `le categorie ${list}`),
+    categoryWord: (n: number, list: string) => (n === 1 ? `alla categoria ${list}` : `alle categorie ${list}`),
     noResults: 'Nessun servizio corrisponde alla ricerca.',
     selected: (n: number) => (n === 1 ? '1 selezionato' : `${n} selezionati`),
     category: 'Categoria predefinita',

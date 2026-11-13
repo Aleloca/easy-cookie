@@ -2,6 +2,9 @@
 const PATHS = {
   chevronDown: 'M4 6.5l4 4 4-4',
   chevronRight: 'M6.5 4l4 4-4 4',
+  chevronLeft: 'M9.5 4l-4 4 4 4',
+  book: 'M3 2.5h8.5v11H3zM5.5 2.5v11M7.5 5.5h2.5M7.5 8h2.5',
+  doc: 'M3.5 2.5h6l3 3v8h-9zM9.5 2.5v3h3M5.5 8.5h5M5.5 11h5',
   menu: 'M2.5 4.5h11M2.5 8h11M2.5 11.5h11',
   close: 'M4 4l8 8M12 4l-8 8',
   plus: 'M8 3v10M3 8h10',

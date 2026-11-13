@@ -9,6 +9,8 @@ import './styles/base.css';
 import './styles/shell.css';
 import './styles/components.css';
 import './styles/screens.css';
+import './styles/library.css';
+import './styles/legal.css';
 
 async function boot() {
   if (import.meta.env.VITE_MOCK === '1') {

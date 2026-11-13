@@ -24,11 +24,21 @@ export function catalogToService(entry: CatalogEntry): ConfigService {
   });
 }
 
-/** Service ids already in the config that came from (or are named after) this entry. */
-export function addedAs(config: EasyCookieConfig, entryId: string): string | null {
+/**
+ * The service id already standing for this entry: one copied from it, one
+ * keyed by its id, or one declared by hand under the same label.
+ */
+export function addedAs(config: EasyCookieConfig, entryId: string, label?: string): string | null {
   const services = (config.services ?? {}) as Record<string, ConfigService>;
   for (const [id, s] of Object.entries(services)) if (s.from === entryId) return id;
-  return entryId in services ? entryId : null;
+  if (entryId in services) return entryId;
+  if (!label) return null;
+  const want = label.trim().toLowerCase();
+  for (const [id, s] of Object.entries(services)) {
+    const labels = s.label === undefined ? [] : typeof s.label === 'string' ? [s.label] : Object.values(s.label);
+    if (labels.some((l) => l.trim().toLowerCase() === want)) return id;
+  }
+  return null;
 }
 
 export interface CatalogAddResult {
@@ -60,7 +70,7 @@ export function addFromCatalog(config: EasyCookieConfig, entries: CatalogEntry[]
   const services: Record<string, ConfigService> = { ...(config.services ?? {}) };
   const serviceIds: string[] = [];
   for (const e of entries) {
-    if (addedAs({ ...config, services }, e.id)) continue;
+    if (addedAs({ ...config, services }, e.id, e.label)) continue;
     const id = freeId(Object.keys(services), e.id);
     services[id] = catalogToService(e);
     serviceIds.push(id);

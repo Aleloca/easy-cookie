@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import type { CookieDeclaration } from '@easy-cookie/core/shared';
+import type { CatalogEntry, ConfigService } from '../../../api/types';
 import { Icon } from '../../../components/Icon';
 import { Button, Field } from '../../../components/ui';
-import { useT } from '../../../i18n';
+import { useI18n, useT } from '../../../i18n';
+import { addFromCatalog } from '../../../lib/catalog';
 import { ID_PATTERN, freeId, getLoc, renameKey, setIn, setLoc } from '../../../lib/configEdit';
+import { LibraryDialog } from '../../library/LibraryDialog';
+import { useCatalog } from '../../library/parts';
+import { categoryTitle } from '../common';
 import { IdField, LocField, SelectField, TextField, type EditorProps } from './shared';
 
 function CookiesTable({
@@ -110,11 +115,28 @@ function CookiesTable({
 }
 
 export function ServicesEditor({ config, update, lang, defaultLang }: EditorProps) {
-  const t = useT();
-  const services = config.services ?? {};
+  const { t, lang: uiLang } = useI18n();
+  const services = (config.services ?? {}) as Record<string, ConfigService>;
   const ids = Object.keys(services);
   const catIds = Object.keys(config.categories ?? {});
   const [newId, setNewId] = useState('');
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [added, setAdded] = useState<{ ids: string[]; text: string } | null>(null);
+  const catalogList = useCatalog();
+  const catalogLabel = (id: string) => catalogList.data?.find((e) => e.id === id)?.label ?? id;
+
+  const addFromLibrary = (entries: CatalogEntry[]) => {
+    const r = addFromCatalog(config, entries);
+    update(() => r.config);
+    setLibraryOpen(false);
+    const cats = r.addedCategories.map((c) => categoryTitle(c, uiLang)).join(', ');
+    setAdded({
+      ids: r.serviceIds,
+      text: t.config.libraryAdded(r.serviceIds.length, cats ? t.library.categoryWord(r.addedCategories.length, cats) : ''),
+    });
+    // Bring the first new service into view once it is rendered.
+    requestAnimationFrame(() => document.getElementById(`svc-${r.serviceIds[0]}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+  };
   const suggestion = freeId(ids, 'service');
   const newErr = newId && (!ID_PATTERN.test(newId) ? t.config.idInvalid : ids.includes(newId) ? t.config.idTaken : null);
 
@@ -128,16 +150,31 @@ export function ServicesEditor({ config, update, lang, defaultLang }: EditorProp
 
   return (
     <div className="blocks">
-      {ids.length === 0 && <p className="hint">{t.config.noServices}</p>}
+      <div className="services-bar">
+        <Button variant="ghost" icon="plus" onClick={() => setLibraryOpen(true)}>
+          {t.config.addFromLibrary}
+        </Button>
+        {ids.length === 0 && <p className="hint">{t.config.noServices}</p>}
+      </div>
+      {added && (
+        <p className="notice notice-ink" role="status">
+          {added.text}
+        </p>
+      )}
       {ids.map((id) => {
         const s = services[id];
         const p = (k: string) => ['services', id, k];
         return (
-          <fieldset className="block" key={id}>
+          <fieldset className={`block${added?.ids.includes(id) ? ' block-new' : ''}`} key={id} id={`svc-${id}`}>
             <legend className="block-legend">
               <span className="mono">{id}</span>
               <span className="block-title">{getLoc(s.label, lang, defaultLang)}</span>
               <span className="mono dim block-cat">{s.category}</span>
+              {s.from && (
+                <span className="from-tag" title={t.config.fromLibraryLabel(catalogLabel(s.from))}>
+                  {t.config.fromLibrary}: {catalogLabel(s.from)}
+                </span>
+              )}
             </legend>
             <div className="row row-end">
               <IdField
@@ -204,7 +241,9 @@ export function ServicesEditor({ config, update, lang, defaultLang }: EditorProp
         <Button variant="ghost" icon="plus" onClick={add} disabled={!!newErr || catIds.length === 0}>
           {t.config.addService}
         </Button>
+        <p className="hint adder-hint">{t.config.customHint}</p>
       </div>
+      <LibraryDialog open={libraryOpen} onClose={() => setLibraryOpen(false)} config={config} onAdd={addFromLibrary} />
     </div>
   );
 }

@@ -67,6 +67,12 @@ describe('catalog conversion', () => {
     clash.services = { youtube: { category: 'measurement', from: 'custom' } as ConfigService };
     // Same key but a different origin: the custom one counts as "youtube" already.
     expect(addedAs(clash, 'youtube')).toBe('youtube');
+
+    // A hand-written service with the same label counts too.
+    const byLabel = base();
+    byLabel.services = { meta: { category: 'measurement', label: { it: 'Meta Pixel' } } };
+    expect(addedAs(byLabel, 'meta-pixel', 'Meta Pixel')).toBe('meta');
+    expect(addFromCatalog(byLabel, [entry('meta-pixel')]).serviceIds).toEqual([]);
   });
 
   it('lists missing categories once, in first-use order', () => {

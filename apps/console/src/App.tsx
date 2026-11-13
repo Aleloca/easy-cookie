@@ -9,6 +9,7 @@ import { ConfigEditor } from './screens/site/ConfigEditor';
 import { Revisions } from './screens/site/Revisions';
 import { Keys } from './screens/site/Keys';
 import { Settings } from './screens/site/Settings';
+import { Library } from './screens/library/Library';
 
 export function App() {
   return (
@@ -20,6 +21,14 @@ export function App() {
           element={
             <RequireAuth>
               <SitesList />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/library/:entryId?"
+          element={
+            <RequireAuth>
+              <Library />
             </RequireAuth>
           }
         />
