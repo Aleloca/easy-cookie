@@ -24,6 +24,8 @@ export interface Site {
   publicKey: string;
   origins: string[];
   publishedRevision: string | null;
+  /** Consent records are deleted this many months after each visitor's latest choice; null keeps them. */
+  consentRetentionMonths: number | null;
   createdAt: string;
   stats30d: { total: number };
 }
@@ -37,6 +39,7 @@ export interface SiteInput {
   name: string;
   domain: string;
   origins: string[];
+  consentRetentionMonths?: number | null;
 }
 
 export interface Draft {

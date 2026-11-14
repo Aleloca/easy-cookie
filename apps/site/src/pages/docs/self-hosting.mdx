@@ -121,6 +121,7 @@ easy-cookie-server create-admin admin@example.com      # prompts for the passwor
 easy-cookie-server create-site --name "Shop" --domain shop.example.com --origin https://shop.example.com
 easy-cookie-server export <siteId> --format csv --from 2026-01-01 > consents.csv   # or --format jsonl, --to
 easy-cookie-server import <siteId> legacy.jsonl --dry-run
+easy-cookie-server purge <siteId> --dry-run    # records past the site's retention period (the server purges daily)
 ```
 
 `create-site` prints the public and the secret key. The secret key is never shown again. `import` is covered in [Importing records](/docs/importing-records/).

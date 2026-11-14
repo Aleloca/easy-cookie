@@ -110,13 +110,23 @@ The register is itself a processing of personal data. It is designed to keep as 
 - **IPs only as hashes**, with a different salt for each site. They help recognise abuse and repeated requests, not identify people.
 - **No cookies** set by the server on visitors.
 - **Append-only**: a record is never edited. A new choice is a new record; a withdrawal is a `withdraw` record. The only update is linking a `subjectId`. The console shows the history of a `consentId`, newest first.
-- **Deletion only for art. 17** (`DELETE /v1/subjects/:id`) or by deleting the site.
+- **Deletion** for art. 17 (`DELETE /v1/subjects/:id`), by deleting the site, or by the retention period below.
 - **Access for art. 15** with `GET /v1/subjects/:id/consents`, or with the CSV export from the console.
 
 <div class="note note--legal">
 <p class="note__title">Yours to decide</p>
-<p>The retention period of the records, the legal basis of the register (usually the obligation to demonstrate consent, art. 7.1), a mention of the register in your privacy policy and, if a provider runs the server for you, a data processing agreement. easy-cookie provides the tools, not these decisions.</p>
+<p>How long to keep the records, the legal basis of the register (usually the obligation to demonstrate consent, art. 7.1), a mention of the register in your privacy policy and, if a provider runs the server for you, a data processing agreement. easy-cookie provides the tools, not these decisions.</p>
 </div>
+
+## Retention
+
+By default records are kept forever. In the console, **Settings → Register retention** sets a period per site (for example 24 months). Every night the server deletes the records of each visitor whose **latest** choice is older than that period:
+
+- a visitor's records (same `consentId`) are deleted together, never one by one;
+- a visitor who comes back and chooses again keeps their whole history, because the period restarts from the new choice;
+- the date used is when the server received the record. Imported records keep their original date.
+
+To see what would be deleted before switching it on, run `easy-cookie-server purge <siteId> --dry-run`. State the same period in your privacy policy, for example "24 months from your latest choice".
 
 ## Existing records
 

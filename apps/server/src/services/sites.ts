@@ -14,6 +14,7 @@ export function serializeSite(site: Site, total30d = 0) {
     publicKey: site.publicKey,
     origins: site.origins,
     publishedRevision: site.publishedRevision,
+    consentRetentionMonths: site.consentRetentionMonths,
     createdAt: site.createdAt.toISOString(),
     stats30d: { total: total30d },
   };
@@ -34,11 +35,17 @@ export interface SiteInput {
   name?: unknown;
   domain?: unknown;
   origins?: unknown;
+  consentRetentionMonths?: unknown;
 }
 
+/** Longest retention the API accepts: 20 years. */
+export const MAX_RETENTION_MONTHS = 240;
+
+type SiteFields = { name?: string; domain?: string; origins?: string[]; consentRetentionMonths?: number | null };
+
 /** Validate site fields. `partial` allows missing fields (PATCH). */
-export function parseSiteInput(body: SiteInput, partial: boolean): { name?: string; domain?: string; origins?: string[] } {
-  const out: { name?: string; domain?: string; origins?: string[] } = {};
+export function parseSiteInput(body: SiteInput, partial: boolean): SiteFields {
+  const out: SiteFields = {};
   if (body.name !== undefined || !partial) {
     if (typeof body.name !== 'string' || !body.name.trim() || body.name.length > 200)
       throw badRequest('name: required string (max 200)', 'invalid_site');
@@ -61,6 +68,12 @@ export function parseSiteInput(body: SiteInput, partial: boolean): { name?: stri
       if (err) throw badRequest(`origins.${i}: ${err}`, 'invalid_site');
     }
     out.origins = [...new Set(list.map((o: string) => normalizeOrigin(o)))];
+  }
+  if (body.consentRetentionMonths !== undefined) {
+    const m = body.consentRetentionMonths;
+    if (m !== null && (typeof m !== 'number' || !Number.isInteger(m) || m < 1 || m > MAX_RETENTION_MONTHS))
+      throw badRequest(`consentRetentionMonths: null or an integer from 1 to ${MAX_RETENTION_MONTHS}`, 'invalid_site');
+    out.consentRetentionMonths = m;
   }
   return out;
 }

@@ -37,6 +37,16 @@ describe('console screens (mock mode)', () => {
     expect(screen.getByText('non pubblicata')).toBeTruthy();
   });
 
+  it('sets the register retention in the site settings', async () => {
+    mount('/sites/site_demo/settings');
+    const select = (await screen.findByLabelText('Conserva le registrazioni', {}, { timeout: 4000 })) as HTMLSelectElement;
+    expect(select.value).toBe('');
+    fireEvent.change(select, { target: { value: '24' } });
+    const section = select.closest('section')!;
+    fireEvent.click(within(section).getByRole('button', { name: 'Salva' }));
+    expect(await within(section).findByText('Modifiche salvate.')).toBeTruthy();
+  });
+
   it('expands a register row in place with the proof and its history', async () => {
     mount('/sites/site_fua/consents');
     const stamps = await screen.findAllByRole('button', { name: /Mostra la prova/ }, { timeout: 4000 });

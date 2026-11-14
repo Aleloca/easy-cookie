@@ -450,6 +450,13 @@ const it = {
     deleteField: 'Dominio da confermare',
     deleteConfirm: 'Elimina per sempre',
     deleting: 'Eliminazione…',
+    retention: 'Conservazione del registro',
+    retentionLead:
+      'Ogni notte il server cancella le registrazioni dei visitatori la cui ultima scelta è più vecchia del periodo indicato. Chi torna e sceglie di nuovo conserva tutta la sua storia. Indica lo stesso periodo nell’informativa sulla privacy.',
+    retentionField: 'Conserva le registrazioni',
+    retentionForever: 'Per sempre (nessuna cancellazione)',
+    retentionMonths: (n: number) => (n % 12 === 0 ? (n === 12 ? '12 mesi (1 anno)' : `${n} mesi (${n / 12} anni)`) : `${n} mesi`),
+    retentionHint: 'Contati dall’ultima scelta di ciascun visitatore.',
   },
   library: {
     title: 'Libreria servizi',

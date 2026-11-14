@@ -7,6 +7,7 @@ import { createAdmin } from './services/admins.js';
 import { csvHeader, csvRow, iterateConsents, serializeRecord } from './services/consents.js';
 import { createSite, parseSiteInput } from './services/sites.js';
 import { importConsents } from './services/import.js';
+import { purgeExpiredConsents } from './services/retention.js';
 import { readFile } from 'node:fs/promises';
 
 const USAGE = `easy-cookie-server <command>
@@ -20,6 +21,8 @@ Commands:
   import <siteId> <file.jsonl> [--dry-run]   Import historical consent records (one JSON object per
                                              line, see docs/api.md "Importing records"); re-runs skip
                                              records already imported
+  purge [<siteId>] [--dry-run]                Delete consent records past each site's retention period
+                                             (the server also does this once a day)
 
 Requires DATABASE_URL.`;
 
@@ -121,6 +124,22 @@ async function main() {
           `${values['dry-run'] ? '[dry run] would import' : 'Imported'} ${res.imported} of ${res.read} records into ${site.name}` +
             (res.skipped ? ` (${res.skipped} already present)` : ''),
         );
+        break;
+      }
+      case 'purge': {
+        const { values, positionals } = parseArgs({
+          args: rest,
+          allowPositionals: true,
+          options: { 'dry-run': { type: 'boolean', default: false } },
+        });
+        const dryRun = values['dry-run'];
+        const results = await purgeExpiredConsents(prisma, { dryRun, siteId: positionals[0] });
+        if (!results.length) console.log('No site has a retention period.');
+        for (const r of results)
+          console.log(
+            `${r.name}: ${dryRun ? 'would delete' : 'deleted'} ${r.records} records of ${r.visitors} visitors ` +
+              `(latest choice before ${r.cutoff.slice(0, 10)}, ${r.months} months)`,
+          );
         break;
       }
       default:

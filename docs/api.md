@@ -75,9 +75,9 @@ Rate limit: 60 records per minute per IP hash per site, in memory (per process).
 | POST | `/admin/api/auth/login` | `{ email, password }` → `{ user, csrfToken }` |
 | POST | `/admin/api/auth/logout` | |
 | GET | `/admin/api/auth/me` | → `{ user, csrfToken }` or 401 |
-| GET | `/admin/api/sites` | → `[{ id, name, domain, publicKey, origins, publishedRevision, createdAt, stats30d: { total } }]` |
+| GET | `/admin/api/sites` | → `[{ id, name, domain, publicKey, origins, publishedRevision, consentRetentionMonths, createdAt, stats30d: { total } }]` |
 | POST | `/admin/api/sites` | `{ name, domain, origins[] }` → site + `secretKey` (shown once). Creates a starter draft config. |
-| GET / PATCH / DELETE | `/admin/api/sites/:id` | PATCH `{ name?, domain?, origins? }` |
+| GET / PATCH / DELETE | `/admin/api/sites/:id` | PATCH `{ name?, domain?, origins?, consentRetentionMonths? }`. `consentRetentionMonths` is `null` (keep records forever, the default) or 1–240: see [Retention](#retention). |
 | POST | `/admin/api/sites/:id/rotate-secret` | → `{ secretKey }` (once) |
 | GET | `/admin/api/sites/:id/draft` | → `{ config, updatedAt, issues: ConfigIssue[] }` |
 | PUT | `/admin/api/sites/:id/draft` | `{ config }` → same shape. Saves even when invalid and returns the issues. |
@@ -292,3 +292,7 @@ model LegalDocumentVersion {
 - `ipHash` is stored as-is. Hashes made by another system with another salt cannot be compared with this server's.
 - All or nothing: if any line is invalid, nothing is imported and every invalid line is reported.
 - Re-running the same file is safe. A record with the same `consentId`, `clientTimestamp` and `method` already in the register is skipped.
+
+## Retention
+
+When a site has `consentRetentionMonths`, the server deletes the records of every visitor (`consentId`) whose **latest** record is older than that many months. It runs a minute after start-up and then once a day. A visitor's records are always deleted together, so a visitor who keeps choosing again keeps their full history. Dates are `receivedAt` (imported records keep their original date). The same purge can be run, or previewed, from the CLI: `easy-cookie-server purge [<siteId>] [--dry-run]`.

@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { createApp } from './app.js';
 import { loadConfig, loadDotEnv } from './env.js';
 import { bootstrapAdmin } from './services/admins.js';
+import { scheduleRetention } from './services/retention.js';
 
 loadDotEnv();
 const config = loadConfig();
@@ -26,7 +27,10 @@ const server = serve({ fetch: app.fetch, port: config.port, hostname: config.hos
   if (!config.publicUrl) console.warn('[easy-cookie] PUBLIC_URL is not set: URLs are derived from each request');
 });
 
+const stopRetention = scheduleRetention(prisma);
+
 const shutdown = () => {
+  stopRetention();
   server.close();
   void prisma.$disconnect().finally(() => process.exit(0));
 };

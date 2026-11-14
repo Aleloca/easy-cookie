@@ -41,6 +41,8 @@ model Site {
   draftConfig       Json            @db.Json // json, not jsonb: keeps key order (category order matters)
   draftUpdatedAt    DateTime        @default(now())
   publishedRevision String?
+  /// Consent records are deleted this many months after each visitor's latest choice; null keeps them.
+  consentRetentionMonths Int?
   createdAt         DateTime        @default(now())
   versions          PolicyVersion[]
   consents          ConsentRecord[]

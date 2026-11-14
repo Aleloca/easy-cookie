@@ -9,6 +9,72 @@ import { useT } from '../../i18n';
 import { useTitle } from '../../lib/hooks';
 import { useSite } from './SiteLayout';
 
+const RETENTION_CHOICES = [6, 12, 24, 36, 60];
+
+function RetentionSection() {
+  const { site, setSite } = useSite();
+  const t = useT();
+  const [value, setValue] = useState<number | null>(site.consentRetentionMonths);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+  const choices = [...new Set([...RETENTION_CHOICES, ...(site.consentRetentionMonths ? [site.consentRetentionMonths] : [])])].sort((a, b) => a - b);
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setMsg(null);
+    try {
+      setSite(await sites.update(site.id, { consentRetentionMonths: value }));
+      setMsg({ kind: 'ok', text: t.settings.saved });
+    } catch (err) {
+      setMsg({ kind: 'error', text: errorMessage(err, t) });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="section" aria-labelledby="ret-h">
+      <h2 id="ret-h" className="section-title">
+        {t.settings.retention}
+      </h2>
+      <p className="section-lead">{t.settings.retentionLead}</p>
+      <form className="stack form-narrow" onSubmit={save} noValidate>
+        <Field label={t.settings.retentionField} hint={t.settings.retentionHint}>
+          {(p) => (
+            <select
+              {...p}
+              className="input"
+              value={value ?? ''}
+              onChange={(e) => {
+                setValue(e.target.value ? Number(e.target.value) : null);
+                setMsg(null);
+              }}
+            >
+              <option value="">{t.settings.retentionForever}</option>
+              {choices.map((n) => (
+                <option key={n} value={n}>
+                  {t.settings.retentionMonths(n)}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
+        <div className="row">
+          <Button type="submit" disabled={value === site.consentRetentionMonths} busy={busy}>
+            {busy ? t.common.saving : t.common.save}
+          </Button>
+          {msg && (
+            <span className={msg.kind === 'ok' ? 'ok-msg' : 'field-error'} role="status">
+              {msg.text}
+            </span>
+          )}
+        </div>
+      </form>
+    </section>
+  );
+}
+
 export function Settings() {
   const { site, setSite, reloadSites } = useSite();
   const t = useT();
@@ -85,6 +151,7 @@ export function Settings() {
             </div>
           </form>
         </section>
+        <RetentionSection />
         <section className="section section-danger" aria-labelledby="del-h">
           <h2 id="del-h" className="section-title">
             {t.settings.danger}

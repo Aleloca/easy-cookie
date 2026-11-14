@@ -437,6 +437,13 @@ const en: Dict = {
     deleteField: 'Domain to confirm',
     deleteConfirm: 'Delete forever',
     deleting: 'Deleting…',
+    retention: 'Register retention',
+    retentionLead:
+      'Every night the server deletes the records of visitors whose latest choice is older than this period. A visitor who comes back and chooses again keeps their whole history. State the same period in your privacy policy.',
+    retentionField: 'Keep records for',
+    retentionForever: 'Forever (never delete)',
+    retentionMonths: (n: number) => (n % 12 === 0 ? (n === 12 ? '12 months (1 year)' : `${n} months (${n / 12} years)`) : `${n} months`),
+    retentionHint: 'Counted from each visitor’s latest choice.',
   },
   library: {
     title: 'Service library',

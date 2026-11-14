@@ -195,6 +195,7 @@ export function createMockServer(opts: MockServerOptions = {}) {
         publicKey: `pk_${base62(rand, 24)}`,
         origins: body.origins ?? [],
         publishedRevision: null,
+        consentRetentionMonths: null,
         createdAt: new Date(now()).toISOString(),
         stats30d: { total: 0 },
         secretKey,
@@ -224,7 +225,7 @@ export function createMockServer(opts: MockServerOptions = {}) {
         return json(200, entry.site);
       }
       if (method === 'PATCH') {
-        entry.site = { ...entry.site, ...pick(body, ['name', 'domain', 'origins']) };
+        entry.site = { ...entry.site, ...pick(body, ['name', 'domain', 'origins', 'consentRetentionMonths']) };
         return json(200, entry.site);
       }
       if (method === 'DELETE') {
