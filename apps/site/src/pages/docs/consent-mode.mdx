@@ -127,6 +127,11 @@ In each tag's consent settings, keep **Require additional consent** on the right
 
 > For third-party tags without Consent Mode support, the tag's consent setting is not enough: always use the condition on the Data Layer Variable, otherwise the `easy_cookie_update` event that follows a rejection would fire them.
 
+The trigger is only for **base tags that were held back**. Two cases must not get it:
+
+- **Event tags** (a GA4 event, a Meta `Lead` or `CompleteRegistration`) keep their own triggers and only **Require additional consent**. With `easy_cookie_update` they would send a conversion that never happened every time a visitor accepts.
+- **The Google tag in advanced mode**: if it relies only on its built-in consent checks, with no additional consent, it has already fired on load and sent cookieless pings. When consent is granted it switches to cookies by itself, and an extra trigger would send a second `page_view`. Keep it on Initialization only.
+
 ### Checking with Preview
 
 Open Tag Assistant's preview in a private window:

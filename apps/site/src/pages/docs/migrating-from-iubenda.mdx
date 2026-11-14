@@ -96,7 +96,7 @@ On the first choice and on every change, the runtime calls `gtag('consent', 'upd
 googleConsentMode: { enabled: true, eventName: 'cookie_consent_update' },
 ```
 
-The payload is always `easyCookie.categories.<id>`. If a GTM variable read other dataLayer keys, point it there. Otherwise, add a Custom Event trigger on `easy_cookie_update` to your GA4, Ads and Meta base tags. See [Consent Mode and GTM](/docs/consent-mode/).
+The payload is always `easyCookie.categories.<id>`. If a GTM variable read other dataLayer keys, point it there. Otherwise, add a Custom Event trigger on `easy_cookie_update` to the base tags that wait for consent (Ads, the Meta pixel base, and GA4 only if its tag requires additional consent). Event tags and a Google tag in advanced Consent Mode must not get it, or they send duplicate page views and false conversions. See [Consent Mode and GTM](/docs/consent-mode/#the-fix-a-custom-event-trigger).
 
 ## JavaScript API
 
