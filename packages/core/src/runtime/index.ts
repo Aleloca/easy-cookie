@@ -1,6 +1,6 @@
 import * as engine from '../engine/index.esm.js';
 import { gcmStateFor, localize, resolveConfig, resolveTexts, validateConfig, type ResolvedConfig } from '../shared/config';
-import { decodeRawCookie, parseConsent, readCookie } from '../shared/cookie';
+import { parseConsent, readCookie } from '../shared/cookie';
 import type {
   ConsentEventDetail,
   ConsentMethod,
@@ -33,10 +33,17 @@ function detectLanguage(c: ResolvedConfig): string {
   return short && avail.includes(short) ? short : c.language.default;
 }
 
+/**
+ * Delete the consent cookie. The engine writes it with `Domain=<cookie.domain or
+ * location.hostname>`, and a domain cookie is only removed by a write with the same
+ * Domain, so clear every variant it may have used: host-only, the configured or
+ * current domain, and that domain without `www.`.
+ */
 function eraseCookie(c: ResolvedConfig) {
   const base = `${c.cookie.name}=; Max-Age=0; Path=${c.cookie.path}`;
   document.cookie = base;
-  if (c.cookie.domain) document.cookie = `${base}; Domain=${c.cookie.domain}`;
+  const domain = c.cookie.domain || location.hostname;
+  for (const d of new Set([domain, domain.replace(/^www\./, '')])) document.cookie = `${base}; Domain=${d}`;
 }
 
 /** Create an independent easy-cookie instance. The default export is a singleton. */
@@ -197,8 +204,7 @@ export function createEasyCookie(): EasyCookieApi {
       // valid: drop it so the engine shows the banner again (re-prompt).
       const rawValue = readCookie(document.cookie, config.cookie.name);
       if (rawValue && !parseConsent(rawValue, { revision: config.revision, expiryDays: config.expiryDays })) {
-        if (decodeRawCookie(rawValue)) eraseCookie(config);
-        else eraseCookie(config);
+        eraseCookie(config);
       }
       previous = get()?.categories ?? [];
 
