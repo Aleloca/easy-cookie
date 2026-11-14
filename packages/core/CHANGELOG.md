@@ -1,5 +1,11 @@
 # @easy-cookie/core
 
+## 0.1.7
+
+### Patch Changes
+
+- [`54e7f5e`](https://github.com/Aleloca/easy-cookie/commit/54e7f5e69552dd9b07e93a9a8494181d14775c9c) Thanks [@Aleloca](https://github.com/Aleloca)! - Re-prompt after a revision change on real hostnames. The consent cookie is written with `Domain=<hostname>`, but it was erased without a Domain, so Chrome kept it and the banner did not come back. The erase now also clears the domain variants (configured or current hostname, and without `www.`).
+
 ## 0.1.6
 
 ### Patch Changes
