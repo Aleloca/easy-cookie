@@ -4,6 +4,7 @@ import type { Site } from '../api/types';
 import { useAuth } from '../auth';
 import { useI18n, useT } from '../i18n';
 import { revisionLabel } from '../lib/format';
+import { BrandMark } from './BrandMark';
 import { Icon } from './Icon';
 
 export const IS_MOCK = import.meta.env.VITE_MOCK === '1';
@@ -211,6 +212,7 @@ export function Shell({ site, sites, children }: { site?: Site; sites?: Site[]; 
       </a>
       <aside className="rail">
         <Link to="/sites" className="brand">
+          <BrandMark />
           {t.common.brand}
         </Link>
         <div className="rail-desktop">
@@ -219,6 +221,7 @@ export function Shell({ site, sites, children }: { site?: Site; sites?: Site[]; 
       </aside>
       <header className="topbar">
         <Link to="/sites" className="brand">
+          <BrandMark />
           {t.common.brand}
         </Link>
         {site && <span className="topbar-site">{site.domain}</span>}

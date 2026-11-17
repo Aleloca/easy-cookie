@@ -30,12 +30,19 @@
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-weight: 700;
   font-size: var(--fs-lg);
   color: #fff;
   letter-spacing: -0.01em;
   text-decoration: none;
 }
+.brand-mark {
+  flex: none;
+}
+
 .rail .brand:focus-visible,
 .topbar :focus-visible,
 .rail :focus-visible {

@@ -7,6 +7,7 @@ import { IS_MOCK } from '../components/Shell';
 import { Button, Field } from '../components/ui';
 import { useI18n } from '../i18n';
 import { useTitle } from '../lib/hooks';
+import { BrandMark } from '../components/BrandMark';
 
 /**
  * A small specimen of each section, drawn with the console's own marks: the
@@ -71,7 +72,10 @@ export function Login() {
   return (
     <div className="login">
       <aside className="login-rail">
-        <span className="brand">{t.common.brand}</span>
+        <span className="brand">
+          <BrandMark />
+          {t.common.brand}
+        </span>
         <div className="rail-foot">
           <span className="rail-stamp login-version">
             {t.login.version} v{__CONSOLE_VERSION__}

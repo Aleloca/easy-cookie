@@ -18,11 +18,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={description} />
     <meta name="theme-color" content="#1e2f5a" />
     <link rel="canonical" href={canonical} />
+    <link rel="icon" href={url('/favicon.ico')} sizes="48x48" />
     <link rel="icon" href={url('/favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={url('/apple-touch-icon.png')} />
+    <link rel="manifest" href={url('/site.webmanifest')} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(url('/icon-512.png'), Astro.site)} />
     <slot name="head" />
   </head>
   <body>
